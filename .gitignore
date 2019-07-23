@@ -1,0 +1,10 @@
+CMakeCache.txt
+cmake_install.cmake
+koshi
+Makefile
+*.obj
+*.png
+*.out
+TODO
+CMakeFiles
+Scenes
