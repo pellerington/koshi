@@ -20,13 +20,12 @@ bool Lambert::sample_material(const Surface &surface, std::deque<SrfSample> &srf
     Eigen::Matrix3f transform = world_transform(surface.normal);
 
     std::vector<Vec2f> rnd;
-    RNG::StratifiedRand(num_samples, rnd);
+    RNG::Rand2d(num_samples, rnd);
 
-    for(uint i = 0; i < num_samples; i++)
+    for(uint i = 0; i < rnd.size(); i++)
     {
         srf_samples.emplace_back();
         SrfSample &srf_sample = srf_samples.back();
-        srf_sample.type = SrfSample::Material;
 
 #if UNIFORM_SAMPLE
         // Uniform Sample

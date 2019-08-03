@@ -38,11 +38,15 @@ public:
     inline const T &g() const { return (*this)[1]; }
     inline const T &b() const { return (*this)[2]; }
 
-
     inline Vec3& operator= (const Vec3& other) { (*this)[0] = other[0]; (*this)[1] = other[1]; (*this)[2] = other[2]; return *this; }
     inline Vec3& operator= (const T &n) { (*this)[0] = n; (*this)[1] = n; (*this)[2] = n; return *this; }
 
     inline Vec3 operator* (const Vec3& other) { return Vec3((*this)[0] * other[0], (*this)[1] * other[1], (*this)[2] * other[2]); }
+
+    inline T length() { return this->norm(); }
+    inline T sqr_length() { return this->squaredNorm(); }
+
+    inline Vec3<T> cross(const Vec3& other) const { return Eigen::Matrix<T, 3, 1>::cross(other); }
 
     static Vec3 Zero() { return Vec3(0, 0, 0); }
 
@@ -79,11 +83,15 @@ public:
     inline const T &u() const { return (*this)[0]; }
     inline const T &v() const { return (*this)[1]; }
 
-
     inline Vec2& operator= (const Vec2& other) { (*this)[0] = other[0]; (*this)[1] = other[1]; return *this; }
     inline Vec2& operator= (const T &n) { (*this)[0] = n; (*this)[1] = n; return *this; }
 
     inline Vec2 operator* (const Vec2& other) { return Vec2((*this)[0] * other[0], (*this)[1] * other[1]); }
+
+    inline T length() { return this->norm(); }
+    inline T sqr_length() { return this->squaredNorm(); }
+
+    inline Vec2<T> cross(const Vec2& other) const { return Eigen::Matrix<T, 2, 1>::cross(other); }
 
     static Vec2 Zero() { return Vec2(0, 0); }
 

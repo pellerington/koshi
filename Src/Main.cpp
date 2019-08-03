@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
 {
     int threads = 1;
     std::string filename;
-    bool prerand = false;
     for(int i = 1; i < argc-1; i++)
     {
         if(std::string(argv[i]) == "-threads")
@@ -28,7 +27,7 @@ int main(int argc, char *argv[])
     // std::vector<Vec3f> points;
     // int num_samples = 25000;
     // std::vector<Vec2f> rnd;
-    // RNG::StratifiedRand(num_samples, rnd);
+    // RNG::Rand2d(num_samples, rnd);
     // for(int i = 0; i < num_samples; i++)
     // {
     //     Vec3f point;
@@ -36,16 +35,21 @@ int main(int argc, char *argv[])
     // }
     // DebugObj::Points(points);
 
-    std::cout << "Rendering: " << filename << '\n';
+    std::cout << "File: " << filename << '\n';
 
     Scene scene = SceneFile::Import(filename);
     Render render(&scene, threads);
 
+    std::cout << "Imported Scene" << '\n';
+
     std::thread render_thread(&Render::start_render, &render);
+
+    std::cout << "Render Thread Started." << '\n';
+
     std::thread view_thread(SFMLViewer::RenderWindow, 1024, &render);
     view_thread.join();
 
-    std::cout << "Terminated render." << '\n';
+    std::cout << "End Render." << '\n';
 
     return 0;
 }

@@ -35,10 +35,10 @@ inline const float surface_area(const Eigen::AlignedBox3f &bbox)
 }
 
 // Move these into a custom BBOX class eventually
-inline bool intersect_bbox(Ray &ray, const Eigen::AlignedBox3f &bbox)
+inline bool intersect_bbox(const Ray &ray, const Eigen::AlignedBox3f &bbox)
 {
     Vec3f t1 = (bbox.min() - ray.o).cwiseProduct(ray.inv_dir);
-    Vec3f t2 = (bbox.max() - ray.o).cwiseProduct(ray.inv_dir);
+    Vec3f t2 = (bbox.max() - ray.o).cwiseProduct(ray.inv_dir); //Make this faster!
     float tmin = (t1.cwiseMin(t2)).maxCoeff();
     float tmax = (t1.cwiseMax(t2)).minCoeff();
 

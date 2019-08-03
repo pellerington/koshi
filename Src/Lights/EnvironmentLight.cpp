@@ -28,7 +28,7 @@ bool EnvironmentLight::evaluate_light(const Ray &ray, Vec3f &light, float* pdf)
     return true;
 }
 
-bool EnvironmentLight::sample_light(const uint num_samples, const Surface &surface, std::deque<SrfSample> &srf_samples)
+bool EnvironmentLight::sample_light(const uint num_samples, const Surface &surface, std::deque<LightSample> &light_samples)
 {
     return false;
 }

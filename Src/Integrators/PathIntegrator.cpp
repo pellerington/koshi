@@ -14,14 +14,14 @@ void PathIntegrator::pre_render()
     scene->accelerate();
 }
 
-std::shared_ptr<Integrator> PathIntegrator::create(Ray &ray, float* light_pdf)
+std::shared_ptr<Integrator> PathIntegrator::create(Ray &ray, float* light_pdf, const LightSample* light_sample)
 {
     std::shared_ptr<PathIntegrator> path_integrator(new PathIntegrator(scene));
-    path_integrator->setup(ray, light_pdf);
+    path_integrator->setup(ray, light_pdf, light_sample);
     return path_integrator;
 }
 
-void PathIntegrator::setup(Ray &ray, float* light_pdf)
+void PathIntegrator::setup(Ray &ray, float* light_pdf, const LightSample* light_sample)
 {
     // Initialize variables
     color = Vec3f::Zero();
@@ -29,15 +29,18 @@ void PathIntegrator::setup(Ray &ray, float* light_pdf)
     emission = Vec3f::Zero();
     depth = ray.depth;
 
+    if(light_sample)
+        ray.t = light_sample->t;
+
     // Intersect with our scene
     scene->intersect(ray, surface);
 
     // Check if we intersected any lights
     if(depth > 0 || scene->settings.display_lights)
-        scene->evaluate_lights(ray, emission, light_pdf);
+        scene->evaluate_lights(ray, emission, light_pdf, light_sample);
 
     // If we hit nothing end it here
-    if(!surface.object)
+    if(!surface.object || !ray.hit)
     {
         Vec3f environment = 0.f;
         scene->evaluate_environment_light(ray, environment);
@@ -97,7 +100,7 @@ void PathIntegrator::integrate(size_t num_samples)
         ray.o = surface.position;
         ray.dir = sample.wo;
         ray.depth = depth + 1;
-        std::shared_ptr<Integrator> integrator = (sample.type == SrfSample::Material) ? create(ray, &mis_pdf) : create(ray);
+        std::shared_ptr<Integrator> integrator = (sample.type == SrfSample::Material) ? create(ray, &mis_pdf, nullptr) : create(ray, nullptr, &sample.light_sample);
         integrator->integrate(integrator->get_required_samples());
 
         if(multiple_importance_sample)

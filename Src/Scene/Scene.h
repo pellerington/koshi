@@ -29,7 +29,8 @@ public:
 
     void accelerate();
     bool intersect(Ray &ray, Surface &surface);
-    bool evaluate_lights(const Ray &ray, Vec3f &light, float* pdf);
+    bool evaluate_lights(const Ray &ray, Vec3f &light, float* pdf, const LightSample* light_sample);
+    inline void evaluate_light(const uint i, const Ray &ray, Vec3f &light, float* pdf);
     bool evaluate_environment_light(const Ray &ray, Vec3f &light, float* pdf = nullptr);
     bool sample_lights(const Surface &surface, std::deque<SrfSample> &srf_samples, const float sample_multiplier = 1.f);
 

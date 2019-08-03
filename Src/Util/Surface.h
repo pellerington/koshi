@@ -3,6 +3,7 @@
 #include <cfloat>
 #include "../Math/Types.h"
 #include "../Objects/Object.h"
+#include "../Lights/LightSample.h"
 class Object;
 
 #define SAMPLES_PER_SA 64
@@ -15,7 +16,7 @@ struct Surface
     float u = 0.f;
     float v = 0.f;
     Object * object = nullptr;
-    //TODO: Surface should store transform
+    //TODO: Surface should store transform?
 };
 
 struct SrfSample
@@ -25,9 +26,8 @@ struct SrfSample
     float pdf = 0.f;
     Vec3f color = 0.f;
 
-    enum Type {
-        Material,
-        Light
-    };
-    Type type;
+    enum Type { Material, Light };
+    Type type = Type::Material;
+
+    LightSample light_sample;
 };

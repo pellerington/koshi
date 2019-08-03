@@ -22,13 +22,12 @@ bool GGX::sample_material(const Surface &surface, std::deque<SrfSample> &srf_sam
     Eigen::Matrix3f transform = world_transform(surface.normal);
 
     std::vector<Vec2f> rnd;
-    RNG::StratifiedRand(num_samples, rnd);
+    RNG::Rand2d(num_samples, rnd);
 
-    for(uint i = 0; i < num_samples; i++)
+    for(uint i = 0; i < rnd.size(); i++)
     {
         srf_samples.emplace_back();
         SrfSample &srf_sample = srf_samples.back();
-        srf_sample.type = SrfSample::Material;
 
 #if UNIFORM_SAMPLE
         // Uniform Sample
@@ -100,7 +99,7 @@ inline float GGX::D(const Vec3f &n, const Vec3f &h)
 {
     //Distribution GGX ( https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf )
     float n_dot_h = clamp(n.dot(h), 0.f, 1.f); // Should be passed in
-    float tan_h = n.cross(h).norm() / n_dot_h;
+    float tan_h = n.cross(h).length() / n_dot_h;
     float det = roughness_sqr + (tan_h * tan_h);
     return (((n_dot_h > 0) ? 1.f : 0.f) * roughness_sqr) / (PI * std::pow(n_dot_h, 4) * det * det);
 }
@@ -112,7 +111,7 @@ inline float GGX::G1(const Vec3f &v, const Vec3f &n, const Vec3f &h)
     float v_dot_n = clamp(v.dot(n), 0.f, 1.f); // Should this be h or n?
     float x = ((v_dot_h / v_dot_n) > 0.f) ? 1.f : 0.f;
     // float v_dot_h_sqr = v_dot_h * v_dot_h; // add this back in?
-    float tan_sqr = std::pow(v.cross(n).norm() / v.dot(n), 2);//(1.f - v_dot_h_sqr) / v_dot_h_sqr;
+    float tan_sqr = std::pow(v.cross(n).length() / v.dot(n), 2);//(1.f - v_dot_h_sqr) / v_dot_h_sqr;
 
     return (x * 2.f) / (1.f + sqrtf(1.f + roughness_sqr * tan_sqr));
 }

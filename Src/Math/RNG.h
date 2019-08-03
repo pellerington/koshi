@@ -10,7 +10,7 @@ class RNG
 public:
     inline static float Rand() { return distribution(generator); };
 
-    static void StratifiedRand(uint num_samples, std::vector<Vec2f> &samples)
+    static void Rand2d(uint num_samples, std::vector<Vec2f> &samples)
     {
         float size = floor(sqrtf((float)num_samples));
         samples.resize(num_samples);

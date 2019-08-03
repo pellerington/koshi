@@ -25,8 +25,9 @@ Render::Render(Scene * scene, uint num_workers)
         {
             pixels[x][y].pixel = Vec2i(x, y);
             pixels[x][y].required_samples = scene->camera.get_pixel_samples(pixels[x][y].pixel);
-            RNG::StratifiedRand(pixels[x][y].required_samples, pixels[x][y].rng);
+            RNG::Rand2d(pixels[x][y].required_samples, pixels[x][y].rng);
             RNG::Shuffle<Vec2f>(pixels[x][y].rng);
+            pixels[x][y].required_samples = pixels[x][y].rng.size();
         }
     }
 }

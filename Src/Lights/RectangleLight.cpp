@@ -7,7 +7,7 @@ RectangleLight::RectangleLight(Vec3f position, Vec3f u, Vec3f v, Vec3f intensity
 : Light(Type::Rectangle, intensity), position(position), u(u), v(v), double_sided(double_sided)
 {
     normal = u.normalized().cross(v.normalized());
-    area = u.norm() * v.norm();
+    area = u.length() * v.length();
 }
 
 bool RectangleLight::evaluate_light(const Ray &ray, Vec3f &light, float* pdf)
@@ -25,36 +25,37 @@ bool RectangleLight::evaluate_light(const Ray &ray, Vec3f &light, float* pdf)
 
     float tu = u.normalized().dot(light_point - position);
     float tv = v.normalized().dot(light_point - position);
-    if(tu < 0.f || tu > u.norm() || tv < 0.f || tv > v.norm())
+    if(tu < 0.f || tu > u.length() || tv < 0.f || tv > v.length())
         return false;
 
     if(pdf)
-        *pdf = dir.squaredNorm() / (area * normal.dot(-dir));
+        *pdf = dir.sqr_length() / (area * normal.dot(-dir));
 
     light = intensity;
     return true;
 }
 
-bool RectangleLight::sample_light(const uint num_samples, const Surface &surface, std::deque<SrfSample> &srf_samples) //Should sample a point so that bidirectional works
+bool RectangleLight::sample_light(const uint num_samples, const Surface &surface, std::deque<LightSample> &light_samples)
 {
     std::vector<Vec2f> rnd;
-    RNG::StratifiedRand(num_samples, rnd);
+    RNG::Rand2d(num_samples, rnd);
 
-    for(uint i = 0; i < num_samples; i++)
+    for(uint i = 0; i < rnd.size(); i++)
     {
-        Vec3f dir = ((position + rnd[i][0]*u + rnd[i][1]*v) - surface.position);
+        Vec3f point = (position + rnd[i][0]*u + rnd[i][1]*v);
+        Vec3f dir = (point - surface.position);
 
         if(dir.dot(surface.normal) < 0.f)
             continue;
         if(dir.dot(-normal) < 0.f && !double_sided)
             continue;
 
-        srf_samples.emplace_back();
-        SrfSample &srf_sample = srf_samples.back();
-        srf_sample.type = SrfSample::Light;
+        light_samples.emplace_back();
+        LightSample &light_sample = light_samples.back();
 
-        srf_sample.wo = dir.normalized();
-        srf_sample.pdf = dir.squaredNorm() / (area * fabs(normal.dot(-dir)));
+        light_sample.position = point;
+        light_sample.intensity = intensity;
+        light_sample.pdf = dir.sqr_length() / (area * fabs(normal.dot(-dir)));
     }
 
     return true;

@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 project (Koshi)
 
-
 find_library(OPENIMAGEIO NAMES openimageio OpenImageIO)
 message(STATUS "OpenImageIO: ${OPENIMAGEIO_LIBRARY}")
 
