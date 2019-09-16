@@ -30,6 +30,8 @@ Render::Render(Scene * scene, uint num_workers)
             pixels[x][y].required_samples = pixels[x][y].rng.size();
         }
     }
+
+    scene->pre_render();
 }
 
 void Render::start_render()

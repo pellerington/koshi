@@ -12,7 +12,7 @@ bool EnvironmentLight::evaluate_light(const Ray &ray, Vec3f &light, float* pdf)
     light = 1.f;
 
     float theta = acosf(ray.dir.y());
-    float phi = atanf((ray.dir.z() + EPSILON) / (ray.dir.x() + EPSILON));
+    float phi = atanf((ray.dir.z() + EPSILON_F) / (ray.dir.x() + EPSILON_F));
     bool zd = ray.dir.z() > 0, xd = ray.dir.x() > 0;
     if(!zd) phi += PI;
     if(xd != zd) phi += PI;

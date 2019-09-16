@@ -2,7 +2,6 @@
 
 #include <random>
 #include <deque>
-#include <Eigen/Core>
 #include "../Math/Types.h"
 
 class RNG

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
 #include "LightSample.h"
 #include "../Util/Surface.h"
 #include "../Util/Ray.h"

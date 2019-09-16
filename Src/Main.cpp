@@ -25,16 +25,17 @@ int main(int argc, char *argv[])
     }
 
     // std::vector<Vec3f> points;
-    // int num_samples = 25000;
+    // int num_samples = 256;
     // std::vector<Vec2f> rnd;
     // RNG::Rand2d(num_samples, rnd);
     // for(int i = 0; i < num_samples; i++)
     // {
-    //     Vec3f point;
-    //     points.push_back(point);
+    //     points.push_back(wo);
+    //     points.push_back(h);
     // }
     // DebugObj::Points(points);
 
+    std::cout << "Threads: " << threads << '\n';
     std::cout << "File: " << filename << '\n';
 
     Scene scene = SceneFile::Import(filename);

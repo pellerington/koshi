@@ -1,5 +1,7 @@
 #include "Sphere.h"
 
+#if !EMBREE
+
 Sphere::Sphere(Vec3f position, float scale, std::shared_ptr<Material> material)
 : Object(material), position(position), scale(scale), scale_sqr(scale*scale)
 {
@@ -33,12 +35,14 @@ bool Sphere::intersect(Ray &ray, Surface &surface)
     Vec3f hit_position = ray.o + t * ray.dir;
     Vec3f normal = (hit_position - position).normalized();
     // ADD DOULE SIDED OPTION
-    if (t > EPSILON && t < ray.t && normal.dot(ray.dir) < 0)
+
+    if (t < ray.t)
     {
         ray.t = t;
         ray.hit = true;
         surface.position = hit_position;
         surface.wi = ray.dir;
+        surface.enter = normal.dot(ray.dir) < 0;
         surface.normal = normal;
         surface.u = 0.f;
         surface.v = 0.f;
@@ -47,5 +51,6 @@ bool Sphere::intersect(Ray &ray, Surface &surface)
     }
 
     return false;
-
 }
+
+#endif

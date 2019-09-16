@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <Eigen/Core>
 
 class DebugObj
 {

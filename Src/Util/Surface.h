@@ -15,6 +15,7 @@ struct Surface
     Vec3f normal; // TODO: add geometric normal
     float u = 0.f;
     float v = 0.f;
+    bool enter = true;
     Object * object = nullptr;
     //TODO: Surface should store transform?
 };
@@ -25,6 +26,7 @@ struct SrfSample
     Vec3f fr;
     float pdf = 0.f;
     Vec3f color = 0.f;
+    float quality = 1.f;
 
     enum Type { Material, Light };
     Type type = Type::Material;

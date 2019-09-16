@@ -15,9 +15,14 @@ public:
     ObjectType get_type() { return ObjectType::Triangle; }
     std::vector<std::shared_ptr<Object>> get_sub_objects() { return std::vector<std::shared_ptr<Object>>(1, std::shared_ptr<Object>(this)); }
     bool intersect(Ray &ray, Surface &surface);
-    void init();
+
+#if EMBREE
+    void process_intersection(RTCRayHit &rtcRayHit, Ray &ray, Surface &surface);
+#endif
+
 private:
-    std::shared_ptr<Vec3f> vert[3];
+    void init();
+    std::shared_ptr<Vec3f> vertices[3];
     std::shared_ptr<Vec3f> normals[3];
     Vec3f normal;
     bool smooth_normals;

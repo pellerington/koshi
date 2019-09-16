@@ -1,24 +1,19 @@
 #pragma once
 
-#include "Material.h"
+#include "../Math/Types.h"
 
-class GGX : public Material
+inline float D(const Vec3f &n, const Vec3f &h, const double &n_dot_h, const double &roughness_sqr)
 {
-public:
-    GGX(Vec3f specular_color = Vec3f::Zero(), float roughness = 0.f, float ior = 1.f, Vec3f emission = Vec3f::Zero());
-    const Vec3f get_emission() { return emission; }
-    bool sample_material(const Surface &surface, std::deque<SrfSample> &srf_samples, float sample_reduction = 1.f);
-    bool evaluate_material(const Surface &surface, SrfSample &srf_sample, float &pdf);
+    // GGX Distribution ( https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf )
+    const float tan_h = n.cross(h).length() / n_dot_h;
+    const float det = roughness_sqr + (tan_h * tan_h);
+    return (((n_dot_h > 0) ? 1.f : 0.f) * roughness_sqr) / (PI * std::pow(n_dot_h, 4) * det * det);
+}
 
-    inline float D(const Vec3f &n, const Vec3f &h);
-    inline float G1(const Vec3f &v, const Vec3f &n, const Vec3f &h);
-    inline Vec3f F(const Vec3f &wi, const Vec3f &h);
-
-private:
-    Vec3f specular_color;
-    float roughness;
-    float roughness_sqr;
-    float roughness_sqrt;
-    float ior;
-    Vec3f emission;
-};
+inline float G1(const Vec3f &v, const Vec3f &n, const Vec3f &h, const float &h_dot_v, const float &n_dot_v, const double &roughness_sqr)
+{
+    // GGX Geometric Term GGXReflect ( https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf )
+    const float x = ((h_dot_v / n_dot_v) > 0.f) ? 1.f : 0.f;
+    const float tan_sqr = std::pow(v.cross(n).length() / n_dot_v, 2);
+    return (x * 2.f) / (1.f + sqrtf(1.f + roughness_sqr * tan_sqr));
+}

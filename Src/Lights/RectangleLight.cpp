@@ -45,9 +45,11 @@ bool RectangleLight::sample_light(const uint num_samples, const Surface &surface
         Vec3f point = (position + rnd[i][0]*u + rnd[i][1]*v);
         Vec3f dir = (point - surface.position);
 
-        if(dir.dot(surface.normal) < 0.f)
+        if(dir.dot(surface.normal) < EPSILON_F) // THIS IS INCORRECT IF WE HAVE A BACKFACING BXDF
             continue;
-        if(dir.dot(-normal) < 0.f && !double_sided)
+
+        float cos_theta = dir.dot(-normal);
+        if(cos_theta < 0.f && !double_sided)
             continue;
 
         light_samples.emplace_back();
@@ -55,7 +57,7 @@ bool RectangleLight::sample_light(const uint num_samples, const Surface &surface
 
         light_sample.position = point;
         light_sample.intensity = intensity;
-        light_sample.pdf = dir.sqr_length() / (area * fabs(normal.dot(-dir)));
+        light_sample.pdf = dir.sqr_length() / (area * (fabs(cos_theta) + EPSILON_F));
     }
 
     return true;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Eigen/Geometry>
 #include "../Math/RNG.h"
 #include "../Util/Surface.h"
 

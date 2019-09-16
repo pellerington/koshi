@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #define HALF_PI 1.57079632679
 #define PI 3.14159265359
@@ -10,7 +11,8 @@
 #define INV_PI 0.31830988618
 #define INV_TWO_PI 0.15915494309
 
-#define EPSILON 0.0000001f
+#define EPSILON_F 0.000001f
+#define DELTA_PDF 1e9
 
 typedef unsigned int uint;
 
@@ -41,16 +43,31 @@ public:
     inline Vec3& operator= (const Vec3& other) { (*this)[0] = other[0]; (*this)[1] = other[1]; (*this)[2] = other[2]; return *this; }
     inline Vec3& operator= (const T &n) { (*this)[0] = n; (*this)[1] = n; (*this)[2] = n; return *this; }
 
+    inline Vec3& operator*= (const Vec3& other) { (*this)[0] *= other[0]; (*this)[1] *= other[1]; (*this)[2] *= other[2]; return *this; }
     inline Vec3 operator* (const Vec3& other) { return Vec3((*this)[0] * other[0], (*this)[1] * other[1], (*this)[2] * other[2]); }
+
+    // friend inline Vec3 operator* (const Vec3& n, const Vec3& m) { return Vec3(n[0] * m[0], n[1] * m[1], n[2] * m[2]); }
+
+    // Do this for Vec2;
+    inline Vec3& operator*= (const T &n) { (*this)[0] *= n; (*this)[1] *= n; (*this)[2] *= n; return *this; }
+    inline Vec3 operator* (const T &n) { return Vec3((*this)[0] * n, (*this)[1] * n, (*this)[2] * n); }
+
+    inline Vec3 operator- () const { return Vec3(-(*this)[0], -(*this)[1], -(*this)[2]); }
+    inline Vec3 operator- (const Vec3& other) { return Vec3((*this)[0] - other[0], (*this)[1] - other[1], (*this)[2] - other[2]); }
+    inline Vec3 operator- (const T &n) { return Vec3((*this)[0] - n, (*this)[1] - n, (*this)[2] - n); }
+    friend inline Vec3 operator- (const T &n, const Vec3& other) { return Vec3(n - other[0], n - other[1], n - other[2]); }
 
     inline T length() { return this->norm(); }
     inline T sqr_length() { return this->squaredNorm(); }
 
     inline Vec3<T> cross(const Vec3& other) const { return Eigen::Matrix<T, 3, 1>::cross(other); }
 
-    static Vec3 Zero() { return Vec3(0, 0, 0); }
+    inline Vec3 normalized() { Vec3 v(*this); v.normalize(); return v; }
 
-    //Default Eigen
+    static Vec3 Zero() { return Vec3(0); }
+    static Vec3 Ones() { return Vec3(1); }
+
+    // Default Eigen
     template<typename OtherDerived>
     Vec3(const Eigen::MatrixBase<OtherDerived>& other) : Eigen::Matrix<T, 3, 1>(other)  {}
     template<typename OtherDerived>
@@ -59,6 +76,14 @@ public:
         this->Eigen::Matrix<T, 3, 1>::operator=(other);
         return *this;
     }
+
+    // Do this for Vec2
+    friend std::ostream& operator<<(std::ostream& os, const Vec3& v)
+    {
+        os << "(" << v[0] << " " << v[1] << " " << v[2] << ")";
+        return os;
+    }
+
 };
 
 typedef Vec3<float> Vec3f;
@@ -87,6 +112,8 @@ public:
     inline Vec2& operator= (const T &n) { (*this)[0] = n; (*this)[1] = n; return *this; }
 
     inline Vec2 operator* (const Vec2& other) { return Vec2((*this)[0] * other[0], (*this)[1] * other[1]); }
+
+    inline Vec2& operator- (const T &n) { (*this)[0] -= n; (*this)[1] -= n; return *this; }
 
     inline T length() { return this->norm(); }
     inline T sqr_length() { return this->squaredNorm(); }

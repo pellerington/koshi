@@ -1,9 +1,6 @@
 #include "Triangle.h"
 
-#if !EMBREE
-
-#include <iostream>
-#include <cfloat>
+#if EMBREE
 
 Triangle::Triangle(std::shared_ptr<Vec3f> v0, std::shared_ptr<Vec3f> v1, std::shared_ptr<Vec3f> v2,
                    std::shared_ptr<Vec3f> n0, std::shared_ptr<Vec3f> n1, std::shared_ptr<Vec3f> n2,
@@ -33,49 +30,42 @@ Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, Vec3f n0, Vec3f n1, Vec3f n2, s
 void Triangle::init()
 {
     bbox = Eigen::AlignedBox3f(vertices[0]->cwiseMin(vertices[1]->cwiseMin(*vertices[2])), vertices[0]->cwiseMax(vertices[1]->cwiseMax(*vertices[2])));
-    normal = ((*vertices[0] - *vertices[1]).cross(*vertices[0] - *vertices[2])).normalized();
     smooth_normals =  normals[0] && normals[1] && normals[2];
+
+    mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
+
+    RTCVertex * rtc_vertices = (RTCVertex*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), 3);
+    for(uint i = 0; i < 3; i++)
+    {
+        rtc_vertices[i].x = vertices[i]->x();
+        rtc_vertices[i].y = vertices[i]->y();
+        rtc_vertices[i].z = vertices[i]->z();
+    }
+
+    RTCTriangle * triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), 1);
+    triangles[0].v0 = 0;
+    triangles[0].v1 = 1;
+    triangles[0].v2 = 2;
 }
+
+void Triangle::process_intersection(RTCRayHit &rtcRayHit, Ray &ray, Surface &surface)
+{
+    surface.position = ray.o + ray.t * ray.dir;
+    surface.wi = ray.dir;
+    surface.normal = Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z);
+    surface.normal.normalize();
+    surface.enter = surface.normal.dot(ray.dir) < 0;
+    surface.u = rtcRayHit.hit.u;
+    surface.v = rtcRayHit.hit.v;
+    //Smooth normals here (use ray.hit.primID to get triangle)
+    // surface.normal = (smooth_normals) ? (1.f - u - v) * *normals[0] + u * *normals[1] + v * *normals[2] : normal;
+    surface.object = this;
+}
+
 
 bool Triangle::intersect(Ray &ray, Surface &surface)
 {
-    Vec3f edge1, edge2, h, s, q;
-    float a,f,u,v;
-    edge1 = *vertices[1] - *vertices[0];
-    edge2 = *vertices[2] - *vertices[0];
-    h = ray.dir.cross(edge2);
-    a = edge1.dot(h);
-    if (a > -EPSILON_F && a < EPSILON_F)
-        return false;
-    f = 1.0f/a;
-    s = ray.o - *vertices[0];
-    u = f * s.dot(h);
-    if (u < 0.0f || u > 1.0f)
-        return false;
-    q = s.cross(edge1);
-    v = f * ray.dir.dot(q);
-    if (v < 0.0f || u + v > 1.0f)
-        return false;
-    float t = f * edge2.dot(q);
-
-    if (t < ray.t)
-    {
-        ray.t = t;
-        ray.hit = true;
-        surface.position = ray.o + t * ray.dir;
-        surface.wi = ray.dir;
-        surface.enter = normal.dot(ray.dir) < 0;
-        surface.normal = (smooth_normals) ? (1.f - u - v) * *normals[0] + u * *normals[1] + v * *normals[2] : normal;
-
-        // TODO: Remap to texture space? or do later
-        surface.u = u;
-        surface.v = v;
-
-        surface.object = this;
-        return true;
-    }
-    else
-        return false;
+    return false;
 }
 
 #endif

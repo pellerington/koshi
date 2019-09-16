@@ -6,11 +6,13 @@
 #include "../Lights/EnvironmentLight.h"
 #include "../Textures/Texture.h"
 
+#include "Embree.h"
 #include "Accelerator.h"
 #include "Camera.h"
 
 #include <vector>
 #include <memory>
+#include <map>
 
 class Scene
 {
@@ -27,7 +29,7 @@ public:
     Scene() {}
     Scene(const Camera &camera, const Settings &settings) : camera(camera), settings(settings) {}
 
-    void accelerate();
+    void pre_render();
     bool intersect(Ray &ray, Surface &surface);
     bool evaluate_lights(const Ray &ray, Vec3f &light, float* pdf, const LightSample* light_sample);
     inline void evaluate_light(const uint i, const Ray &ray, Vec3f &light, float* pdf);
@@ -43,6 +45,12 @@ public:
     bool add_texture(std::shared_ptr<Texture> texture);
 
 private:
+
+#if EMBREE
+    std::map<uint, std::shared_ptr<Object>> rtc_to_obj;
+    RTCScene rtc_scene;
+#endif
+
     std::vector<std::shared_ptr<Object>> objects;
     std::vector<std::shared_ptr<Material>> materials;
     std::vector<std::shared_ptr<Light>> lights;

@@ -1,10 +1,8 @@
 #pragma once
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
 #include "../Util/Ray.h"
 
-inline const float clamp(const float &value, const float &min, const float &max)
+inline float clamp(const float &value, const float &min, const float &max)
 {
     return (value < min) ? min : ((value > max) ? max : value);
 }

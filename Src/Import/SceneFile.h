@@ -9,7 +9,9 @@
 #include "../Objects/Triangle.h"
 #include "../Objects/Sphere.h"
 #include "../Materials/Lambert.h"
-#include "../Materials/GGX.h"
+#include "../Materials/GGXReflect.h"
+#include "../Materials/GGXRefract.h"
+#include "../Materials/Dielectric.h"
 #include "../Lights/RectangleLight.h"
 #include "../Textures/Image.h"
 #include "MeshFile.h"
@@ -99,10 +101,34 @@ public:
                     {
                         Vec3f specular_color = get_vec3f(*it, "specular_color");
                         float roughness = get_float(*it, "roughness");
-                        float ior = get_float(*it, "ior", 1.f);
                         Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new GGX(specular_color, roughness, ior, emission));
+                        std::shared_ptr<Material> material(new GGXReflect(specular_color, roughness, nullptr, emission));
+                        materials[(*it)["name"]] = material;
+                        scene.add_material(material);
+                    }
+
+                    if((*it)["type"] == "ggx_refract")
+                    {
+                        Vec3f refractive_color = get_vec3f(*it, "refractive_color");
+                        float ior = get_float(*it, "ior", 1.f);
+                        float roughness = get_float(*it, "roughness");
+                        Vec3f emission = get_vec3f(*it, "emission");
+
+                        std::shared_ptr<Material> material(new GGXRefract(refractive_color, roughness, ior, nullptr, emission));
+                        materials[(*it)["name"]] = material;
+                        scene.add_material(material);
+                    }
+
+                    if((*it)["type"] == "dielectric")
+                    {
+                        Vec3f reflective_color = get_vec3f(*it, "reflective_color");
+                        Vec3f refractive_color = get_vec3f(*it, "refractive_color");
+                        float ior = get_float(*it, "ior", 1.f);
+                        float roughness = get_float(*it, "roughness");
+                        Vec3f emission = get_vec3f(*it, "emission");
+
+                        std::shared_ptr<Material> material(new Dielectric(reflective_color, refractive_color, roughness, ior, emission));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -118,8 +144,8 @@ public:
                 if((*it)["type"] == "triangle")
                 {
                     Vec3f v0 = get_vec3f(*it, "v0");
-                    Vec3f v1 = get_vec3f(*it, "v0");
-                    Vec3f v2 = get_vec3f(*it, "v0");
+                    Vec3f v1 = get_vec3f(*it, "v1");
+                    Vec3f v2 = get_vec3f(*it, "v2");
 
                     std::shared_ptr<Material> material;
                     if((*it)["material"].is_string())
@@ -133,14 +159,10 @@ public:
                 {
                     if((*it)["file"]["type"].is_string() && (*it)["file"]["name"].is_string())
                     {
+                        std::shared_ptr<Material> material = ((*it)["material"].is_string()) ? materials[(*it)["material"]] : nullptr;
                         std::shared_ptr<Mesh> mesh;
                         if ((*it)["file"]["type"] == "obj")
-                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"]);
-
-                        std::shared_ptr<Material> material;
-                        if((*it)["material"].is_string())
-                            material = materials[(*it)["material"]];
-                        mesh->add_material(material);
+                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], material);
 
                         if(mesh)
                             scene.add_object(mesh);

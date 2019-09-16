@@ -11,23 +11,23 @@ const Vec3f PathIntegrator::get_color()
 
 void PathIntegrator::pre_render()
 {
-    scene->accelerate();
 }
 
-std::shared_ptr<Integrator> PathIntegrator::create(Ray &ray, float* light_pdf, const LightSample* light_sample)
+std::shared_ptr<Integrator> PathIntegrator::create(Ray &ray, const float current_quality, float* light_pdf, const LightSample* light_sample)
 {
     std::shared_ptr<PathIntegrator> path_integrator(new PathIntegrator(scene));
-    path_integrator->setup(ray, light_pdf, light_sample);
+    path_integrator->setup(ray, current_quality, light_pdf, light_sample);
     return path_integrator;
 }
 
-void PathIntegrator::setup(Ray &ray, float* light_pdf, const LightSample* light_sample)
+void PathIntegrator::setup(Ray &ray, const float _current_quality, float* light_pdf, const LightSample* light_sample)
 {
     // Initialize variables
     color = Vec3f::Zero();
     normalization = 0.f;
     emission = Vec3f::Zero();
     depth = ray.depth;
+    current_quality = _current_quality;
 
     if(light_sample)
         ray.t = light_sample->t;
@@ -44,11 +44,14 @@ void PathIntegrator::setup(Ray &ray, float* light_pdf, const LightSample* light_
     {
         Vec3f environment = 0.f;
         scene->evaluate_environment_light(ray, environment);
-        emission += environment;
+        if(depth > 0 || scene->settings.display_lights)
+            emission += environment;
         return;
     }
 
-    material = surface.object->material; // This should be surface.object->material->get_material(Surface surface); (So that textures can be evaluated once.)
+    // if(!material)
+        // Use some default material.
+    material = surface.object->material->instance(surface);
 
     // Add any emissive component of the material to the integrator
     emission += material->get_emission();
@@ -58,7 +61,7 @@ void PathIntegrator::setup(Ray &ray, float* light_pdf, const LightSample* light_
         return;
 
     // Reduce number of samples base on the depth
-    float sample_multiplier = scene->settings.quality / powf((depth + 1), 4);
+    float sample_multiplier = scene->settings.quality * current_quality;
 
     // Sample the material
     if(scene->settings.sample_material)
@@ -77,6 +80,7 @@ void PathIntegrator::setup(Ray &ray, float* light_pdf, const LightSample* light_
     // Shuffle the samples if it is for a pixel
     if(!depth)
         RNG::Shuffle<SrfSample>(srf_samples);
+
 }
 
 void PathIntegrator::integrate(size_t num_samples)
@@ -84,6 +88,8 @@ void PathIntegrator::integrate(size_t num_samples)
     for(size_t i = 0; i < num_samples && !srf_samples.empty(); srf_samples.pop_front(), i++)
     {
         SrfSample &sample = srf_samples.front();
+
+        float wo_dot_n = sample.wo.dot(surface.normal);
 
         float mis_pdf = 0.f;
         float weight = 1.f;
@@ -97,17 +103,21 @@ void PathIntegrator::integrate(size_t num_samples)
             weight = material_sample_weight;
 
         Ray ray;
-        ray.o = surface.position;
+        ray.o = surface.position + ((wo_dot_n >= 0.f) ? (surface.normal * EPSILON_F) : (surface.normal * -EPSILON_F));
         ray.dir = sample.wo;
         ray.depth = depth + 1;
-        std::shared_ptr<Integrator> integrator = (sample.type == SrfSample::Material) ? create(ray, &mis_pdf, nullptr) : create(ray, nullptr, &sample.light_sample);
+
+        std::shared_ptr<Integrator> integrator = (sample.type == SrfSample::Material)
+            ? create(ray, current_quality * sample.quality, &mis_pdf, nullptr)
+            : create(ray, current_quality * sample.quality, nullptr, &sample.light_sample);
         integrator->integrate(integrator->get_required_samples());
 
         if(multiple_importance_sample)
             weight *= (sample.pdf * sample.pdf) / ((sample.pdf * sample.pdf) + (mis_pdf * mis_pdf));
 
         sample.color = integrator->get_color();
-        color += sample.color * sample.fr * sample.wo.dot(surface.normal) * weight / sample.pdf;
+
+        color += sample.color * sample.fr * weight / sample.pdf;
 
         normalization = normalization + 1.f;
     }

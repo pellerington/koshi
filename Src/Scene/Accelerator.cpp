@@ -98,7 +98,7 @@ std::shared_ptr<Accelerator::Node> Accelerator::build(std::vector<std::shared_pt
     }
 
     float leaf_cost = object_cost * objects.size();
-    if(leaf_cost <= min_split.cost + EPSILON)
+    if(leaf_cost <= min_split.cost + EPSILON_F)
     {
         //Create a leaf
         node->leaf = true;
