@@ -7,15 +7,15 @@
 class GGXReflect : public Material
 {
 public:
-    GGXReflect(Vec3f specular_color = Vec3f::Zero(), float roughness = 0.f, std::shared_ptr<Fresnel> fresnel = nullptr, Vec3f emission = Vec3f::Zero());
+    GGXReflect(const Vec3f &specular_color = VEC3F_ZERO, const float &roughness = 0.f, std::shared_ptr<Fresnel> fresnel = nullptr, const Vec3f &emission = VEC3F_ZERO);
     std::shared_ptr<Material> instance(const Surface &surface);
     const Vec3f get_emission() { return emission; }
-    bool sample_material(const Surface &surface, std::deque<SrfSample> &srf_samples, float sample_reduction = 1.f);
-    bool evaluate_material(const Surface &surface, SrfSample &srf_sample, float &pdf);
+    bool sample_material(const Surface &surface, std::deque<PathSample> &path_samples, float sample_reduction = 1.f);
+    bool evaluate_material(const Surface &surface, PathSample &path_sample, float &pdf);
     void set_fresnel(std::shared_ptr<Fresnel> _fresnel) { fresnel = _fresnel; }
 
 private:
-    Vec3f specular_color; // Make this const once we stopped using eigen.
+    const Vec3f specular_color;
     const float roughness;
     const float roughness_sqr;
     const float roughness_sqrt;

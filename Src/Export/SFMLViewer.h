@@ -8,11 +8,11 @@
 class SFMLViewer
 {
 public:
-    static bool RenderWindow(int screen_height, Render * render)
+    static bool RenderWindow(const uint screen_height, const Render * render)
     {
-        int image_width = render->get_image_resolution()[0];
-        int image_height = render->get_image_resolution()[1];
-        int screen_width = screen_height * (float)image_width / image_height;
+        const uint image_width = render->get_image_resolution().x;
+        const uint image_height = render->get_image_resolution().y;
+        const uint screen_width = screen_height * (float)image_width / image_height;
         sf::RenderWindow window(sf::VideoMode(screen_width, screen_height), "My window");
 
         sf::Texture texture;
@@ -42,27 +42,27 @@ public:
             window.draw(sprite);
             window.display();
 
-            sf::sleep(sf::milliseconds(500));
+            sf::sleep(sf::milliseconds(750));
         }
         return true;
     }
 
 private:
-    static void update_pixels(Render * render, sf::Uint8 * pixels)
+    static void update_pixels(const Render * render, sf::Uint8 * pixels)
     {
-        int image_width = render->get_image_resolution()[0];
-        int image_height = render->get_image_resolution()[1];
+        uint image_width = render->get_image_resolution().x;
+        uint image_height = render->get_image_resolution().y;
 
-        for(int x = 0; x < image_width; x++)
+        for(uint x = 0; x < image_width; x++)
         {
-            for(int y = 0; y < image_height; y++)
+            for(uint y = 0; y < image_height; y++)
             {
-                Vec3f pixel = render->get_pixel(x, y);
-                int index = (x + image_width * y) * 4;
-                pixels[index + 0] = std::min(std::max((int)(pixel[0] * 255), 0), 255);
-                pixels[index + 1] = std::min(std::max((int)(pixel[1] * 255), 0), 255);
-                pixels[index + 2] = std::min(std::max((int)(pixel[2] * 255), 0), 255);
-                pixels[index + 3] = 255;
+                const Vec3f pixel = render->get_pixel_color(x, y);
+                const uint index = (x + image_width * y) * 4;
+                pixels[index + 0] = std::min(std::max((int)(pixel.r * 255), 0), 255);
+                pixels[index + 1] = std::min(std::max((int)(pixel.g * 255), 0), 255);
+                pixels[index + 2] = std::min(std::max((int)(pixel.b * 255), 0), 255);
+                pixels[index + 3] = 255; //alpha
             }
         }
     }

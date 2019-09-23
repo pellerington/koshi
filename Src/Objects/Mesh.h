@@ -15,15 +15,15 @@ public:
         uint n_index[3];
     };
 
-    Mesh(std::vector<Vec3f> &vertices, std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material = nullptr);
-    Mesh(std::vector<Vec3f> &vertices, std::vector<Vec3f> &normals, std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material = nullptr);
+    Mesh(const std::vector<Vec3f> &vertices, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material = nullptr);
+    Mesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material = nullptr);
 
     ObjectType get_type() { return ObjectType::Mesh; }
     bool intersect(Ray &ray, Surface &surface);
     std::vector<std::shared_ptr<Object>> get_sub_objects();
 
 #if EMBREE
-    void process_intersection(RTCRayHit &rtcRayHit, Ray &ray, Surface &surface);
+    void process_intersection(const RTCRayHit &rtcRayHit, Ray &ray, Surface &surface);
 #endif
 
 private:

@@ -2,24 +2,24 @@
 
 #include <iostream>
 
-Camera::Camera(Eigen::Affine3f transform, Vec2i resolution, uint samples_per_pixel, float focal_length)
-: transform(transform), resolution(resolution), samples_per_pixel(samples_per_pixel), aspect_ratio((float) resolution[0] / resolution[1]), focal_length(focal_length)
+Camera::Camera(const Transform3f &transform, const Vec2u &resolution, const uint &samples_per_pixel, const float &focal_length)
+: transform(transform), origin(transform * Vec3f(0.f, 0.f, 0.f, 1.f)), resolution(resolution), samples_per_pixel(samples_per_pixel)
+, aspect_ratio((float) resolution.x / resolution.y), focal_length(focal_length), pixel_delta(-1.f / resolution.x * aspect_ratio, -1.f / resolution.y, 0)
 {
 }
 
-bool Camera::sample_pixel(const Vec2i &pixel, Ray &ray, const Vec2f * rng) const
+bool Camera::sample_pixel(const Vec2u &pixel, Ray &ray, const Vec2f * rng) const
 {
     // Are we out of bounds?
-    if(pixel[0] >= resolution[0] || pixel[1] >= resolution[1] || pixel[0] < 0 || pixel[1] < 0)
+    if(pixel.x >= resolution.x || pixel.y >= resolution.y)
         return false;
 
-    // Find size of pixel and end position
-    Vec3f pixel_delta((-1.f / resolution.x()) * aspect_ratio, -1.f / resolution.y(), 0);
-    Vec3f pixel_position(((float)(resolution.x() - pixel.x()) / resolution.x() - 0.5f) * aspect_ratio, ((float)(resolution.y() - pixel.y()) / resolution.y() - 0.5f), focal_length);
-
     // Set ray
-    pixel_position = transform * (pixel_position + pixel_delta * ((rng == nullptr) ? Vec3f(RNG::Rand(), RNG::Rand(), 0) : Vec3f((*rng)[0], (*rng)[1], 0)));
-    ray.o = transform.translation();
+    Vec3f pixel_position(((float)(resolution.x - pixel.x) / resolution.x - 0.5f) * aspect_ratio, ((float)(resolution.y - pixel.y) / resolution.y - 0.5f), focal_length);
+    pixel_position = pixel_position + pixel_delta * ((rng == nullptr) ? Vec3f(RNG::Rand(), RNG::Rand(), 0.f) : Vec3f((*rng)[0], (*rng)[1], 0.f));
+    pixel_position[3] = 1.f;
+    pixel_position = transform * pixel_position;
+    ray.o = origin;
     ray.dir = (pixel_position - ray.o).normalized();
 
     return true;

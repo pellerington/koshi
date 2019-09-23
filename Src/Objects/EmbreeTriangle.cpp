@@ -10,7 +10,7 @@ Triangle::Triangle(std::shared_ptr<Vec3f> v0, std::shared_ptr<Vec3f> v1, std::sh
     init();
 }
 
-Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, std::shared_ptr<Material> material)
+Triangle::Triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, std::shared_ptr<Material> material)
 : Object(material),
   vertices({std::make_shared<Vec3f>(v0), std::make_shared<Vec3f>(v1), std::make_shared<Vec3f>(v2)}),
   normals({nullptr, nullptr, nullptr})
@@ -19,7 +19,7 @@ Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, std::shared_ptr<Material> mater
 }
 
 
-Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, Vec3f n0, Vec3f n1, Vec3f n2, std::shared_ptr<Material> material)
+Triangle::Triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, const Vec3f &n0, const Vec3f &n1, const Vec3f &n2, std::shared_ptr<Material> material)
 : Object(material),
   vertices({std::make_shared<Vec3f>(v0), std::make_shared<Vec3f>(v1), std::make_shared<Vec3f>(v2)}),
   normals({std::make_shared<Vec3f>(n0), std::make_shared<Vec3f>(n1), std::make_shared<Vec3f>(n2)})
@@ -29,17 +29,18 @@ Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, Vec3f n0, Vec3f n1, Vec3f n2, s
 
 void Triangle::init()
 {
-    bbox = Eigen::AlignedBox3f(vertices[0]->cwiseMin(vertices[1]->cwiseMin(*vertices[2])), vertices[0]->cwiseMax(vertices[1]->cwiseMax(*vertices[2])));
-    smooth_normals =  normals[0] && normals[1] && normals[2];
+    bbox = Box3f(Vec3f::min(*vertices[0], Vec3f::min(*vertices[1], *vertices[2])),
+                 Vec3f::max(*vertices[0], Vec3f::max(*vertices[1], *vertices[2])));
+    smooth_normals = normals[0] && normals[1] && normals[2];
 
     mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
     RTCVertex * rtc_vertices = (RTCVertex*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), 3);
     for(uint i = 0; i < 3; i++)
     {
-        rtc_vertices[i].x = vertices[i]->x();
-        rtc_vertices[i].y = vertices[i]->y();
-        rtc_vertices[i].z = vertices[i]->z();
+        rtc_vertices[i].x = vertices[i]->x;
+        rtc_vertices[i].y = vertices[i]->y;
+        rtc_vertices[i].z = vertices[i]->z;
     }
 
     RTCTriangle * triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), 1);
@@ -48,7 +49,7 @@ void Triangle::init()
     triangles[0].v2 = 2;
 }
 
-void Triangle::process_intersection(RTCRayHit &rtcRayHit, Ray &ray, Surface &surface)
+void Triangle::process_intersection(const RTCRayHit &rtcRayHit, Ray &ray, Surface &surface)
 {
     surface.position = ray.o + ray.t * ray.dir;
     surface.wi = ray.dir;

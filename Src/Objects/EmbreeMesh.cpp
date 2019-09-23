@@ -2,7 +2,7 @@
 
 #if EMBREE
 
-Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
+Mesh::Mesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
 : Object(material)
 {
     mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
@@ -10,9 +10,9 @@ Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<TriangleData> &triangle_da
     vertices = (RTCVertex*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), _vertices.size());
     for(uint i = 0; i < _vertices.size(); i++)
     {
-        vertices[i].x = _vertices[i][0];
-        vertices[i].y = _vertices[i][1];
-        vertices[i].z = _vertices[i][2];
+        vertices[i].x = _vertices[i].x;
+        vertices[i].y = _vertices[i].y;
+        vertices[i].z = _vertices[i].z;
     }
 
     triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), triangle_data.size());
@@ -24,7 +24,7 @@ Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<TriangleData> &triangle_da
     }
 }
 
-Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<Vec3f> &_normals, std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
+Mesh::Mesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
 : Object(material)
 {
     mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
@@ -32,9 +32,9 @@ Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<Vec3f> &_normals, std::vec
     vertices = (RTCVertex*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), _vertices.size());
     for(uint i = 0; i < _vertices.size(); i++)
     {
-        vertices[i].x = _vertices[i][0];
-        vertices[i].y = _vertices[i][1];
-        vertices[i].z = _vertices[i][2];
+        vertices[i].x = _vertices[i].x;
+        vertices[i].y = _vertices[i].y;
+        vertices[i].z = _vertices[i].z;
     }
 
     triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), triangle_data.size());
@@ -57,7 +57,7 @@ Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<Vec3f> &_normals, std::vec
     // }
 }
 
-void Mesh::process_intersection(RTCRayHit &rtcRayHit, Ray &ray, Surface &surface)
+void Mesh::process_intersection(const RTCRayHit &rtcRayHit, Ray &ray, Surface &surface)
 {
     surface.position = ray.o + ray.t * ray.dir;
     surface.wi = ray.dir;
@@ -66,7 +66,7 @@ void Mesh::process_intersection(RTCRayHit &rtcRayHit, Ray &ray, Surface &surface
     surface.enter = surface.normal.dot(ray.dir) < 0;
     surface.u = rtcRayHit.hit.u;
     surface.v = rtcRayHit.hit.v;
-    //Smooth normals here (use ray.hit.primID to get triangle)
+    // Smooth normals here (use ray.hit.primID to get triangle)
     // surface.normal = (smooth_normals) ? (1.f - u - v) * *normals[0] + u * *normals[1] + v * *normals[2] : normal;
     surface.object = this;
 }

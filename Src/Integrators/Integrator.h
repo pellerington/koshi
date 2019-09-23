@@ -18,15 +18,15 @@ public:
     virtual std::shared_ptr<Integrator> create(Ray &ray) = 0;
 
     //Perform the actual integration. Eg. Bidirectional would actually generate light path here.
-    virtual void integrate(size_t num_samples) = 0;
+    virtual void integrate(const size_t num_samples) = 0;
 
     //Provides the number of samples required to perform the full integration.
-    virtual const size_t get_required_samples() = 0;
+    virtual size_t get_required_samples() = 0;
     //Tells the renderer when it has completed all it's samples.
-    virtual const bool completed() = 0;
+    virtual bool completed() = 0;
 
     //Output the color of the integrator.
-    virtual const Vec3f get_color() = 0;
+    virtual Vec3f get_color() = 0;
 protected:
     Scene * scene;
 };

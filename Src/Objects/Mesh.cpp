@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
+Mesh::Mesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
 : Object(material), vertices(std::move(_vertices))
 {
     for(uint i = 0; i < triangle_data.size(); i++)
@@ -19,7 +19,7 @@ Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<TriangleData> &triangle_da
     // Need to set bbox
 }
 
-Mesh::Mesh(std::vector<Vec3f> &_vertices, std::vector<Vec3f> &_normals, std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
+Mesh::Mesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
 : Object(material), vertices(std::move(_vertices)), normals(std::move(_normals))
 {
     for(uint i = 0; i < triangle_data.size(); i++)

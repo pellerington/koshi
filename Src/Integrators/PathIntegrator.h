@@ -6,21 +6,24 @@ class PathIntegrator : public Integrator
 {
 public:
     PathIntegrator(Scene * scene) : Integrator(scene) {}
-    const Vec3f get_color();
+    Vec3f get_color();
     void pre_render();
     inline std::shared_ptr<Integrator> create(Ray &ray) { return create(ray, 1.f, nullptr, nullptr); }
     std::shared_ptr<Integrator> create(Ray &ray, const float current_quality, float* light_pdf, const LightSample* light_sample);
     void setup(Ray &ray, const float current_quality, float* light_pdf, const LightSample* light_sample);
-    void integrate(size_t num_samples);
-    const size_t get_required_samples() { return srf_samples.size(); }
-    const bool completed() { return srf_samples.empty(); }
+    void integrate(const size_t num_samples);
+    size_t get_required_samples() { return path_samples.size(); }
+    bool completed() { return path_samples.empty(); }
 private:
     Surface surface;
     std::shared_ptr<Material> material;
     uint depth;
+
+    //Emission + Color seems redundant;
     Vec3f emission;
     Vec3f color;
-    std::deque<SrfSample> srf_samples;
+
+    std::deque<PathSample> path_samples;
     float normalization;
     float current_quality;
 

@@ -26,10 +26,10 @@ public:
     virtual ObjectType get_type() = 0;
     virtual std::vector<std::shared_ptr<Object>> get_sub_objects() = 0;
     virtual bool intersect(Ray &ray, Surface &surface) = 0;
-    const Eigen::AlignedBox3f get_bbox() { return bbox; };
+    const Box3f get_bbox() { return bbox; };
 
 #if EMBREE
-    virtual void process_intersection(RTCRayHit &rtcRayHit, Ray &ray, Surface &surface) = 0;
+    virtual void process_intersection(const RTCRayHit &rtcRayHit, Ray &ray, Surface &surface) = 0;
     uint attach_to_scene(RTCScene &rtc_scene)
     {
         rtcCommitGeometry(mesh);
@@ -45,6 +45,6 @@ protected:
     RTCGeometry mesh;
 #endif
 
-    Eigen::AlignedBox3f bbox;
+    Box3f bbox;
 
 };

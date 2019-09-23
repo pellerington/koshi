@@ -4,7 +4,7 @@
 
 #include "../Util/Color.h"
 
-const Vec3f PathIntegrator::get_color()
+Vec3f PathIntegrator::get_color()
 {
     return emission + color;
 }
@@ -23,12 +23,13 @@ std::shared_ptr<Integrator> PathIntegrator::create(Ray &ray, const float current
 void PathIntegrator::setup(Ray &ray, const float _current_quality, float* light_pdf, const LightSample* light_sample)
 {
     // Initialize variables
-    color = Vec3f::Zero();
+    color = VEC3F_ZERO;
     normalization = 0.f;
-    emission = Vec3f::Zero();
+    emission = VEC3F_ZERO;
     depth = ray.depth;
     current_quality = _current_quality;
 
+    // If we have a light sample set our tmax to light_sample->t
     if(light_sample)
         ray.t = light_sample->t;
 
@@ -60,18 +61,18 @@ void PathIntegrator::setup(Ray &ray, const float _current_quality, float* light_
     if(depth > scene->settings.max_depth)
         return;
 
-    // Reduce number of samples base on the depth
-    float sample_multiplier = scene->settings.quality * current_quality;
+    // Reduce number of samples
+    const float sample_multiplier = scene->settings.quality * current_quality;
 
     // Sample the material
     if(scene->settings.sample_material)
-        material->sample_material(surface, srf_samples, sample_multiplier);
-    const uint n_material_samples = srf_samples.size();
+        material->sample_material(surface, path_samples, sample_multiplier);
+    const uint n_material_samples = path_samples.size();
 
     // Sample the lights
     if(scene->settings.sample_lights)
-        scene->sample_lights(surface, srf_samples, sample_multiplier);
-    const uint n_light_samples = srf_samples.size() - n_material_samples;
+        scene->sample_lights(surface, path_samples, sample_multiplier);
+    const uint n_light_samples = path_samples.size() - n_material_samples;
 
     multiple_importance_sample = (n_light_samples > 0) && (n_material_samples > 0);
     material_sample_weight = (n_material_samples > 0) ? 1.f / n_material_samples : 0.f;
@@ -79,27 +80,27 @@ void PathIntegrator::setup(Ray &ray, const float _current_quality, float* light_
 
     // Shuffle the samples if it is for a pixel
     if(!depth)
-        RNG::Shuffle<SrfSample>(srf_samples);
-
+        RNG::Shuffle<PathSample>(path_samples);
 }
 
 void PathIntegrator::integrate(size_t num_samples)
 {
-    for(size_t i = 0; i < num_samples && !srf_samples.empty(); srf_samples.pop_front(), i++)
+    for(size_t i = 0; i < num_samples && !path_samples.empty(); path_samples.pop_front(), i++)
     {
-        SrfSample &sample = srf_samples.front();
+        PathSample &sample = path_samples.front();
 
-        float wo_dot_n = sample.wo.dot(surface.normal);
+        const float wo_dot_n = sample.wo.dot(surface.normal);
 
         float mis_pdf = 0.f;
         float weight = 1.f;
-        if(sample.type == SrfSample::Light)
+
+        if(sample.type == PathSample::Light)
         {
             if(!material->evaluate_material(surface, sample, mis_pdf))
                 continue;
             weight = light_sample_weight;
         }
-        else if(sample.type == SrfSample::Material)
+        else if(sample.type == PathSample::Material)
             weight = material_sample_weight;
 
         Ray ray;
@@ -107,7 +108,7 @@ void PathIntegrator::integrate(size_t num_samples)
         ray.dir = sample.wo;
         ray.depth = depth + 1;
 
-        std::shared_ptr<Integrator> integrator = (sample.type == SrfSample::Material)
+        std::shared_ptr<Integrator> integrator = (sample.type == PathSample::Material)
             ? create(ray, current_quality * sample.quality, &mis_pdf, nullptr)
             : create(ray, current_quality * sample.quality, nullptr, &sample.light_sample);
         integrator->integrate(integrator->get_required_samples());
@@ -116,7 +117,6 @@ void PathIntegrator::integrate(size_t num_samples)
             weight *= (sample.pdf * sample.pdf) / ((sample.pdf * sample.pdf) + (mis_pdf * mis_pdf));
 
         sample.color = integrator->get_color();
-
         color += sample.color * sample.fr * weight / sample.pdf;
 
         normalization = normalization + 1.f;

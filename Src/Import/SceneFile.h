@@ -16,12 +16,10 @@
 #include "../Textures/Image.h"
 #include "MeshFile.h"
 
-// TODO: Make inline functions which load vectors/numbers ect
-
 class SceneFile
 {
 public:
-    static Scene Import(std::string filename)
+    static Scene Import(const std::string filename)
     {
         std::ifstream input_file(filename);
         nlohmann::json scene_file;
@@ -37,25 +35,26 @@ public:
             settings.sample_material = get_bool(scene_file["settings"], "sample_material", true);
         }
 
-        Camera camera;
+        Vec2u resolution(1);
+        uint samples_per_pixel = 0;
+        float focal_length = 1.f;
+        Transform3f transform;
         if(!scene_file["camera"].is_null())
         {
-            Vec2i resolution = get_vec2i(scene_file["camera"], "resolution");
-            uint samples_per_pixel = get_uint(scene_file["camera"], "samples_per_pixel", 1);
-            float focal_length = get_float(scene_file["camera"], "focal_length", 1.f);
-            float scale = get_float(scene_file["camera"], "scale", 1.f);
-            Vec3f rotation = 2.f * PI * get_vec3f(scene_file["camera"], "rotation") / 360.f;
-            Vec3f translation = get_vec3f(scene_file["camera"], "translation");
+            resolution = get_vec2u(scene_file["camera"], "resolution");
+            samples_per_pixel = get_uint(scene_file["camera"], "samples_per_pixel", 1);
+            focal_length = get_float(scene_file["camera"], "focal_length", 1.f);
 
-            Eigen::Affine3f transform = Eigen::Affine3f::Identity();
-            transform.translate(translation);
-            transform.rotate(Eigen::AngleAxisf(rotation[2], Vec3f::UnitZ()));
-            transform.rotate(Eigen::AngleAxisf(rotation[1], Vec3f::UnitY()));
-            transform.rotate(Eigen::AngleAxisf(rotation[0], Vec3f::UnitX()));
-            transform.scale(Vec3f(scale, scale, 1));
-
-            camera = Camera(transform, resolution, samples_per_pixel, focal_length);
+            const float scale = get_float(scene_file["camera"], "scale", 1.f);
+            const Vec3f rotation = 2.f * PI * get_vec3f(scene_file["camera"], "rotation") / 360.f;
+            const Vec3f translation = get_vec3f(scene_file["camera"], "translation");
+            transform = Transform3f::scale(Vec3f(scale, scale, 1.f)) * transform;
+            transform = Transform3f::z_rotation(rotation[2]) * transform;
+            transform = Transform3f::y_rotation(rotation[1]) * transform;
+            transform = Transform3f::x_rotation(rotation[0]) * transform;
+            transform = Transform3f::translation(translation) * transform;
         }
+        Camera camera(transform, resolution, samples_per_pixel, focal_length);
 
         Scene scene(camera, settings);
 
@@ -70,7 +69,7 @@ public:
                     {
                         if((*it)["filename"].is_string())
                         {
-                            bool smooth = get_bool(*it, "smooth", true);
+                            const bool smooth = get_bool(*it, "smooth", true);
                             std::shared_ptr<Texture> texture(new Image((*it)["filename"], smooth));
                             scene.add_texture(texture);
                             textures[(*it)["name"]] = texture;
@@ -89,8 +88,8 @@ public:
                 {
                     if((*it)["type"] == "lambert")
                     {
-                        Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
-                        Vec3f emission = get_vec3f(*it, "emission");
+                        const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
+                        const Vec3f emission = get_vec3f(*it, "emission");
 
                         std::shared_ptr<Material> material(new Lambert(diffuse_color, emission));
                         materials[(*it)["name"]] = material;
@@ -99,9 +98,9 @@ public:
 
                     if((*it)["type"] == "ggx")
                     {
-                        Vec3f specular_color = get_vec3f(*it, "specular_color");
-                        float roughness = get_float(*it, "roughness");
-                        Vec3f emission = get_vec3f(*it, "emission");
+                        const Vec3f specular_color = get_vec3f(*it, "specular_color");
+                        const float roughness = get_float(*it, "roughness");
+                        const Vec3f emission = get_vec3f(*it, "emission");
 
                         std::shared_ptr<Material> material(new GGXReflect(specular_color, roughness, nullptr, emission));
                         materials[(*it)["name"]] = material;
@@ -110,10 +109,10 @@ public:
 
                     if((*it)["type"] == "ggx_refract")
                     {
-                        Vec3f refractive_color = get_vec3f(*it, "refractive_color");
-                        float ior = get_float(*it, "ior", 1.f);
-                        float roughness = get_float(*it, "roughness");
-                        Vec3f emission = get_vec3f(*it, "emission");
+                        const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
+                        const float ior = get_float(*it, "ior", 1.f);
+                        const float roughness = get_float(*it, "roughness");
+                        const Vec3f emission = get_vec3f(*it, "emission");
 
                         std::shared_ptr<Material> material(new GGXRefract(refractive_color, roughness, ior, nullptr, emission));
                         materials[(*it)["name"]] = material;
@@ -122,11 +121,11 @@ public:
 
                     if((*it)["type"] == "dielectric")
                     {
-                        Vec3f reflective_color = get_vec3f(*it, "reflective_color");
-                        Vec3f refractive_color = get_vec3f(*it, "refractive_color");
-                        float ior = get_float(*it, "ior", 1.f);
-                        float roughness = get_float(*it, "roughness");
-                        Vec3f emission = get_vec3f(*it, "emission");
+                        const Vec3f reflective_color = get_vec3f(*it, "reflective_color");
+                        const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
+                        const float ior = get_float(*it, "ior", 1.f);
+                        const float roughness = get_float(*it, "roughness");
+                        const Vec3f emission = get_vec3f(*it, "emission");
 
                         std::shared_ptr<Material> material(new Dielectric(reflective_color, refractive_color, roughness, ior, emission));
                         materials[(*it)["name"]] = material;
@@ -143,9 +142,9 @@ public:
 
                 if((*it)["type"] == "triangle")
                 {
-                    Vec3f v0 = get_vec3f(*it, "v0");
-                    Vec3f v1 = get_vec3f(*it, "v1");
-                    Vec3f v2 = get_vec3f(*it, "v2");
+                    const Vec3f v0 = get_vec3f(*it, "v0");
+                    const Vec3f v1 = get_vec3f(*it, "v1");
+                    const Vec3f v2 = get_vec3f(*it, "v2");
 
                     std::shared_ptr<Material> material;
                     if((*it)["material"].is_string())
@@ -171,8 +170,8 @@ public:
 
                 if((*it)["type"] == "sphere")
                 {
-                    Vec3f position = get_vec3f(*it, "position");
-                    float scale = get_float(*it, "scale");
+                    const Vec3f position = get_vec3f(*it, "position");
+                    const float scale = get_float(*it, "scale");
 
                     std::shared_ptr<Material> material;
                     if((*it)["material"].is_string())
@@ -192,13 +191,12 @@ public:
 
                 if((*it)["type"] == "rectangle")
                 {
-                    Vec3f intensity = get_vec3f(*it, "intensity");
-                    Vec3f position = get_vec3f(*it, "position");
-                    Vec3f u = get_vec3f(*it, "u");
-                    Vec3f v = get_vec3f(*it, "v");
-                    bool double_sided = get_bool(*it, "double_sided");
+                    const Vec3f intensity = get_vec3f(*it, "intensity");
+                    const Vec3f u = get_vec3f(*it, "u");
+                    const Vec3f v = get_vec3f(*it, "v");
+                    const Vec3f position = get_vec3f(*it, "position") - (0.5f*u + 0.5f*v);
+                    const bool double_sided = get_bool(*it, "double_sided");
 
-                    position = position - (0.5f*u + 0.5f*v);
 
                     std::shared_ptr<RectangleLight> rectangle_light(new RectangleLight(position, u, v, intensity, double_sided));
                     scene.add_light(rectangle_light);
@@ -206,7 +204,7 @@ public:
 
                 if((*it)["type"] == "environment")
                 {
-                    Vec3f intensity = get_vec3f(*it, "intensity");
+                    const Vec3f intensity = get_vec3f(*it, "intensity");
 
                     std::shared_ptr<Texture> texture;
                     if((*it)["texture"].is_string())
@@ -248,6 +246,13 @@ public:
         return v;
     }
 
+    inline static Vec2u get_vec2u(nlohmann::json &json, const std::string &name, const uint def = 0)
+    {
+        Vec2u v;
+        for(int i = 0; i < 2; i++)
+            v[i] = json[name][i].is_number() ? (int)json[name][i] : def;
+        return v;
+    }
 
     inline static uint get_uint(nlohmann::json &json, const std::string &name, const uint def = 0)
     {

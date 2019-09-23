@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+#include "Math/Transform3f.h"
+
 int main(int argc, char *argv[])
 {
     int threads = 1;
@@ -34,6 +36,8 @@ int main(int argc, char *argv[])
     //     points.push_back(h);
     // }
     // DebugObj::Points(points);
+
+    std::cout << Vec2u(1) + Vec2u(2) << '\n';
 
     std::cout << "Threads: " << threads << '\n';
     std::cout << "File: " << filename << '\n';

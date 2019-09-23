@@ -11,8 +11,8 @@ public:
 class FresnelNone : public Fresnel
 {
 public:
-    Vec3f Fr(const float &cosi) { return Vec3f::Ones(); }
-    Vec3f Ft(const float &cosi) { return Vec3f::Ones(); }
+    Vec3f Fr(const float &cosi) { return VEC3F_ONES; }
+    Vec3f Ft(const float &cosi) { return VEC3F_ONES; }
 };
 
 class FresnelMetalic : public Fresnel

@@ -2,23 +2,23 @@
 
 #include <iostream>
 
-EnvironmentLight::EnvironmentLight(Vec3f intensity, std::shared_ptr<Texture> texture)
+EnvironmentLight::EnvironmentLight(const Vec3f &intensity, std::shared_ptr<Texture> texture)
 : Light(Type::Environment, intensity), texture(texture)
 {
 }
 
-bool EnvironmentLight::evaluate_light(const Ray &ray, Vec3f &light, float* pdf)
+bool EnvironmentLight::evaluate_light(const Ray &ray, Vec3f &light, float * pdf)
 {
     light = 1.f;
 
-    float theta = acosf(ray.dir.y());
-    float phi = atanf((ray.dir.z() + EPSILON_F) / (ray.dir.x() + EPSILON_F));
-    bool zd = ray.dir.z() > 0, xd = ray.dir.x() > 0;
+    float theta = acosf(ray.dir.y);
+    float phi = atanf((ray.dir.z + EPSILON_F) / (ray.dir.x + EPSILON_F));
+    const bool zd = ray.dir.z > 0, xd = ray.dir.x > 0;
     if(!zd) phi += PI;
     if(xd != zd) phi += PI;
 
-    float u = theta * INV_PI;
-    float v = phi * INV_TWO_PI;
+    const float u = theta * INV_PI;
+    const float v = phi * INV_TWO_PI;
 
     if(texture)
         texture->get_vec3f(v, u, light);

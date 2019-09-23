@@ -13,7 +13,7 @@ Triangle::Triangle(std::shared_ptr<Vec3f> v0, std::shared_ptr<Vec3f> v1, std::sh
     init();
 }
 
-Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, std::shared_ptr<Material> material)
+Triangle::Triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, std::shared_ptr<Material> material)
 : Object(material),
   vertices({std::make_shared<Vec3f>(v0), std::make_shared<Vec3f>(v1), std::make_shared<Vec3f>(v2)}),
   normals({nullptr, nullptr, nullptr})
@@ -22,7 +22,7 @@ Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, std::shared_ptr<Material> mater
 }
 
 
-Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, Vec3f n0, Vec3f n1, Vec3f n2, std::shared_ptr<Material> material)
+Triangle::Triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, const Vec3f &n0, const Vec3f &n1, const Vec3f &n2, std::shared_ptr<Material> material)
 : Object(material),
   vertices({std::make_shared<Vec3f>(v0), std::make_shared<Vec3f>(v1), std::make_shared<Vec3f>(v2)}),
   normals({std::make_shared<Vec3f>(n0), std::make_shared<Vec3f>(n1), std::make_shared<Vec3f>(n2)})
@@ -32,7 +32,9 @@ Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, Vec3f n0, Vec3f n1, Vec3f n2, s
 
 void Triangle::init()
 {
-    bbox = Eigen::AlignedBox3f(vertices[0]->cwiseMin(vertices[1]->cwiseMin(*vertices[2])), vertices[0]->cwiseMax(vertices[1]->cwiseMax(*vertices[2])));
+    bbox = Box3f(Vec3f::min(*vertices[0], Vec3f::min(*vertices[1], *vertices[2])),
+                 Vec3f::max(*vertices[0], Vec3f::max(*vertices[1], *vertices[2])));
+
     normal = ((*vertices[0] - *vertices[1]).cross(*vertices[0] - *vertices[2])).normalized();
     smooth_normals =  normals[0] && normals[1] && normals[2];
 }
@@ -56,7 +58,7 @@ bool Triangle::intersect(Ray &ray, Surface &surface)
     v = f * ray.dir.dot(q);
     if (v < 0.0f || u + v > 1.0f)
         return false;
-    float t = f * edge2.dot(q);
+    const float t = f * edge2.dot(q);
 
     if (t < ray.t)
     {

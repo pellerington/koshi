@@ -7,7 +7,7 @@ void Scene::pre_render()
     rtc_scene = rtcNewScene(Embree::rtc_device);
     for(size_t i = 0; i < objects.size(); i++)
     {
-        uint rtcid = objects[i]->attach_to_scene(rtc_scene);
+        const uint rtcid = objects[i]->attach_to_scene(rtc_scene);
         rtc_to_obj[rtcid] = objects[i];
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
@@ -115,28 +115,28 @@ bool Scene::evaluate_environment_light(const Ray &ray, Vec3f &light, float* pdf)
     return false;
 }
 
-bool Scene::sample_lights(const Surface &surface, std::deque<SrfSample> &srf_samples, const float sample_multiplier)
+bool Scene::sample_lights(const Surface &surface, std::deque<PathSample> &path_samples, const float sample_multiplier)
 {
     for(size_t i = 0; i < lights.size(); i++)
     {
-        const uint num_samples = std::max(1.f, lights[i]->estimated_samples(surface) * sample_multiplier); // Do the max inside the light?
+        const uint num_samples = std::max(1.f, lights[i]->estimated_samples(surface) * sample_multiplier);
         const float quality = 1.f / num_samples;
         std::deque<LightSample> light_samples;
         lights[i]->sample_light(num_samples, surface, light_samples);
         for(uint j = 0; j < light_samples.size(); j++)
         {
-            srf_samples.emplace_back();
-            SrfSample &srf_sample = srf_samples.back();
-            srf_sample.quality = quality;
-            srf_sample.type = SrfSample::Light;
+            path_samples.emplace_back();
+            PathSample &path_sample = path_samples.back();
+            path_sample.quality = quality;
+            path_sample.type = PathSample::Light;
 
-            Vec3f dir = light_samples[j].position - surface.position;
-            srf_sample.wo = dir.normalized();
-            srf_sample.pdf = light_samples[j].pdf;
+            const Vec3f dir = light_samples[j].position - surface.position;
+            path_sample.wo = dir.normalized();
+            path_sample.pdf = light_samples[j].pdf;
 
-            srf_sample.light_sample = light_samples[j];
-            srf_sample.light_sample.id = i;
-            srf_sample.light_sample.t = dir.length();
+            path_sample.light_sample = light_samples[j];
+            path_sample.light_sample.id = i;
+            path_sample.light_sample.t = dir.length();
         }
     }
     return true;
