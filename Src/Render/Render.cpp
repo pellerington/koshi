@@ -13,12 +13,13 @@
 Render::Render(Scene * scene, const uint &num_workers)
 : scene(scene), num_workers(num_workers), resolution(scene->camera.get_image_resolution())
 {
-    pixels = std::vector<std::vector<Pixel>>(resolution.x, std::vector<Pixel>(resolution.y));
+    scene->pre_render();
 
     // This should be passed in or selected using a type (when we have multiple pixels)
-    master_integrator = std::unique_ptr<Integrator>(new PathIntegrator(scene));
-    master_integrator->pre_render();
+    integrator = std::unique_ptr<Integrator>(new PathIntegrator(scene));
+    integrator->pre_render();
 
+    pixels = std::vector<std::vector<Pixel>>(resolution.x, std::vector<Pixel>(resolution.y));
     for(uint x = 0; x < resolution.x; x++)
     {
         for(uint y = 0; y < resolution.y; y++)
@@ -29,8 +30,6 @@ Render::Render(Scene * scene, const uint &num_workers)
             pixels[x][y].required_samples = pixels[x][y].rng.size();
         }
     }
-
-    scene->pre_render();
 }
 
 void Render::start_render()
@@ -58,8 +57,6 @@ void Render::start_render()
 
 void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
 {
-    std::shared_ptr<Integrator> integrator;
-
     bool completed = false;
     while(!completed)
     {
@@ -70,12 +67,8 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
             if(pixels[x][y].current_sample < pixels[x][y].required_samples)
             {
                 Ray ray = scene->camera.sample_pixel(pixels[x][y].pixel, &pixels[x][y].rng[pixels[x][y].current_sample]);
-                integrator = master_integrator->create(ray);
-                integrator->integrate(integrator->get_required_samples());
-
-                pixels[x][y].color += integrator->get_color();
+                pixels[x][y].color += integrator->integrate(ray);
                 pixels[x][y].current_sample++;
-
                 completed = false;
             }
         }

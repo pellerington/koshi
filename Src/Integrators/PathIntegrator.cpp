@@ -4,65 +4,56 @@
 
 #include "../Util/Color.h"
 
-Vec3f PathIntegrator::get_color()
-{
-    return emission + color;
-}
 
 void PathIntegrator::pre_render()
 {
 }
 
-std::shared_ptr<Integrator> PathIntegrator::create(Ray &ray, const float current_quality, float* light_pdf, const LightSample* light_sample)
+Vec3f PathIntegrator::integrate(Ray &ray, const float current_quality, float * light_pdf, const LightSample * light_sample) const
 {
-    std::shared_ptr<PathIntegrator> path_integrator(new PathIntegrator(scene));
-    path_integrator->setup(ray, current_quality, light_pdf, light_sample);
-    return path_integrator;
-}
-
-void PathIntegrator::setup(Ray &ray, const float _current_quality, float* light_pdf, const LightSample* light_sample)
-{
-    // Initialize variables
-    color = VEC3F_ZERO;
-    normalization = 0.f;
-    emission = VEC3F_ZERO;
-    depth = ray.depth;
-    current_quality = _current_quality;
+    // Initialize output
+    Vec3f color = VEC3F_ZERO;
+    Vec3f emission = VEC3F_ZERO;
 
     // If we have a light sample set our tmax to light_sample->t
     if(light_sample)
         ray.t = light_sample->t;
 
     // Intersect with our scene
+    Surface surface;
     scene->intersect(ray, surface);
 
     // Check if we intersected any lights
-    if(depth > 0 || scene->settings.display_lights)
+    if(ray.depth > 0 || scene->settings.display_lights)
         scene->evaluate_lights(ray, emission, light_pdf, light_sample);
 
-    // If we hit nothing end it here
-    if(!surface.object || !ray.hit)
+    // If we hit nothing end it here (If we have a light_sample and we dont intersect this could incorrectly trigger)
+    if(!ray.hit)
     {
-        Vec3f environment = 0.f;
-        scene->evaluate_environment_light(ray, environment);
-        if(depth > 0 || scene->settings.display_lights)
-            emission += environment;
-        return;
+        // Evaluate our environment light
+        if(ray.t == FLT_MAX)
+        {
+            Vec3f environment = VEC3F_ZERO;
+            scene->evaluate_environment_light(ray, environment);
+            if(ray.depth > 0 || scene->settings.display_lights)
+                emission += environment;
+        }
+        return emission;
     }
 
-    // if(!material)
-        // Use some default material.
-    material = surface.object->material->instance(surface);
+    // if(!material) Use some default material.
+    std::shared_ptr<Material> material = surface.object->material->instance(surface);
 
     // Add any emissive component of the material to the integrator
     emission += material->get_emission();
 
-    // If we are greater than the max depth, dont perform integration
-    if(depth > scene->settings.max_depth)
-        return;
+    // If we are greater than the max depth, dont perform more integrations
+    if(ray.depth > scene->settings.max_depth)
+        return emission;
 
-    // Reduce number of samples
+    // Setup sampling variables
     const float sample_multiplier = scene->settings.quality * current_quality;
+    std::deque<PathSample> path_samples;
 
     // Sample the material
     if(scene->settings.sample_material)
@@ -74,51 +65,44 @@ void PathIntegrator::setup(Ray &ray, const float _current_quality, float* light_
         scene->sample_lights(surface, path_samples, sample_multiplier);
     const uint n_light_samples = path_samples.size() - n_material_samples;
 
-    multiple_importance_sample = (n_light_samples > 0) && (n_material_samples > 0);
-    material_sample_weight = (n_material_samples > 0) ? 1.f / n_material_samples : 0.f;
-    light_sample_weight = (n_light_samples > 0) ? 1.f / n_light_samples : 0.f;
+    // Return if we have no samples
+    if(!(n_material_samples + n_light_samples))
+        return emission;
 
-    // Shuffle the samples if it is for a pixel
-    if(!depth)
-        RNG::Shuffle<PathSample>(path_samples);
-}
+    const bool multiple_importance_sample = (n_light_samples > 0) && (n_material_samples > 0);
+    const float material_sample_weight = (n_material_samples > 0) ? 1.f / n_material_samples : 0.f;
+    const float light_sample_weight = (n_light_samples > 0) ? 1.f / n_light_samples : 0.f;
 
-void PathIntegrator::integrate(size_t num_samples)
-{
-    for(size_t i = 0; i < num_samples && !path_samples.empty(); path_samples.pop_front(), i++)
+    for(;!path_samples.empty(); path_samples.pop_front())
     {
         PathSample &sample = path_samples.front();
-
-        const float wo_dot_n = sample.wo.dot(surface.normal);
 
         float mis_pdf = 0.f;
         float weight = 1.f;
 
         if(sample.type == PathSample::Light)
         {
-            if(!material->evaluate_material(surface, sample, mis_pdf))
-                continue;
+            if(!material->evaluate_material(surface, sample, mis_pdf)) continue;
             weight = light_sample_weight;
         }
         else if(sample.type == PathSample::Material)
             weight = material_sample_weight;
 
-        // Get this from surface
-        const Vec3f bias_position = surface.position + ((wo_dot_n >= 0.f) ? (surface.normal * EPSILON_F) : (surface.normal * -EPSILON_F));
-        Ray ray(bias_position, sample.wo);
-        ray.depth = depth + 1;
+        const float wo_dot_n = sample.wo.dot(surface.normal);
+        const Vec3f bias_position = surface.position + ((wo_dot_n >= 0.f) ? (surface.normal * EPSILON_F) : (surface.normal * -EPSILON_F)); // Get this from surface
+        Ray sample_ray(bias_position, sample.wo);
+        sample_ray.depth = ray.depth + 1;
 
-        std::shared_ptr<Integrator> integrator = (sample.type == PathSample::Material)
-            ? create(ray, current_quality * sample.quality, &mis_pdf, nullptr)
-            : create(ray, current_quality * sample.quality, nullptr, &sample.light_sample);
-        integrator->integrate(integrator->get_required_samples());
+        if(sample.type == PathSample::Material)
+            sample.color = integrate(sample_ray, current_quality * sample.quality, &mis_pdf, nullptr);
+        else if(sample.type == PathSample::Light)
+            sample.color = integrate(sample_ray, current_quality * sample.quality, nullptr, &sample.light_sample);
 
         if(multiple_importance_sample)
             weight *= (sample.pdf * sample.pdf) / ((sample.pdf * sample.pdf) + (mis_pdf * mis_pdf));
 
-        sample.color = integrator->get_color();
         color += sample.color * sample.fr * weight / sample.pdf;
-
-        normalization = normalization + 1.f;
     }
+
+    return emission + color;
 }

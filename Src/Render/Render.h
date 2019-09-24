@@ -25,7 +25,7 @@ public:
     Vec3f get_pixel_color(uint x, uint y) const;
     inline Vec2u get_image_resolution() const { return scene->camera.get_image_resolution(); }
 private:
-    std::unique_ptr<Integrator> master_integrator; // Make this const?
+    std::unique_ptr<Integrator> integrator;
     const Scene * scene;
     const uint num_workers;
     const Vec2u resolution;
