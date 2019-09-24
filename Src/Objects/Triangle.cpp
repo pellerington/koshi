@@ -50,7 +50,7 @@ bool Triangle::intersect(Ray &ray, Surface &surface)
     if (a > -EPSILON_F && a < EPSILON_F)
         return false;
     f = 1.0f/a;
-    s = ray.o - *vertices[0];
+    s = ray.pos - *vertices[0];
     u = f * s.dot(h);
     if (u < 0.0f || u > 1.0f)
         return false;
@@ -64,7 +64,7 @@ bool Triangle::intersect(Ray &ray, Surface &surface)
     {
         ray.t = t;
         ray.hit = true;
-        surface.position = ray.o + t * ray.dir;
+        surface.position = ray.get_point(t);
         surface.wi = ray.dir;
         surface.enter = normal.dot(ray.dir) < 0;
         surface.normal = (smooth_normals) ? (1.f - u - v) * *normals[0] + u * *normals[1] + v * *normals[2] : normal;

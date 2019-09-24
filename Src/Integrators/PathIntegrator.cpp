@@ -103,9 +103,9 @@ void PathIntegrator::integrate(size_t num_samples)
         else if(sample.type == PathSample::Material)
             weight = material_sample_weight;
 
-        Ray ray;
-        ray.o = surface.position + ((wo_dot_n >= 0.f) ? (surface.normal * EPSILON_F) : (surface.normal * -EPSILON_F));
-        ray.dir = sample.wo;
+        // Get this from surface
+        const Vec3f bias_position = surface.position + ((wo_dot_n >= 0.f) ? (surface.normal * EPSILON_F) : (surface.normal * -EPSILON_F));
+        Ray ray(bias_position, sample.wo);
         ray.depth = depth + 1;
 
         std::shared_ptr<Integrator> integrator = (sample.type == PathSample::Material)

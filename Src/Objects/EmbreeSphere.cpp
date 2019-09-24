@@ -18,7 +18,7 @@ Sphere::Sphere(const Vec3f &position, const float &scale, std::shared_ptr<Materi
 
 void Sphere::process_intersection(const RTCRayHit &rtcRayHit, Ray &ray, Surface &surface)
 {
-    surface.position = ray.o + ray.t * ray.dir;
+    surface.position = ray.get_point(ray.t);
     surface.wi = ray.dir;
     surface.normal = Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z);
     surface.normal.normalize();

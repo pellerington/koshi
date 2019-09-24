@@ -20,7 +20,7 @@ bool Scene::intersect(Ray &ray, Surface &surface)
     rtcInitIntersectContext(&context);
 
     RTCRayHit rtcRayHit;
-    rtcRayHit.ray.org_x = ray.o[0]; rtcRayHit.ray.org_y = ray.o[1]; rtcRayHit.ray.org_z = ray.o[2];
+    rtcRayHit.ray.org_x = ray.pos[0]; rtcRayHit.ray.org_y = ray.pos[1]; rtcRayHit.ray.org_z = ray.pos[2];
     rtcRayHit.ray.dir_x = ray.dir[0]; rtcRayHit.ray.dir_y = ray.dir[1]; rtcRayHit.ray.dir_z = ray.dir[2];
     rtcRayHit.ray.tnear = 0.f;
     rtcRayHit.ray.tfar = ray.t;

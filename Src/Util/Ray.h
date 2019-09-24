@@ -5,12 +5,16 @@
 
 struct Ray
 {
-    Vec3f o;
-    Vec3f dir;
+    Ray(const Vec3f &pos, const Vec3f &dir)
+    : pos(pos), dir(dir), inv_dir(1.f / dir) {}
+    inline Vec3f get_point(const float &_t) const { return pos + _t * dir; }
+    const Vec3f pos;
+    const Vec3f dir;
+    const Vec3f inv_dir;
+    // TODO: tmin/tmax
     float t = FLT_MAX;
     bool hit = false;
     uint depth = 0;
-    Vec3f inv_dir;
 };
 
 /*

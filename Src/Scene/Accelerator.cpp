@@ -20,10 +20,7 @@ Accelerator::Accelerator(std::vector<std::shared_ptr<Object>> &objects)
 bool Accelerator::intersect(Ray &ray, Surface &surface, const std::shared_ptr<Accelerator::Node> &node)
 {
     if(!node)
-    {
-        ray.inv_dir = 1.f / ray.dir; // This should be done in a constructor
         return intersect(ray, surface, root);
-    }
 
     if(node->leaf)
     {

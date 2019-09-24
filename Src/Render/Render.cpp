@@ -69,8 +69,7 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
             const int &x = work[i][0], &y = work[i][1];
             if(pixels[x][y].current_sample < pixels[x][y].required_samples)
             {
-                Ray ray;
-                scene->camera.sample_pixel(pixels[x][y].pixel, ray, &pixels[x][y].rng[pixels[x][y].current_sample]);
+                Ray ray = scene->camera.sample_pixel(pixels[x][y].pixel, &pixels[x][y].rng[pixels[x][y].current_sample]);
                 integrator = master_integrator->create(ray);
                 integrator->integrate(integrator->get_required_samples());
 

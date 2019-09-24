@@ -12,7 +12,7 @@ bool Sphere::intersect(Ray &ray, Surface &surface)
 {
     float t0, t1;
 
-    const Vec3f L = position - ray.o;
+    const Vec3f L = position - ray.pos;
     const float tca = L.dot(ray.dir);
     // if (tca < 0) return false;
     const float d2 = L.dot(L) - tca * tca;
@@ -32,7 +32,7 @@ bool Sphere::intersect(Ray &ray, Surface &surface)
     }
 
     const float t = t0;
-    const Vec3f hit_position = ray.o + t * ray.dir;
+    const Vec3f hit_position = ray.get_point(t);
     const Vec3f normal = (hit_position - position).normalized();
     // ADD DOULE SIDED OPTION
 

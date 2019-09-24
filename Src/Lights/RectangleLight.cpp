@@ -11,10 +11,10 @@ RectangleLight::RectangleLight(const Vec3f &position, const Vec3f &u, const Vec3
 
 bool RectangleLight::evaluate_light(const Ray &ray, Vec3f &light, float * pdf)
 {
-    const float t = (position - ray.o).dot(normal) / (ray.dir.dot(normal));
+    const float t = (position - ray.pos).dot(normal) / (ray.dir.dot(normal));
 
-    const Vec3f light_point = ray.o + t * ray.dir;
-    const Vec3f dir = light_point - ray.o;
+    const Vec3f light_point = ray.get_point(t);
+    const Vec3f dir = light_point - ray.pos;
 
     if(ray.dir.dot(-normal) < 0 && !double_sided)
         return false;

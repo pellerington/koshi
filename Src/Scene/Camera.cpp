@@ -8,19 +8,12 @@ Camera::Camera(const Transform3f &transform, const Vec2u &resolution, const uint
 {
 }
 
-bool Camera::sample_pixel(const Vec2u &pixel, Ray &ray, const Vec2f * rng) const
+Ray Camera::sample_pixel(const Vec2u &pixel, const Vec2f * rng) const
 {
-    // Are we out of bounds?
-    if(pixel.x >= resolution.x || pixel.y >= resolution.y)
-        return false;
-
     // Set ray
     Vec3f pixel_position(((float)(resolution.x - pixel.x) / resolution.x - 0.5f) * aspect_ratio, ((float)(resolution.y - pixel.y) / resolution.y - 0.5f), focal_length);
     pixel_position = pixel_position + pixel_delta * ((rng == nullptr) ? Vec3f(RNG::Rand(), RNG::Rand(), 0.f) : Vec3f((*rng)[0], (*rng)[1], 0.f));
     pixel_position[3] = 1.f;
     pixel_position = transform * pixel_position;
-    ray.o = origin;
-    ray.dir = (pixel_position - ray.o).normalized();
-
-    return true;
+    return Ray(origin, (pixel_position - origin).normalized());
 }

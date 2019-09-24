@@ -33,8 +33,8 @@ public:
 
     inline bool intersect(const Ray &ray)
     {
-        const Vec3f t1 = (box_min - ray.o) * ray.inv_dir;
-        const Vec3f t2 = (box_max - ray.o) * ray.inv_dir;
+        const Vec3f t1 = (box_min - ray.pos) * ray.inv_dir;
+        const Vec3f t2 = (box_max - ray.pos) * ray.inv_dir;
         const float tmin = Vec3f::min(t1, t2).max();
         const float tmax = Vec3f::max(t1, t2).min();
 
