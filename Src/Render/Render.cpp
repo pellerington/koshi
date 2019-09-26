@@ -58,10 +58,10 @@ void Render::start_render()
 void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
 {
     bool completed = false;
-    while(!completed)
+    while(!completed && !kill_signal)
     {
         completed = true;
-        for(size_t i = id * (work.size() / num_workers); i < (id + 1) * (work.size() / num_workers); i++)
+        for(size_t i = id * (work.size() / num_workers); i < (id + 1) * (work.size() / num_workers) && !kill_signal; i++)
         {
             const int &x = work[i][0], &y = work[i][1];
             if(pixels[x][y].current_sample < pixels[x][y].required_samples)

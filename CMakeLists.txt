@@ -18,6 +18,7 @@ file(GLOB_RECURSE SOURCES "Src/*.cpp")
 add_executable(koshi ${SOURCES})
 
 set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -O3")
+#set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -g")
 
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${EMBREE_INCLUDE_DIRS})

@@ -4,6 +4,7 @@
 #include "Math/Types.h"
 #include "Import/SceneFile.h"
 #include "Export/SFMLViewer.h"
+#include "Export/OIIOViewer.h"
 #include "Export/DebugObj.h"
 
 #include <cmath>
@@ -37,8 +38,6 @@ int main(int argc, char *argv[])
     // }
     // DebugObj::Points(points);
 
-    std::cout << Vec2u(1) + Vec2u(2) << '\n';
-
     std::cout << "Threads: " << threads << '\n';
     std::cout << "File: " << filename << '\n';
 
@@ -52,9 +51,14 @@ int main(int argc, char *argv[])
     std::cout << "Render Thread Started." << '\n';
 
     std::thread view_thread(SFMLViewer::RenderWindow, 1024, &render);
-    view_thread.join();
 
-    std::cout << "End Render." << '\n';
+    view_thread.join();
+    render.kill_render();
+    render_thread.join();
+
+    OIIOViewer::FileOut(render, "output.png");
+
+    std::cout << "Writing Render." << '\n';
 
     return 0;
 }

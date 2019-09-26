@@ -13,8 +13,8 @@ public:
     inline const bool get_vec3f(const Surface &surface, Vec3f &out) { return get_vec3f(surface.u, surface.v, out); }
 
 private:
-
-    OpenImageIO::TextureSystem * texture_system;
-    OpenImageIO::TextureSystem::TextureHandle * texture_handle;
-    OpenImageIO::TextureOpt options;
+    OIIO::ustring filename;
+    OIIO::TextureSystem * texture_system;
+    // OIIO::TextureSystem::TextureHandle * texture_handle;
+    OIIO::TextureOpt options;
 };

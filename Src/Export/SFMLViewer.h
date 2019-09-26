@@ -26,15 +26,8 @@ public:
         {
             sf::Event event;
             while (window.pollEvent(event))
-            {
                 if (event.type == sf::Event::Closed)
-                {
-                    sf::Image output;
-                    output.create(image_width, image_height, pixels);
-                    output.saveToFile("output.png");
                     window.close();
-                }
-            }
 
             update_pixels(render, pixels);
             texture.update(pixels);

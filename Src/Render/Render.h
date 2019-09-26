@@ -24,10 +24,12 @@ public:
     void render_worker(const uint id, const std::vector<Vec2i> &work);
     Vec3f get_pixel_color(uint x, uint y) const;
     inline Vec2u get_image_resolution() const { return scene->camera.get_image_resolution(); }
+    void kill_render() { kill_signal = true; }
 private:
     std::unique_ptr<Integrator> integrator;
     const Scene * scene;
     const uint num_workers;
     const Vec2u resolution;
     std::vector<std::vector<Pixel>> pixels;
+    bool kill_signal = false;
 };
