@@ -78,66 +78,43 @@ bool Scene::intersect(Ray &ray, Surface &surface)
 
 #endif
 
-inline void Scene::evaluate_light(const uint i, const Ray &ray, Vec3f &light, float* pdf)
+bool Scene::evaluate_lights(const Ray &ray, LightSample &light_sample)
 {
-    Vec3f light_i = 0.f;
-    float pdf_i = 0.f;
-    lights[i]->evaluate_light(ray, light_i, &pdf_i);
-    light += light_i;
-    if(pdf) *pdf += pdf_i;
-}
+    light_sample.intensity = 0.f;
+    light_sample.pdf = 0.f;
 
-bool Scene::evaluate_lights(const Ray &ray, Vec3f &light, float* pdf, const LightSample* light_sample)
-{
-    light = 0.f;
-    if(pdf) *pdf = 0.f;
-    if(light_sample)
+    for(uint i = 0; i < lights.size(); i++)
     {
-        for(uint i = 0; i < light_sample->id; i++)
-            evaluate_light(i, ray, light, pdf);
-        if(ray.t >= light_sample->t)
-            light += light_sample->intensity;
-        for(uint i = light_sample->id + 1; i < lights.size(); i++)
-            evaluate_light(i, ray, light, pdf);
+        LightSample isample;
+        if(lights[i]->evaluate_light(ray, isample))
+        {
+            light_sample.intensity += isample.intensity;
+            light_sample.pdf += isample.pdf;
+            // return an array so that the position makes sense.
+        }
     }
-    else
-    {
-        for(uint i = 0; i < lights.size(); i++)
-            evaluate_light(i, ray, light, pdf);
-    }
+
     return true;
 }
 
-bool Scene::evaluate_environment_light(const Ray &ray, Vec3f &light, float* pdf)
+Vec3f Scene::evaluate_environment_light(const Ray &ray)
 {
+    LightSample light_sample;
     if(environment_light)
-        return environment_light->evaluate_light(ray, light, pdf);
-    return false;
+    {
+        if(!environment_light->evaluate_light(ray, light_sample))
+            return VEC3F_ZERO;
+        return light_sample.intensity;
+    }
+    return VEC3F_ZERO;
 }
 
-bool Scene::sample_lights(const Surface &surface, std::deque<PathSample> &path_samples, const float sample_multiplier)
+bool Scene::sample_lights(const Surface &surface, std::deque<LightSample> &light_samples, const float sample_multiplier)
 {
     for(size_t i = 0; i < lights.size(); i++)
     {
         const uint num_samples = std::max(1.f, lights[i]->estimated_samples(surface) * sample_multiplier);
-        const float quality = 1.f / num_samples;
-        std::deque<LightSample> light_samples;
         lights[i]->sample_light(num_samples, surface, light_samples);
-        for(uint j = 0; j < light_samples.size(); j++)
-        {
-            path_samples.emplace_back();
-            PathSample &path_sample = path_samples.back();
-            path_sample.quality = quality;
-            path_sample.type = PathSample::Light;
-
-            const Vec3f dir = light_samples[j].position - surface.position;
-            path_sample.wo = dir.normalized();
-            path_sample.pdf = light_samples[j].pdf;
-
-            path_sample.light_sample = light_samples[j];
-            path_sample.light_sample.id = i;
-            path_sample.light_sample.t = dir.length();
-        }
     }
     return true;
 }

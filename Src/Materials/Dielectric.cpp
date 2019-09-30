@@ -26,43 +26,42 @@ std::shared_ptr<Material> Dielectric::instance(const Surface &surface)
     return material;
 }
 
-bool Dielectric::sample_material(const Surface &surface, std::deque<PathSample> &path_samples, const float sample_reduction)
+bool Dielectric::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
 {
     if(surface.enter)
-        ggx_reflect->sample_material(surface, path_samples, sample_reduction);
-    const float reflective_samples = path_samples.size();
-    ggx_refract->sample_material(surface, path_samples, sample_reduction);
-    const float refractive_samples = path_samples.size() - reflective_samples;
+        ggx_reflect->sample_material(surface, samples, sample_reduction);
+    const float reflective_samples = samples.size();
+    ggx_refract->sample_material(surface, samples, sample_reduction);
+    const float refractive_samples = samples.size() - reflective_samples;
     const float total_samples = reflective_samples + refractive_samples;
 
     const float reflective_weight = reflective_samples / total_samples;
     for(uint i = 0; i < reflective_samples; i++)
-        path_samples[i].pdf *= reflective_weight;
+        samples[i].pdf *= reflective_weight;
     const float refractive_weight = refractive_samples / total_samples;
     for(uint i = reflective_samples; i < total_samples; i++)
-        path_samples[i].pdf *= refractive_weight;
+        samples[i].pdf *= refractive_weight;
 
     return true;
 }
 
-bool Dielectric::evaluate_material(const Surface &surface, PathSample &path_sample, float &pdf)
+bool Dielectric::evaluate_material(const Surface &surface, MaterialSample &sample)
 {
-    path_sample.fr = 0.f;
-    pdf = 0.f;
+    sample.fr = 0.f;
+    sample.pdf = 0.f;
 
-    float rpdf;
-    PathSample rsample = path_sample;
+    MaterialSample isample = sample;
     if(surface.enter)
-        if(ggx_reflect->evaluate_material(surface, rsample, rpdf))
+        if(ggx_reflect->evaluate_material(surface, isample))
         {
-            path_sample.fr += rsample.fr;
-            pdf += rpdf;
+            sample.fr += isample.fr;
+            sample.pdf += isample.pdf;
         }
-    rsample = path_sample;
-    if(ggx_refract->evaluate_material(surface, rsample, rpdf))
+    isample = sample;
+    if(ggx_refract->evaluate_material(surface, isample))
     {
-        path_sample.fr += rsample.fr;
-        pdf += rpdf;
+        sample.fr += isample.fr;
+        sample.pdf += isample.pdf;
     }
 
     return true;

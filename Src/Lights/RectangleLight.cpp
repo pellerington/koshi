@@ -9,12 +9,12 @@ RectangleLight::RectangleLight(const Vec3f &position, const Vec3f &u, const Vec3
 {
 }
 
-bool RectangleLight::evaluate_light(const Ray &ray, Vec3f &light, float * pdf)
+bool RectangleLight::evaluate_light(const Ray &ray, LightSample &light_sample)
 {
     const float t = (position - ray.pos).dot(normal) / (ray.dir.dot(normal));
 
-    const Vec3f light_point = ray.get_point(t);
-    const Vec3f dir = light_point - ray.pos;
+    light_sample.position = ray.get_point(t);
+    const Vec3f dir = light_sample.position - ray.pos;
 
     if(ray.dir.dot(-normal) < 0 && !double_sided)
         return false;
@@ -22,15 +22,14 @@ bool RectangleLight::evaluate_light(const Ray &ray, Vec3f &light, float * pdf)
     if(t > ray.t || t < 0)
         return false;
 
-    const float tu = u.normalized().dot(light_point - position);
-    const float tv = v.normalized().dot(light_point - position);
+    const float tu = u.normalized().dot(light_sample.position - position);
+    const float tv = v.normalized().dot(light_sample.position - position);
     if(tu < 0.f || tu > u.length() || tv < 0.f || tv > v.length())
         return false;
 
-    if(pdf)
-        *pdf = dir.sqr_length() / (area * normal.dot(-dir));
+    light_sample.pdf = dir.sqr_length() / (area * normal.dot(-dir));
+    light_sample.intensity = intensity;
 
-    light = intensity;
     return true;
 }
 

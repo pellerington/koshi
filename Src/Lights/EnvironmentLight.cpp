@@ -7,9 +7,11 @@ EnvironmentLight::EnvironmentLight(const Vec3f &intensity, std::shared_ptr<Textu
 {
 }
 
-bool EnvironmentLight::evaluate_light(const Ray &ray, Vec3f &light, float * pdf)
+bool EnvironmentLight::evaluate_light(const Ray &ray, LightSample &light_sample)
 {
-    light = 1.f;
+    // if(ray.hit)
+        // return false;
+
 
     float theta = acosf(ray.dir.y);
     float phi = atanf((ray.dir.z + EPSILON_F) / (ray.dir.x + EPSILON_F));
@@ -20,10 +22,13 @@ bool EnvironmentLight::evaluate_light(const Ray &ray, Vec3f &light, float * pdf)
     const float u = theta * INV_PI;
     const float v = phi * INV_TWO_PI;
 
-    if(texture)
-        texture->get_vec3f(v, u, light);
+    light_sample.intensity = 1.f;
+    if(texture) texture->get_vec3f(v, u, light_sample.intensity);
 
-    light = light * intensity;
+    light_sample.intensity *= intensity;
+
+    light_sample.position = Vec3f(FLT_MAX);
+    light_sample.pdf = 0.f;
 
     return true;
 }

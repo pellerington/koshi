@@ -31,10 +31,9 @@ public:
 
     void pre_render();
     bool intersect(Ray &ray, Surface &surface);
-    bool evaluate_lights(const Ray &ray, Vec3f &light, float* pdf, const LightSample* light_sample);
-    inline void evaluate_light(const uint i, const Ray &ray, Vec3f &light, float* pdf);
-    bool evaluate_environment_light(const Ray &ray, Vec3f &light, float* pdf = nullptr);
-    bool sample_lights(const Surface &surface, std::deque<PathSample> &path_samples, const float sample_multiplier = 1.f);
+    bool evaluate_lights(const Ray &ray, LightSample &light_sample);
+    Vec3f evaluate_environment_light(const Ray &ray);
+    bool sample_lights(const Surface &surface, std::deque<LightSample> &light_samples, const float sample_multiplier = 1.f);
 
     const Camera camera;
     const Settings settings;
