@@ -1,7 +1,5 @@
 #include "Scene.h"
 
-#if EMBREE
-
 void Scene::pre_render()
 {
     rtc_scene = rtcNewScene(Embree::rtc_device);
@@ -14,7 +12,7 @@ void Scene::pre_render()
     rtcCommitScene(rtc_scene);
 }
 
-bool Scene::intersect(Ray &ray, Surface &surface)
+Surface Scene::intersect(Ray &ray)
 {
     RTCIntersectContext context;
     rtcInitIntersectContext(&context);
@@ -37,46 +35,14 @@ bool Scene::intersect(Ray &ray, Surface &surface)
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
         ray.hit = false;
-        return false;
+        return Surface();
     }
     else
     {
         ray.hit = true;
-        rtc_to_obj[rtcRayHit.hit.geomID]->process_intersection(rtcRayHit, ray, surface);
-        return true;
+        return rtc_to_obj[rtcRayHit.hit.geomID]->process_intersection(rtcRayHit, ray);
     }
 }
-
-#else
-
-void Scene::pre_render()
-{
-    std::vector<std::shared_ptr<Object>> sub_objects;
-    for(size_t i = 0; i < objects.size(); i++)
-    {
-        std::vector<std::shared_ptr<Object>> i_sub_objects = objects[i]->get_sub_objects();
-        sub_objects.insert(sub_objects.end(), i_sub_objects.begin(), i_sub_objects.end());
-    }
-    accelerator = std::unique_ptr<Accelerator>(new Accelerator(sub_objects));
-}
-
-bool Scene::intersect(Ray &ray, Surface &surface)
-{
-    if(accelerator)
-    {
-        return accelerator->intersect(ray, surface);
-    }
-    else
-    {
-        for(size_t i = 0; i < objects.size(); i++)
-        {
-            objects[i]->intersect(ray, surface);
-        }
-        return ray.hit;
-    }
-}
-
-#endif
 
 bool Scene::evaluate_lights(const Ray &ray, LightSample &light_sample)
 {

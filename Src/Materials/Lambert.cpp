@@ -24,8 +24,6 @@ bool Lambert::sample_material(const Surface &surface, std::deque<MaterialSample>
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_reduction);
     const float quality = 1.f / num_samples;
 
-    const Transform3f transform = Transform3f::normal_transform(surface.normal);
-
     std::vector<Vec2f> rnd;
     RNG::Rand2d(num_samples, rnd);
 
@@ -39,7 +37,7 @@ bool Lambert::sample_material(const Surface &surface, std::deque<MaterialSample>
         // Uniform Sample
         const float theta = TWO_PI * rnd[i][0];
         const float phi = acosf(rnd[i][1]);
-        sample.wo = transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta));
+        sample.wo = surface.transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta));
 
         sample.fr = diffuse_color * INV_PI * sample.wo.dot(surface.normal);;
         sample.pdf = INV_TWO_PI;
@@ -48,7 +46,7 @@ bool Lambert::sample_material(const Surface &surface, std::deque<MaterialSample>
         const float theta = TWO_PI * rnd[i][0];
         const float r = sqrtf(rnd[i][1]);
         const float x = r * cosf(theta), z = r * sinf(theta), y = sqrtf(std::max(EPSILON_F, 1.f - rnd[i][1]));
-        sample.wo = transform * Vec3f(x, y, z);
+        sample.wo = surface.transform * Vec3f(x, y, z);
 
         sample.fr = diffuse_color * INV_PI * sample.wo.dot(surface.normal);
         sample.pdf = y * INV_PI;

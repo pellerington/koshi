@@ -45,6 +45,13 @@ public:
         return true;
     }
 
+    friend std::ostream& operator<<(std::ostream& os, const Box3f& b)
+    {
+        os << "min: (" << b.box_min[0] << " " << b.box_min[1] << " " << b.box_min[2] << ")\n";
+        os << "max: (" << b.box_max[0] << " " << b.box_max[1] << " " << b.box_max[2] << ")";
+        return os;
+    }
+
 private:
 
     Vec3f box_min;

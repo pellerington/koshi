@@ -1,9 +1,7 @@
 #include "PathIntegrator.h"
 
 #include <cmath>
-
 #include "../Util/Color.h"
-
 
 void PathIntegrator::pre_render()
 {
@@ -21,8 +19,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, const float current_quality, PathSampl
         ray.t = (in_sample->lsample->position - ray.pos).length();
 
     // Intersect with our scene
-    Surface surface;
-    scene->intersect(ray, surface);
+    Surface surface = scene->intersect(ray);
 
     // If we are unshadowed return the light sample intensity
     // In future override this with a explicit shadowing function

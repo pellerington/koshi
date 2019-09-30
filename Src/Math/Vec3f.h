@@ -52,7 +52,7 @@ public:
     inline Vec3f operator/ (const Vec3f &other) const { return Vec3f(_mm_div_ps(data, other.data)); }
     inline Vec3f& operator/= (const float &n) { data = _mm_div_ps(data, _mm_set_ps1(n)); return *this; }
     inline Vec3f operator/ (const float &n) const { return Vec3f(_mm_div_ps(data, _mm_set_ps1(n))); }
-    friend inline Vec3f operator/ (const float &n, const Vec3f &other) { return Vec3f(_mm_sub_ps(_mm_set_ps1(n), other.data)); }
+    friend inline Vec3f operator/ (const float &n, const Vec3f &other) { return Vec3f(_mm_div_ps(_mm_set_ps1(n), other.data)); }
 
     // Replace these
     inline float length() const {
@@ -89,11 +89,11 @@ public:
 
     inline static Vec3f min(const Vec3f &v0, const Vec3f &v1) { return Vec3f(_mm_min_ps(v0.data, v1.data)); }
     inline void min(const Vec3f &other) { data = _mm_min_ps(data, other.data); }
-    inline float min() const { return (x < y && x < z) ? x : ((y < z ) ? y : z); }
+    inline float min() const { return (x < y && x < z) ? x : ((y < z) ? y : z); }
 
     inline static Vec3f max(const Vec3f &v0, const Vec3f &v1) { return Vec3f(_mm_max_ps(v0.data, v1.data)); }
     inline void max(const Vec3f &other) { data = _mm_max_ps(data, other.data); }
-    inline float max() const { return (x < y && x < z) ? x : ((y < z ) ? y : z); }
+    inline float max() const { return (x > y && x > z) ? x : ((y > z) ? y : z); }
 
     friend std::ostream& operator<<(std::ostream& os, const Vec3f& v)
     {

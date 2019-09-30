@@ -9,12 +9,20 @@ class Object;
 
 struct Surface
 {
-    Vec3f position;
-    Vec3f wi;
-    Vec3f normal; // + Geometric normal?
-    float u = 0.f;
-    float v = 0.f;
-    bool enter = true;
-    Object * object = nullptr;
-    //TODO: Surface should store a normal transform?
+    Surface() : object(nullptr) {}
+
+    Surface(Object * object, const Vec3f &position, const Vec3f &normal,
+            const Vec3f &wi = 0.f, const float u = 0.f, const float v = 0.f)
+    : object(object), position(position), normal(normal), wi(wi), u(u), v(v),
+      n_dot_wi(normal.dot(-wi)), enter(n_dot_wi >= 0.f), transform(Transform3f::normal_transform(normal))
+    {}
+
+    const Object * object;
+    const Vec3f position;
+    const Vec3f normal;
+    const Vec3f wi;
+    const float u = 0.f, v = 0.f;
+    const float n_dot_wi = 0.f;
+    const bool enter = true;
+    const Transform3f transform;
 };

@@ -13,7 +13,7 @@ bool RectangleLight::evaluate_light(const Ray &ray, LightSample &light_sample)
 {
     const float t = (position - ray.pos).dot(normal) / (ray.dir.dot(normal));
 
-    light_sample.position = ray.get_point(t);
+    light_sample.position = ray.get_position(t);
     const Vec3f dir = light_sample.position - ray.pos;
 
     if(ray.dir.dot(-normal) < 0 && !double_sided)

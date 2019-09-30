@@ -19,23 +19,11 @@ public:
     Mesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material = nullptr);
 
     ObjectType get_type() { return ObjectType::Mesh; }
-    bool intersect(Ray &ray, Surface &surface);
-    std::vector<std::shared_ptr<Object>> get_sub_objects();
-
-#if EMBREE
-    void process_intersection(const RTCRayHit &rtcRayHit, Ray &ray, Surface &surface);
-#endif
+    Surface process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray);
 
 private:
-
-#if EMBREE
     RTCVertex * vertices; // These need to be correctly deleted in ~Mesh()
     RTCTriangle * triangles;
     std::vector<std::array<std::shared_ptr<Vec3f>, 3>> normals;
-#else
-    std::vector<Vec3f> vertices;
-    std::vector<std::shared_ptr<Triangle>> triangles;
-    std::vector<Vec3f> normals;
-#endif
 
 };

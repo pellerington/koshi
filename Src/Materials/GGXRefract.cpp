@@ -25,8 +25,6 @@ bool GGXRefract::sample_material(const Surface &surface, std::deque<MaterialSamp
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * roughness_sqrt * sample_reduction);
     const float quality = 1.f / num_samples;
 
-    const Transform3f transform = Transform3f::normal_transform(surface.normal);
-
     std::vector<Vec2f> rnd;
     RNG::Rand2d(num_samples, rnd);
 
@@ -37,7 +35,7 @@ bool GGXRefract::sample_material(const Surface &surface, std::deque<MaterialSamp
 
         const float theta = TWO_PI * rnd[i][0];
         const float phi = atanf(roughness * sqrtf(rnd[i][1]) / sqrtf(1.f - rnd[i][1]));
-        const Vec3f h = ((surface.enter) ? 1.f : -1.f) * (transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
+        const Vec3f h = ((surface.enter) ? 1.f : -1.f) * (surface.transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
 
         const float h_dot_wi = clamp(h.dot(-surface.wi), -1.f, 1.f);
         const float eta = ior_in / ior_out;
@@ -53,7 +51,7 @@ bool GGXRefract::sample_material(const Surface &surface, std::deque<MaterialSamp
 
         const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
         const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
-        const float n_dot_wi = clamp(normal.dot(-surface.wi), -1.f, 1.f);
+        const float n_dot_wi = surface.n_dot_wi;
         const float n_dot_wo = clamp(normal.dot(sample.wo), -1.f, 1.f);
 
         const float d = D(normal, h, n_dot_h, roughness_sqr);
@@ -89,7 +87,7 @@ bool GGXRefract::evaluate_material(const Surface &surface, MaterialSample &sampl
     const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
     const float h_dot_wi = clamp(h.dot(-surface.wi), -1.f, 1.f);
     const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
-    const float n_dot_wi = clamp(normal.dot(-surface.wi), -1.f, 1.f);
+    const float n_dot_wi = surface.n_dot_wi;
     const float n_dot_wo = clamp(normal.dot(sample.wo), -1.f, 1.f);
 
     const float d = D(normal, h, n_dot_h, roughness_sqr);
