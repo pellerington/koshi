@@ -14,7 +14,6 @@ struct Ray
     // TODO: tmin/tmax
     float t = FLT_MAX;
     bool hit = false;
-    uint depth = 0;
 };
 
 /*

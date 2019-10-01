@@ -53,7 +53,6 @@ bool Lambert::sample_material(const Surface &surface, std::deque<MaterialSample>
 #endif
     }
 
-
     return true;
 }
 

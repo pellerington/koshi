@@ -7,61 +7,70 @@ void PathIntegrator::pre_render()
 {
 }
 
-Vec3f PathIntegrator::integrate(Ray &ray, const float current_quality, PathSample * in_sample) const
+Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
 {
     // Initialize output
     Vec3f color = VEC3F_ZERO;
-    Vec3f emission = VEC3F_ZERO;
 
     // If we have a light sample set our tmax
     // In future override this with a explicit shadowing function
-    if(in_sample && in_sample->type == PathSample::Light)
-        ray.t = (in_sample->lsample->position - ray.pos).length();
+    if(in_sample.type == PathSample::Light)
+        ray.t = (in_sample.lsample->position - ray.pos).length();
 
     // Intersect with our scene
     Surface surface = scene->intersect(ray);
 
     // If we are unshadowed return the light sample intensity
     // In future override this with a explicit shadowing function
-    if(in_sample && in_sample->type == PathSample::Light)
-        return (ray.hit) ? Vec3f(0.f) : in_sample->lsample->intensity;
+    if(in_sample.type == PathSample::Light)
+        return (ray.hit) ? Vec3f(0.f) : in_sample.lsample->intensity;
 
     // Check if we intersected any lights
     LightSample light_result;
-    if(ray.depth > 0 || scene->settings.display_lights)
+    if(in_sample.type != PathSample::Camera || scene->settings.display_lights)
         scene->evaluate_lights(ray, light_result);
-    emission += light_result.intensity;
-    if(in_sample) *(in_sample->lsample) = light_result;
+    color += light_result.intensity;
+    if(in_sample.lsample) *in_sample.lsample = light_result;
 
-    // If we hit nothing end it here
-    // Incorporate this into our main evaluate light!
-    if(!ray.hit && ray.t == FLT_MAX)
+    // If we hit nothing end it here. Incorporate this into our main evaluate light.
+    if(!ray.hit)
     {
         Vec3f environment = scene->evaluate_environment_light(ray);
-        if(ray.depth > 0 || scene->settings.display_lights)
-            emission += environment;
-        return emission;
+        if(in_sample.type != PathSample::Camera || scene->settings.display_lights)
+            color += environment;
+        return color;
     }
+
+    // Check if we should terminate.
+    if(in_sample.depth > scene->settings.max_depth || is_saturated(color)) //Checking saturation may be incorrect.
+        return color;
 
     // Volume Function goes here
     // Intersect some volume structure.
     // Sample points/directions along it.
     // Sucess?
 
-    // Move this to a surface function
+    // Integrate the surface
+    color += integrate_surface(surface, in_sample);
 
-    // if(!material) Use some default material.
-    std::shared_ptr<Material> material = surface.object->material->instance(surface);
+    return color;
+}
 
-    // Add any emissive component of the material to the integrator
-    emission += material->get_emission();
+Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_sample) const
+{
+    // Initialize output
+    Vec3f color = VEC3F_ZERO;
 
-    // If we are greater than the max depth, or our emission is fully saturated end here.
-    if(ray.depth > scene->settings.max_depth || is_saturated(emission)) // Saturated emission may not be correct?
-        return emission;
+    // Get our material instance
+    std::shared_ptr<Material> material = (surface.object->material) ? surface.object->material->instance(surface) : std::shared_ptr<Material>(new Material());
+
+    // Add any emissive component of the material. If our color is fully saturated end here.
+    color += material->get_emission();
+    if(is_saturated(color)) //Checking saturation may be incorrect.
+        return color;
 
     // Setup sampling variables
-    const float sample_multiplier = scene->settings.quality * current_quality;
+    const float sample_multiplier = scene->settings.quality * in_sample.quality;
 
     // Sample the material
     std::deque<MaterialSample> material_samples;
@@ -77,30 +86,28 @@ Vec3f PathIntegrator::integrate(Ray &ray, const float current_quality, PathSampl
 
     // Return if we have no samples
     if(!(n_material_samples + n_light_samples))
-        return emission;
+        return color;
 
     const bool multiple_importance_sample = (n_light_samples > 0) && (n_material_samples > 0);
     const float material_sample_weight = (n_material_samples > 0) ? 1.f / n_material_samples : 0.f;
     const float light_sample_weight = (n_light_samples > 0) ? 1.f / n_light_samples : 0.f;
 
-    // These should be on the surface object!!!
-    //surface.position + ((wo_dot_n >= 0.f) ? (surface.normal * EPSILON_F) : (surface.normal * -EPSILON_F)); // Get this from surface
-    const Vec3f front_position = surface.position + surface.normal *  EPSILON_F;
-    const Vec3f back_position  = surface.position + surface.normal * -EPSILON_F;
-
+    // Perform the integrations
     for(uint i = 0; i < material_samples.size(); i++)
     {
         PathSample sample;
+        sample.parent = &in_sample;
+        sample.depth = in_sample.depth + 1;
+        sample.quality = in_sample.quality * material_samples[i].quality;
         sample.msample = &material_samples[i];
         sample.type = PathSample::Material;
         LightSample lsample;
         sample.lsample = &lsample;
 
         const float wo_dot_n = sample.msample->wo.dot(surface.normal);
-        Ray sample_ray((wo_dot_n >= 0.f) ? front_position : back_position, sample.msample->wo);
-        sample_ray.depth = ray.depth + 1; // Depth should be in the path_sample
+        Ray ray((wo_dot_n >= 0.f) ? surface.front_position : surface.back_position, sample.msample->wo);
 
-        Vec3f in_color = integrate(sample_ray, current_quality * sample.msample->quality, &sample);
+        Vec3f in_color = integrate(ray, sample);
 
         float weight = material_sample_weight;
         if(multiple_importance_sample)
@@ -112,6 +119,9 @@ Vec3f PathIntegrator::integrate(Ray &ray, const float current_quality, PathSampl
     for(uint i = 0; i < light_samples.size(); i++)
     {
         PathSample sample;
+        sample.parent = &in_sample;
+        sample.depth = in_sample.depth + 1;
+        sample.quality = 1.f;
         sample.lsample = &light_samples[i];
         sample.type = PathSample::Light;
         MaterialSample msample;
@@ -121,10 +131,9 @@ Vec3f PathIntegrator::integrate(Ray &ray, const float current_quality, PathSampl
         if(!material->evaluate_material(surface, msample)) continue;
 
         const float wo_dot_n = sample.msample->wo.dot(surface.normal);
-        Ray sample_ray((wo_dot_n >= 0.f) ? front_position : back_position, sample.msample->wo);
-        sample_ray.depth = ray.depth + 1; // Depth should be in the path_sample
+        Ray ray((wo_dot_n >= 0.f) ? surface.front_position : surface.back_position, sample.msample->wo);
 
-        Vec3f in_color = integrate(sample_ray, current_quality, &sample);
+        Vec3f in_color = integrate(ray, sample);
 
         float weight = light_sample_weight;
         if(multiple_importance_sample)
@@ -133,5 +142,5 @@ Vec3f PathIntegrator::integrate(Ray &ray, const float current_quality, PathSampl
         color += in_color * sample.msample->fr * weight / sample.lsample->pdf;
     }
 
-    return emission + color;
+    return color;
 }
