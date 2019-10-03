@@ -1,4 +1,4 @@
-#include "GGXRefract.h"
+#include "MaterialGGXRefract.h"
 
 #include "../Math/RNG.h"
 #include "../Math/Helpers.h"
@@ -6,20 +6,20 @@
 #include <cmath>
 #include <iostream>
 
-GGXRefract::GGXRefract(const Vec3f &refractive_color, const float &roughness, const float &ior, std::shared_ptr<Fresnel> _fresnel, const Vec3f &emission)
+MaterialGGXRefract::MaterialGGXRefract(const Vec3f &refractive_color, const float &roughness, const float &ior, std::shared_ptr<Fresnel> _fresnel, const Vec3f &emission)
 : refractive_color(refractive_color), roughness(clamp(roughness*roughness, 0.000001f, 0.999999f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), ior(ior), fresnel(_fresnel), emission(emission)
 {
 }
 
-std::shared_ptr<Material> GGXRefract::instance(const Surface &surface)
+std::shared_ptr<Material> MaterialGGXRefract::instance(const Surface &surface)
 {
-    std::shared_ptr<GGXRefract> material(new GGXRefract(*this));
+    std::shared_ptr<MaterialGGXRefract> material(new MaterialGGXRefract(*this));
     if(!fresnel)
         material->fresnel = (surface.enter) ? std::shared_ptr<Fresnel>(new FresnelDielectric(1.f, ior)) : std::shared_ptr<Fresnel>(new FresnelNone);
     return material;
 }
 
-bool GGXRefract::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
+bool MaterialGGXRefract::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
 {
     // Estimate the number of samples
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * roughness_sqrt * sample_reduction);
@@ -73,7 +73,7 @@ bool GGXRefract::sample_material(const Surface &surface, std::deque<MaterialSamp
     return true;
 }
 
-bool GGXRefract::evaluate_material(const Surface &surface, MaterialSample &sample)
+bool MaterialGGXRefract::evaluate_material(const Surface &surface, MaterialSample &sample)
 {
     if(sample.wo.dot(surface.wi) > 0.f)
         return false;

@@ -1,6 +1,6 @@
-#include "Triangle.h"
+#include "ObjectTriangle.h"
 
-Triangle::Triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, std::shared_ptr<Material> material)
+ObjectTriangle::ObjectTriangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, std::shared_ptr<Material> material)
 : Object(material),
   vertices({std::make_shared<Vec3f>(v0), std::make_shared<Vec3f>(v1), std::make_shared<Vec3f>(v2)}),
   normals({nullptr, nullptr, nullptr})
@@ -9,7 +9,7 @@ Triangle::Triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, std::share
 }
 
 
-Triangle::Triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, const Vec3f &n0, const Vec3f &n1, const Vec3f &n2, std::shared_ptr<Material> material)
+ObjectTriangle::ObjectTriangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, const Vec3f &n0, const Vec3f &n1, const Vec3f &n2, std::shared_ptr<Material> material)
 : Object(material),
   vertices({std::make_shared<Vec3f>(v0), std::make_shared<Vec3f>(v1), std::make_shared<Vec3f>(v2)}),
   normals({std::make_shared<Vec3f>(n0), std::make_shared<Vec3f>(n1), std::make_shared<Vec3f>(n2)})
@@ -17,7 +17,7 @@ Triangle::Triangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, const Vec3
     init();
 }
 
-void Triangle::init()
+void ObjectTriangle::init()
 {
     bbox = Box3f(Vec3f::min(*vertices[0], Vec3f::min(*vertices[1], *vertices[2])),
                  Vec3f::max(*vertices[0], Vec3f::max(*vertices[1], *vertices[2])));
@@ -39,7 +39,7 @@ void Triangle::init()
     triangles[0].v2 = 2;
 }
 
-Surface Triangle::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
+Surface ObjectTriangle::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
 {
     return Surface (
         this,

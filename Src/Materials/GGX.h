@@ -12,7 +12,7 @@ inline float D(const Vec3f &n, const Vec3f &h, const double &n_dot_h, const doub
 
 inline float G1(const Vec3f &v, const Vec3f &n, const Vec3f &h, const float &h_dot_v, const float &n_dot_v, const double &roughness_sqr)
 {
-    // GGX Geometric Term GGXReflect ( https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf )
+    // GGX Geometric Term MaterialGGXReflect ( https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf )
     const float x = ((h_dot_v / n_dot_v) > 0.f) ? 1.f : 0.f;
     const float tan_sqr = std::pow(v.cross(n).length() / n_dot_v, 2);
     return (x * 2.f) / (1.f + sqrtf(1.f + roughness_sqr * tan_sqr));

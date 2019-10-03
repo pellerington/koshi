@@ -6,12 +6,12 @@
 #include "../Math/Types.h"
 #include "../Dependency/json.hpp"
 #include "../Scene/Scene.h"
-#include "../Objects/Triangle.h"
-#include "../Objects/Sphere.h"
-#include "../Materials/Lambert.h"
-#include "../Materials/GGXReflect.h"
-#include "../Materials/GGXRefract.h"
-#include "../Materials/Dielectric.h"
+#include "../Objects/ObjectTriangle.h"
+#include "../Objects/ObjectSphere.h"
+#include "../Materials/MaterialLambert.h"
+#include "../Materials/MaterialGGXReflect.h"
+#include "../Materials/MaterialGGXRefract.h"
+#include "../Materials/MaterialDielectric.h"
 #include "../Lights/RectangleLight.h"
 #include "../Textures/Image.h"
 #include "MeshFile.h"
@@ -91,7 +91,7 @@ public:
                         const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
                         const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new Lambert(diffuse_color, emission));
+                        std::shared_ptr<Material> material(new MaterialLambert(diffuse_color, emission));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -102,7 +102,7 @@ public:
                         const float roughness = get_float(*it, "roughness");
                         const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new GGXReflect(specular_color, roughness, nullptr, emission));
+                        std::shared_ptr<Material> material(new MaterialGGXReflect(specular_color, roughness, nullptr, emission));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -114,7 +114,7 @@ public:
                         const float roughness = get_float(*it, "roughness");
                         const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new GGXRefract(refractive_color, roughness, ior, nullptr, emission));
+                        std::shared_ptr<Material> material(new MaterialGGXRefract(refractive_color, roughness, ior, nullptr, emission));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -127,7 +127,7 @@ public:
                         const float roughness = get_float(*it, "roughness");
                         const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new Dielectric(reflective_color, refractive_color, roughness, ior, emission));
+                        std::shared_ptr<Material> material(new MaterialDielectric(reflective_color, refractive_color, roughness, ior, emission));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -150,7 +150,7 @@ public:
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<Triangle> triangle(new Triangle(v0, v1, v2, material));
+                    std::shared_ptr<ObjectTriangle> triangle(new ObjectTriangle(v0, v1, v2, material));
                     scene.add_object(triangle);
                 }
 
@@ -159,7 +159,7 @@ public:
                     if((*it)["file"]["type"].is_string() && (*it)["file"]["name"].is_string())
                     {
                         std::shared_ptr<Material> material = ((*it)["material"].is_string()) ? materials[(*it)["material"]] : nullptr;
-                        std::shared_ptr<Mesh> mesh;
+                        std::shared_ptr<ObjectMesh> mesh;
                         if ((*it)["file"]["type"] == "obj")
                             mesh = MeshFile::ImportOBJ((*it)["file"]["name"], material);
 
@@ -177,7 +177,7 @@ public:
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<Sphere> sphere(new Sphere(position, scale, material));
+                    std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(position, scale, material));
                     scene.add_object(sphere);
                 }
 

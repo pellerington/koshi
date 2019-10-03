@@ -11,19 +11,20 @@
 class Surface;
 class Material;
 
-enum class ObjectType
-{
-    Triangle,
-    Mesh,
-    Sphere
-};
-
 class Object
 {
 public:
     Object() : material(nullptr) {}
     Object(std::shared_ptr<Material> material) : material(material) {}
-    virtual ObjectType get_type() = 0;
+
+    enum Type
+    {
+        Triangle,
+        Mesh,
+        Sphere
+    };
+    virtual Type get_type() = 0;
+
     const Box3f get_bbox() { return bbox; };
 
     virtual Surface process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray) = 0;
@@ -35,7 +36,7 @@ public:
     }
 
     std::shared_ptr<Material> material;
-    
+
 protected:
     RTCGeometry mesh;
     Box3f bbox;

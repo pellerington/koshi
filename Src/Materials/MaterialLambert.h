@@ -2,14 +2,17 @@
 
 #include "Material.h"
 
-class Lambert : public Material
+class MaterialLambert : public Material
 {
 public:
-    Lambert(const Vec3f &diffuse_color = VEC3F_ZERO, const Vec3f &emission = VEC3F_ZERO);
+    MaterialLambert(const Vec3f &diffuse_color = VEC3F_ZERO, const Vec3f &emission = VEC3F_ZERO);
     std::shared_ptr<Material> instance(const Surface &surface);
-    const Vec3f get_emission() { return emission; }
+
+    Type get_type() { return Material::Lambert; }
+
     bool sample_material(const Surface &surface, std::deque<MaterialSample> &samples, float sample_reduction = 1.f);
     bool evaluate_material(const Surface &surface, MaterialSample &sample);
+    const Vec3f get_emission() { return emission; }
 
 private:
     const Vec3f diffuse_color;

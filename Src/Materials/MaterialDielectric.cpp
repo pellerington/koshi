@@ -1,4 +1,4 @@
-#include "Dielectric.h"
+#include "MaterialDielectric.h"
 
 #include "../Math/RNG.h"
 #include "../Math/Helpers.h"
@@ -6,27 +6,27 @@
 #include <cmath>
 #include <iostream>
 
-Dielectric::Dielectric(const Vec3f &reflective_color, const Vec3f &refractive_color, const float &roughness, const float &ior, const Vec3f &emission)
+MaterialDielectric::MaterialDielectric(const Vec3f &reflective_color, const Vec3f &refractive_color, const float &roughness, const float &ior, const Vec3f &emission)
 : ior(ior), emission(emission)
 {
-    ggx_reflect = std::shared_ptr<GGXReflect>(new GGXReflect(reflective_color, roughness, fresnel));
-    ggx_refract = std::shared_ptr<GGXRefract>(new GGXRefract(refractive_color, roughness, ior, fresnel));
+    ggx_reflect = std::shared_ptr<MaterialGGXReflect>(new MaterialGGXReflect(reflective_color, roughness, fresnel));
+    ggx_refract = std::shared_ptr<MaterialGGXRefract>(new MaterialGGXRefract(refractive_color, roughness, ior, fresnel));
 }
 
-std::shared_ptr<Material> Dielectric::instance(const Surface &surface)
+std::shared_ptr<Material> MaterialDielectric::instance(const Surface &surface)
 {
-    std::shared_ptr<Dielectric> material(new Dielectric(*this));
+    std::shared_ptr<MaterialDielectric> material(new MaterialDielectric(*this));
 
     material->fresnel = (surface.enter) ? std::shared_ptr<Fresnel>(new FresnelDielectric(1.f, ior)) : std::shared_ptr<Fresnel>(new FresnelNone);
-    material->ggx_reflect = std::dynamic_pointer_cast<GGXReflect>(material->ggx_reflect->instance(surface));
+    material->ggx_reflect = std::dynamic_pointer_cast<MaterialGGXReflect>(material->ggx_reflect->instance(surface));
     material->ggx_reflect->set_fresnel(material->fresnel);
-    material->ggx_refract = std::dynamic_pointer_cast<GGXRefract>(material->ggx_refract->instance(surface));
+    material->ggx_refract = std::dynamic_pointer_cast<MaterialGGXRefract>(material->ggx_refract->instance(surface));
     material->ggx_refract->set_fresnel(material->fresnel);
 
     return material;
 }
 
-bool Dielectric::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
+bool MaterialDielectric::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
 {
     if(surface.enter)
         ggx_reflect->sample_material(surface, samples, sample_reduction);
@@ -45,7 +45,7 @@ bool Dielectric::sample_material(const Surface &surface, std::deque<MaterialSamp
     return true;
 }
 
-bool Dielectric::evaluate_material(const Surface &surface, MaterialSample &sample)
+bool MaterialDielectric::evaluate_material(const Surface &surface, MaterialSample &sample)
 {
     sample.fr = 0.f;
     sample.pdf = 0.f;

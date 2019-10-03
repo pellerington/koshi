@@ -1,22 +1,22 @@
-#include "Lambert.h"
+#include "MaterialLambert.h"
 
 #include "../Math/RNG.h"
 #include "../Math/Helpers.h"
 #include <cmath>
 #include <iostream>
 
-Lambert::Lambert(const Vec3f &diffuse_color, const Vec3f &emission)
+MaterialLambert::MaterialLambert(const Vec3f &diffuse_color, const Vec3f &emission)
 : diffuse_color(diffuse_color), emission(emission)
 {
 }
 
-std::shared_ptr<Material> Lambert::instance(const Surface &surface)
+std::shared_ptr<Material> MaterialLambert::instance(const Surface &surface)
 {
-    std::shared_ptr<Lambert> material(new Lambert(*this));
+    std::shared_ptr<MaterialLambert> material(new MaterialLambert(*this));
     return material;
 }
 
-bool Lambert::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
+bool MaterialLambert::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
 {
     if(!surface.enter)
         return false;
@@ -56,7 +56,7 @@ bool Lambert::sample_material(const Surface &surface, std::deque<MaterialSample>
     return true;
 }
 
-bool Lambert::evaluate_material(const Surface &surface, MaterialSample &sample)
+bool MaterialLambert::evaluate_material(const Surface &surface, MaterialSample &sample)
 {
     if(sample.wo.dot(surface.normal) < 0)
         return false;

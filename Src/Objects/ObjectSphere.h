@@ -2,11 +2,11 @@
 
 #include "Object.h"
 
-class Sphere : public Object
+class ObjectSphere : public Object
 {
 public:
-    Sphere(const Vec3f &position, const float &scale, std::shared_ptr<Material> material = nullptr);
-    ObjectType get_type() { return ObjectType::Sphere; }
+    ObjectSphere(const Vec3f &position, const float &scale, std::shared_ptr<Material> material = nullptr);
+    Type get_type() { return Object::Sphere; }
     Surface process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray);
 
 private:

@@ -8,6 +8,7 @@ public:
     union {
         struct { float x, y, z; };
         struct { float r, g, b; };
+        struct { float u, v, w; };
         __m128 data;
     };
 

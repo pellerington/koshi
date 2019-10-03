@@ -1,4 +1,4 @@
-#include "GGXReflect.h"
+#include "MaterialGGXReflect.h"
 
 #include "../Math/RNG.h"
 #include "../Math/Helpers.h"
@@ -6,20 +6,20 @@
 #include <cmath>
 #include <iostream>
 
-GGXReflect::GGXReflect(const Vec3f &specular_color, const float &roughness, std::shared_ptr<Fresnel> _fresnel, const Vec3f &emission)
+MaterialGGXReflect::MaterialGGXReflect(const Vec3f &specular_color, const float &roughness, std::shared_ptr<Fresnel> _fresnel, const Vec3f &emission)
 : specular_color(specular_color), roughness(clamp(roughness*roughness, 0.000001f, 0.999999f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), fresnel(_fresnel), emission(emission)
 {
 }
 
-std::shared_ptr<Material> GGXReflect::instance(const Surface &surface)
+std::shared_ptr<Material> MaterialGGXReflect::instance(const Surface &surface)
 {
-    std::shared_ptr<GGXReflect> material(new GGXReflect(*this));
+    std::shared_ptr<MaterialGGXReflect> material(new MaterialGGXReflect(*this));
     if(!fresnel)
         material->fresnel = std::shared_ptr<Fresnel>(new FresnelMetalic(specular_color));
     return material;
 }
 
-bool GGXReflect::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
+bool MaterialGGXReflect::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
 {
     if(!surface.enter)
         return false;
@@ -63,7 +63,7 @@ bool GGXReflect::sample_material(const Surface &surface, std::deque<MaterialSamp
     return true;
 }
 
-bool GGXReflect::evaluate_material(const Surface &surface, MaterialSample &sample)
+bool MaterialGGXReflect::evaluate_material(const Surface &surface, MaterialSample &sample)
 {
     if(sample.wo.dot(surface.normal) < 0)
         return false;

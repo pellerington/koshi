@@ -1,6 +1,6 @@
-#include "Mesh.h"
+#include "ObjectMesh.h"
 
-Mesh::Mesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
+ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
 : Object(material)
 {
     mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
@@ -22,7 +22,7 @@ Mesh::Mesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> 
     }
 }
 
-Mesh::Mesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
+ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
 : Object(material)
 {
     mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
@@ -55,7 +55,7 @@ Mesh::Mesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_norma
     // }
 }
 
-Surface Mesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
+Surface ObjectMesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
 {
     return Surface(
         this,

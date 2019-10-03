@@ -1,6 +1,6 @@
-#include "Sphere.h"
+#include "ObjectSphere.h"
 
-Sphere::Sphere(const Vec3f &position, const float &scale, std::shared_ptr<Material> material)
+ObjectSphere::ObjectSphere(const Vec3f &position, const float &scale, std::shared_ptr<Material> material)
 : Object(material), position(position), scale(scale), scale_sqr(scale*scale)
 {
     bbox = Box3f(position-Vec3f(scale), position+Vec3f(scale));
@@ -14,7 +14,7 @@ Sphere::Sphere(const Vec3f &position, const float &scale, std::shared_ptr<Materi
     vertex[0].r = scale;
 }
 
-Surface Sphere::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
+Surface ObjectSphere::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
 {
     return Surface (
         this,

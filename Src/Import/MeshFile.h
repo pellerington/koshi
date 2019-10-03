@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Objects/Mesh.h"
+#include "../Objects/ObjectMesh.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "../Dependency/tiny_obj_loader.h"
@@ -8,7 +8,7 @@
 class MeshFile
 {
 public:
-    static std::shared_ptr<Mesh> ImportOBJ(const std::string filename, std::shared_ptr<Material> material)
+    static std::shared_ptr<ObjectMesh> ImportOBJ(const std::string filename, std::shared_ptr<Material> material)
     {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
@@ -22,7 +22,7 @@ public:
         if (!err.empty())
             std::cerr << err << std::endl;
         if (!loaded_obj)
-            return std::shared_ptr<Mesh>();
+            return std::shared_ptr<ObjectMesh>();
 
         std::vector<Vec3f> vertices;
         vertices.reserve(attrib.vertices.size() / 3.0);
@@ -33,13 +33,13 @@ public:
         for(size_t v = 0; v < attrib.normals.size(); v=v+3)
             normals.emplace_back(Vec3f(attrib.normals[v+0], attrib.normals[v+1], attrib.normals[v+2]));
 
-        std::vector<Mesh::TriangleData> triangle_data;
+        std::vector<ObjectMesh::TriangleData> triangle_data;
         for (size_t s = 0; s < shapes.size(); s++)
         {
             triangle_data.reserve(triangle_data.size() + shapes[s].mesh.num_face_vertices.size());
             for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
             {
-                Mesh::TriangleData data;
+                ObjectMesh::TriangleData data;
                 for (size_t v = 0; v < 3; v++)
                 {
                       tinyobj::index_t idx = shapes[s].mesh.indices[(f * 3) + v]; //This +3 is assuming trianglation
@@ -52,6 +52,6 @@ public:
             }
         }
 
-        return std::shared_ptr<Mesh>(new Mesh(vertices, normals, triangle_data, material));
+        return std::shared_ptr<ObjectMesh>(new ObjectMesh(vertices, normals, triangle_data, material));
     }
 };
