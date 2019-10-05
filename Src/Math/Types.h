@@ -21,4 +21,6 @@
 static const Vec3f VEC3F_ZERO = 0.f;
 static const Vec3f VEC3F_ONES = 1.f;
 
+static const Box3f BOX3F_UNIT = Box3f(Vec3f(0.f), Vec3f(1.f));
+
 typedef unsigned int uint;

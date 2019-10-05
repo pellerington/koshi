@@ -58,7 +58,7 @@ bool MaterialLambert::sample_material(const Surface &surface, std::deque<Materia
 
 bool MaterialLambert::evaluate_material(const Surface &surface, MaterialSample &sample)
 {
-    if(sample.wo.dot(surface.normal) < 0)
+    if(!surface.enter)
         return false;
 
     sample.fr = diffuse_color * INV_PI * sample.wo.dot(surface.normal);

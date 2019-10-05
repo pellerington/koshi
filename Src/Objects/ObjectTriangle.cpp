@@ -1,7 +1,7 @@
 #include "ObjectTriangle.h"
 
 ObjectTriangle::ObjectTriangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, std::shared_ptr<Material> material)
-: Object(material),
+: Object(material, Transform3f()),
   vertices({std::make_shared<Vec3f>(v0), std::make_shared<Vec3f>(v1), std::make_shared<Vec3f>(v2)}),
   normals({nullptr, nullptr, nullptr})
 {
@@ -10,7 +10,7 @@ ObjectTriangle::ObjectTriangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2
 
 
 ObjectTriangle::ObjectTriangle(const Vec3f &v0, const Vec3f &v1, const Vec3f &v2, const Vec3f &n0, const Vec3f &n1, const Vec3f &n2, std::shared_ptr<Material> material)
-: Object(material),
+: Object(material, Transform3f()),
   vertices({std::make_shared<Vec3f>(v0), std::make_shared<Vec3f>(v1), std::make_shared<Vec3f>(v2)}),
   normals({std::make_shared<Vec3f>(n0), std::make_shared<Vec3f>(n1), std::make_shared<Vec3f>(n2)})
 {

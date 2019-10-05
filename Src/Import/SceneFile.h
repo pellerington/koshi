@@ -8,6 +8,7 @@
 #include "../Scene/Scene.h"
 #include "../Objects/ObjectTriangle.h"
 #include "../Objects/ObjectSphere.h"
+#include "../Objects/ObjectBox.h"
 #include "../Materials/MaterialLambert.h"
 #include "../Materials/MaterialGGXReflect.h"
 #include "../Materials/MaterialGGXRefract.h"
@@ -38,7 +39,7 @@ public:
         Vec2u resolution(1);
         uint samples_per_pixel = 0;
         float focal_length = 1.f;
-        Transform3f transform;
+        Transform3f camera_transform;
         if(!scene_file["camera"].is_null())
         {
             resolution = get_vec2u(scene_file["camera"], "resolution");
@@ -48,13 +49,13 @@ public:
             const float scale = get_float(scene_file["camera"], "scale", 1.f);
             const Vec3f rotation = 2.f * PI * get_vec3f(scene_file["camera"], "rotation") / 360.f;
             const Vec3f translation = get_vec3f(scene_file["camera"], "translation");
-            transform = Transform3f::scale(Vec3f(scale, scale, 1.f)) * transform;
-            transform = Transform3f::z_rotation(rotation[2]) * transform;
-            transform = Transform3f::y_rotation(rotation[1]) * transform;
-            transform = Transform3f::x_rotation(rotation[0]) * transform;
-            transform = Transform3f::translation(translation) * transform;
+            camera_transform = camera_transform * Transform3f::translation(translation);
+            camera_transform = camera_transform * Transform3f::x_rotation(rotation[0]);
+            camera_transform = camera_transform * Transform3f::y_rotation(rotation[1]);
+            camera_transform = camera_transform * Transform3f::z_rotation(rotation[2]);
+            camera_transform = camera_transform * Transform3f::scale(Vec3f(scale, scale, 1.f));
         }
-        Camera camera(transform, resolution, samples_per_pixel, focal_length);
+        Camera camera(camera_transform, resolution, samples_per_pixel, focal_length);
 
         Scene scene(camera, settings);
 
@@ -170,15 +171,45 @@ public:
 
                 if((*it)["type"] == "sphere")
                 {
-                    const Vec3f position = get_vec3f(*it, "position");
-                    const float scale = get_float(*it, "scale");
+                    const float scale = get_float(*it, "scale", 1.f);
+                    const Vec3f rotation = 2.f * PI * get_vec3f(*it, "rotation") / 360.f;
+                    const Vec3f translation = get_vec3f(*it, "translation");
+
+                    Transform3f transform;
+                    transform = transform * Transform3f::translation(translation);
+                    transform = transform * Transform3f::z_rotation(rotation.z);
+                    transform = transform * Transform3f::y_rotation(rotation.y);
+                    transform = transform * Transform3f::x_rotation(rotation.x);
+                    transform = transform * Transform3f::scale(Vec3f(scale));
 
                     std::shared_ptr<Material> material;
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(position, scale, material));
+                    std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(material, transform));
                     scene.add_object(sphere);
+                }
+
+                if((*it)["type"] == "box")
+                {
+                    const Vec3f scale = get_vec3f(*it, "scale", 1.f);
+                    const Vec3f rotation = 2.f * PI * get_vec3f(*it, "rotation") / 360.f;
+                    const Vec3f translation = get_vec3f(*it, "translation");
+
+                    Transform3f transform;
+                    transform = transform * Transform3f::translation(translation);
+                    transform = transform * Transform3f::z_rotation(rotation.z);
+                    transform = transform * Transform3f::y_rotation(rotation.y);
+                    transform = transform * Transform3f::x_rotation(rotation.x);
+                    transform = transform * Transform3f::scale(scale);
+                    transform = transform * Transform3f::translation(Vec3f(-0.5));
+
+                    std::shared_ptr<Material> material;
+                    if((*it)["material"].is_string())
+                        material = materials[(*it)["material"]];
+
+                    std::shared_ptr<ObjectBox> box(new ObjectBox(material, transform));
+                    scene.add_object(box);
                 }
 
             }

@@ -14,7 +14,7 @@ public:
 
     Vec3f() : data(_mm_setzero_ps()) {}
     Vec3f(const float &x, const float &y, const float &z, const float &t = 0.f) : data(_mm_setr_ps(x, y, z, t)) {}
-    Vec3f(const float &n) : data(_mm_set_ps1(n)) {}
+    Vec3f(const float &n) : data(_mm_setr_ps(n, n, n, 0.f)) {}
     Vec3f(const __m128 &data) : data(data) {}
 
     inline float& operator[](const int i) { return data[i]; }
@@ -22,7 +22,7 @@ public:
 
     // Assignement
     inline Vec3f& operator= (const Vec3f& other) { data = other.data; return *this; }
-    inline Vec3f& operator= (const float &n) { data = _mm_set_ps1(n); return *this; }
+    inline Vec3f& operator= (const float &n) { data = _mm_setr_ps(n, n, n, 0.f); return *this; }
 
     // Negate
     inline Vec3f operator-() const { return Vec3f(_mm_sub_ps(_mm_setzero_ps(), data)); }
@@ -66,7 +66,7 @@ public:
     }
 
     inline float dot(const Vec3f& other) const {
-        return _mm_dp_ps(data, other.data, 0xff)[0];
+        return _mm_dp_ps(data, other.data, 0xff)[0]; // We should make sure that both [3] = 0.f or this could fail.
     }
 
     inline Vec3f cross(const Vec3f& other) const {

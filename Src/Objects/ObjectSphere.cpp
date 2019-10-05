@@ -1,9 +1,13 @@
 #include "ObjectSphere.h"
 
-ObjectSphere::ObjectSphere(const Vec3f &position, const float &scale, std::shared_ptr<Material> material)
-: Object(material), position(position), scale(scale), scale_sqr(scale*scale)
+#include "../Math/RNG.h"
+
+ObjectSphere::ObjectSphere(std::shared_ptr<Material> material, const Transform3f &obj_to_world)
+: Object(material, obj_to_world)
 {
-    bbox = Box3f(position-Vec3f(scale), position+Vec3f(scale));
+    bbox = obj_to_world * BOX3F_UNIT;
+    position = obj_to_world * Vec3f(0.f);
+    scale = obj_to_world.multiply(Vec3f(1.f,0.f,0.f), false).length();
 
     mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_SPHERE_POINT);
 

@@ -1,7 +1,7 @@
 #include "ObjectMesh.h"
 
 ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
-: Object(material)
+: Object(material, Transform3f())
 {
     mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
@@ -23,7 +23,7 @@ ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Tr
 }
 
 ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
-: Object(material)
+: Object(material, Transform3f())
 {
     mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
