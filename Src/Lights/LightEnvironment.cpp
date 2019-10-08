@@ -1,13 +1,13 @@
-#include "EnvironmentLight.h"
+#include "LightEnvironment.h"
 
 #include <iostream>
 
-EnvironmentLight::EnvironmentLight(const Vec3f &intensity, std::shared_ptr<Texture> texture)
+LightEnvironment::LightEnvironment(const Vec3f &intensity, std::shared_ptr<Texture> texture)
 : Light(Type::Environment, intensity), texture(texture)
 {
 }
 
-bool EnvironmentLight::evaluate_light(const Ray &ray, LightSample &light_sample)
+bool LightEnvironment::evaluate_light(const Ray &ray, LightSample &light_sample)
 {
     // if(ray.hit)
         // return false;
@@ -33,7 +33,7 @@ bool EnvironmentLight::evaluate_light(const Ray &ray, LightSample &light_sample)
     return true;
 }
 
-bool EnvironmentLight::sample_light(const uint num_samples, const Surface &surface, std::deque<LightSample> &light_samples)
+bool LightEnvironment::sample_light(const uint num_samples, const Surface &surface, std::deque<LightSample> &light_samples)
 {
     return false;
 }

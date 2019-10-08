@@ -23,9 +23,9 @@ void ObjectTriangle::init()
                  Vec3f::max(*vertices[0], Vec3f::max(*vertices[1], *vertices[2])));
     smooth_normals = normals[0] && normals[1] && normals[2];
 
-    mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
+    geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
-    RTCVertex * rtc_vertices = (RTCVertex*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), 3);
+    RTCVertex * rtc_vertices = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), 3);
     for(uint i = 0; i < 3; i++)
     {
         rtc_vertices[i].x = vertices[i]->x;
@@ -33,7 +33,7 @@ void ObjectTriangle::init()
         rtc_vertices[i].z = vertices[i]->z;
     }
 
-    RTCTriangle * triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), 1);
+    RTCTriangle * triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), 1);
     triangles[0].v0 = 0;
     triangles[0].v1 = 1;
     triangles[0].v2 = 2;

@@ -1,21 +1,43 @@
 #include "Scene.h"
 
+struct RTCIntersectContextExtended : public RTCIntersectContext {
+    Scene * scene;
+    VolumeStack * volume_stack;
+};
+
+void Scene::get_volumes_callback(const RTCFilterFunctionNArguments * args)
+{
+    *(args->valid ) = 0;
+    RTCIntersectContextExtended * context = (RTCIntersectContextExtended*)args->context;
+    Scene * scene = context->scene;
+
+    uint geomID = RTCHitN_geomID(args->hit, args->N, 0);
+    scene->rtc_to_obj[geomID]->process_volume_intersection(args, context->volume_stack);
+}
+
 void Scene::pre_render()
 {
     rtc_scene = rtcNewScene(Embree::rtc_device);
     for(size_t i = 0; i < objects.size(); i++)
     {
-        const uint rtcid = objects[i]->attach_to_scene(rtc_scene);
+        const RTCGeometry& geom = objects[i]->get_rtc_geometry();
+        rtcCommitGeometry(geom);
+        const uint rtcid = rtcAttachGeometry(rtc_scene, geom);
         rtc_to_obj[rtcid] = objects[i];
+        if(objects[i]->volume)
+            rtcSetGeometryIntersectFilterFunction(geom, &Scene::get_volumes_callback);
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
     rtcCommitScene(rtc_scene);
 }
 
-Surface Scene::intersect(Ray &ray)
+Surface Scene::intersect(Ray &ray, VolumeStack * volume_stack)
 {
-    RTCIntersectContext context;
-    rtcInitIntersectContext(&context);
+    RTCIntersectContextExtended context;
+    context.scene = this;
+    context.volume_stack = volume_stack;
+    RTCIntersectContext * rtc_context = &context;
+    rtcInitIntersectContext(rtc_context);
 
     RTCRayHit rtcRayHit;
     rtcRayHit.ray.org_x = ray.pos[0]; rtcRayHit.ray.org_y = ray.pos[1]; rtcRayHit.ray.org_z = ray.pos[2];
@@ -29,7 +51,9 @@ Surface Scene::intersect(Ray &ray)
     rtcRayHit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
 
     /* intersect ray with scene */
-    rtcIntersect1(rtc_scene, &context, &rtcRayHit);
+    rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
+
+    volume_stack->build(rtcRayHit.ray.tfar);
 
     ray.t = rtcRayHit.ray.tfar;
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
@@ -44,20 +68,13 @@ Surface Scene::intersect(Ray &ray)
     }
 }
 
-bool Scene::evaluate_lights(const Ray &ray, LightSample &light_sample)
+bool Scene::evaluate_lights(const Ray &ray, std::deque<LightSample> &light_results)
 {
-    light_sample.intensity = 0.f;
-    light_sample.pdf = 0.f;
-
     for(uint i = 0; i < lights.size(); i++)
     {
         LightSample isample;
         if(lights[i]->evaluate_light(ray, isample))
-        {
-            light_sample.intensity += isample.intensity;
-            light_sample.pdf += isample.pdf;
-            // return an array so that the position makes sense.
-        }
+            light_results.push_back(isample);
     }
 
     return true;

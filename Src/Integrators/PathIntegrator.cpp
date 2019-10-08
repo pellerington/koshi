@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include "../Util/Color.h"
+#include "../Volume/VolumeIntegrator.h"
 
 void PathIntegrator::pre_render()
 {
@@ -13,24 +14,34 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     Vec3f color = VEC3F_ZERO;
 
     // If we have a light sample set our tmax
-    // In future override this with a explicit shadowing function
     if(in_sample.type == PathSample::Light)
         ray.t = (in_sample.lsample->position - ray.pos).length();
 
     // Intersect with our scene
-    Surface surface = scene->intersect(ray);
+    VolumeStack volumes;
+    Surface surface = scene->intersect(ray, &volumes);
+
+    // Volume stack and integrator should be one thing.
+    VolumeIntegrator volume_integrator(volumes);
 
     // If we are unshadowed return the light sample intensity
-    // In future override this with a explicit shadowing function
     if(in_sample.type == PathSample::Light)
-        return (ray.hit) ? Vec3f(0.f) : in_sample.lsample->intensity;
+        return (ray.hit) ? Vec3f(0.f) : volume_integrator.shadow(ray.t) * in_sample.lsample->intensity;
 
     // Check if we intersected any lights
-    LightSample light_result;
+    std::deque<LightSample> light_results;
     if(in_sample.type != PathSample::Camera || scene->settings.display_lights)
-        scene->evaluate_lights(ray, light_result);
-    color += light_result.intensity;
-    if(in_sample.lsample) *in_sample.lsample = light_result;
+        scene->evaluate_lights(ray, light_results);
+    for(uint i = 0; i < light_results.size(); i++)
+    {
+        const float dist = (light_results[i].position - ray.pos).length();
+        color += volume_integrator.shadow(dist) * light_results[i].intensity;
+        if(in_sample.lsample)
+        {
+            in_sample.lsample->intensity += light_results[i].intensity;
+            in_sample.lsample->pdf += light_results[i].pdf;
+        }
+    }
 
     // If we hit nothing end it here. Incorporate this into our main evaluate light.
     if(!ray.hit)
@@ -45,13 +56,10 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     if(in_sample.depth > scene->settings.max_depth || is_saturated(color)) //Checking saturation may be incorrect.
         return color;
 
-    // Volume Function goes here
-    // Intersect some volume structure.
-    // Sample points/directions along it.
-    // Sucess?
+    // Volume in-scattering goes here
 
     // Integrate the surface
-    color += integrate_surface(surface, in_sample);
+    color += volume_integrator.shadow(ray.t) * integrate_surface(surface, in_sample);
 
     return color;
 }
@@ -108,6 +116,7 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
         Ray ray((wo_dot_n >= 0.f) ? surface.front_position : surface.back_position, sample.msample->wo);
 
         Vec3f in_color = integrate(ray, sample);
+
 
         float weight = material_sample_weight;
         if(multiple_importance_sample)

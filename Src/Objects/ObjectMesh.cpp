@@ -1,11 +1,12 @@
 #include "ObjectMesh.h"
 
-ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
-: Object(material, Transform3f())
+ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> &triangle_data,
+                       std::shared_ptr<Material> material, std::shared_ptr<VolumeProperties> volume)
+: Object(material, Transform3f(), volume)
 {
-    mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
+    geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
-    vertices = (RTCVertex*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), _vertices.size());
+    vertices = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), _vertices.size());
     for(uint i = 0; i < _vertices.size(); i++)
     {
         vertices[i].x = _vertices[i].x;
@@ -13,7 +14,7 @@ ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Tr
         vertices[i].z = _vertices[i].z;
     }
 
-    triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), triangle_data.size());
+    triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), triangle_data.size());
     for(uint i = 0; i < triangle_data.size(); i++)
     {
         triangles[i].v0 = triangle_data[i].v_index[0];
@@ -22,12 +23,13 @@ ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Tr
     }
 }
 
-ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material)
-: Object(material, Transform3f())
+ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_normals, const std::vector<TriangleData> &triangle_data,
+                       std::shared_ptr<Material> material, std::shared_ptr<VolumeProperties> volume)
+: Object(material, Transform3f(), volume)
 {
-    mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
+    geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
-    vertices = (RTCVertex*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), _vertices.size());
+    vertices = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), _vertices.size());
     for(uint i = 0; i < _vertices.size(); i++)
     {
         vertices[i].x = _vertices[i].x;
@@ -35,7 +37,7 @@ ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Ve
         vertices[i].z = _vertices[i].z;
     }
 
-    triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), triangle_data.size());
+    triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), triangle_data.size());
     for(uint i = 0; i < triangle_data.size(); i++)
     {
         triangles[i].v0 = triangle_data[i].v_index[0];

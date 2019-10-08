@@ -1,6 +1,8 @@
 #pragma once
 
 #include <smmintrin.h> // SSE4.1
+#include <ostream>
+#include <cmath>
 
 class Vec3f
 {
@@ -55,10 +57,9 @@ public:
     inline Vec3f operator/ (const float &n) const { return Vec3f(_mm_div_ps(data, _mm_set_ps1(n))); }
     friend inline Vec3f operator/ (const float &n, const Vec3f &other) { return Vec3f(_mm_div_ps(_mm_set_ps1(n), other.data)); }
 
-    // Replace these
     inline float length() const {
         __m128 sqr = _mm_mul_ps(data, data);
-        return sqrt(sqr[0] + sqr[1] + sqr[2]);
+        return sqrtf(sqr[0] + sqr[1] + sqr[2]);
     }
     inline float sqr_length() const {
         __m128 sqr = _mm_mul_ps(data, data);
@@ -78,7 +79,7 @@ public:
 
     inline void normalize() {
         __m128 sqr = _mm_mul_ps(data, data);
-        float mag = sqrt(sqr[0] + sqr[1] + sqr[2]);
+        float mag = sqrtf(sqr[0] + sqr[1] + sqr[2]);
         data = _mm_div_ps(data, _mm_set_ps1(mag));
     }
 
@@ -95,6 +96,14 @@ public:
     inline static Vec3f max(const Vec3f &v0, const Vec3f &v1) { return Vec3f(_mm_max_ps(v0.data, v1.data)); }
     inline void max(const Vec3f &other) { data = _mm_max_ps(data, other.data); }
     inline float max() const { return (x > y && x > z) ? x : ((y > z) ? y : z); }
+
+    inline static Vec3f exp(const Vec3f &v) {
+        Vec3f x(v);
+        x = 1.f + x / 256.f;
+        x *= x; x *= x; x *= x; x *= x;
+        x *= x; x *= x; x *= x; x *= x;
+        return x;
+    }
 
     friend std::ostream& operator<<(std::ostream& os, const Vec3f& v)
     {

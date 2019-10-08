@@ -2,31 +2,46 @@
 
 #include "../Math/RNG.h"
 
-ObjectBox::ObjectBox(std::shared_ptr<Material> material, const Transform3f &obj_to_world)
-: Object(material, obj_to_world)
+static Vec3f box_vertices[8] = {
+    Vec3f(0.f, 0.f, 0.f),
+    Vec3f(1.f, 0.f, 0.f),
+    Vec3f(1.f, 0.f, 1.f),
+    Vec3f(0.f, 0.f, 1.f),
+    Vec3f(0.f, 1.f, 0.f),
+    Vec3f(1.f, 1.f, 0.f),
+    Vec3f(1.f, 1.f, 1.f),
+    Vec3f(0.f, 1.f, 1.f)
+};
+
+static uint box_indices[6][4] = {
+    {0, 4, 5, 1},
+    {1, 5, 6, 2},
+    {2, 6, 7, 3},
+    {0, 3, 7, 4},
+    {4, 7, 6, 5},
+    {0, 1, 2, 3},
+};
+
+ObjectBox::ObjectBox(std::shared_ptr<Material> material, const Transform3f &obj_to_world, std::shared_ptr<VolumeProperties> volume)
+: Object(material, obj_to_world, volume)
 {
     bbox = obj_to_world * BOX3F_UNIT;
 
-    mesh = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_QUAD);
+    geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_QUAD);
 
-    RTCVertex * vertices = (RTCVertex*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), 8);
-    uint i = 0;
-    for(float x = 0.f; x <= 1.f; x++)
-    for(float y = 0.f; y <= 1.f; y++)
-    for(float z = 0.f; z <= 1.f; z++, i++)
+    RTCVertex * vertices = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), 8);
+    for(uint i = 0; i < 8; i++)
     {
-        const Vec3f v = obj_to_world * Vec3f(x, y, z, 1);
+        const Vec3f v = obj_to_world * box_vertices[i];
         vertices[i].x = v.x; vertices[i].y = v.y; vertices[i].z = v.z;
     }
 
-    RTCQuad * quads = (RTCQuad*) rtcSetNewGeometryBuffer(mesh, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT4, sizeof(RTCQuad), 6);
-    i = 0;
-    quads[i].v0 = 0; quads[i].v1 = 1; quads[i].v2 = 3; quads[i].v3 = 2; i++;
-    quads[i].v0 = 4; quads[i].v1 = 6; quads[i].v2 = 7; quads[i].v3 = 5; i++;
-    quads[i].v0 = 0; quads[i].v1 = 4; quads[i].v2 = 5; quads[i].v3 = 1; i++;
-    quads[i].v0 = 2; quads[i].v1 = 3; quads[i].v2 = 7; quads[i].v3 = 6; i++;
-    quads[i].v0 = 0; quads[i].v1 = 2; quads[i].v2 = 6; quads[i].v3 = 4; i++;
-    quads[i].v0 = 1; quads[i].v1 = 5; quads[i].v2 = 7; quads[i].v3 = 3; i++;
+    RTCQuad * quads = (RTCQuad*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT4, sizeof(RTCQuad), 6);
+    for(uint i = 0; i < 6; i++)
+    {
+        quads[i].v0 = box_indices[i][0]; quads[i].v1 = box_indices[i][1];
+        quads[i].v2 = box_indices[i][2]; quads[i].v3 = box_indices[i][3];
+    }
 }
 
 Surface ObjectBox::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)

@@ -51,7 +51,7 @@ bool MaterialGGXRefract::sample_material(const Surface &surface, std::deque<Mate
 
         const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
         const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
-        const float n_dot_wi = surface.n_dot_wi;
+        const float n_dot_wi = clamp(normal.dot(-surface.wi), -1.f, 1.f);
         const float n_dot_wo = clamp(normal.dot(sample.wo), -1.f, 1.f);
 
         const float d = D(normal, h, n_dot_h, roughness_sqr);
@@ -87,7 +87,7 @@ bool MaterialGGXRefract::evaluate_material(const Surface &surface, MaterialSampl
     const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
     const float h_dot_wi = clamp(h.dot(-surface.wi), -1.f, 1.f);
     const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
-    const float n_dot_wi = surface.n_dot_wi;
+    const float n_dot_wi = clamp(normal.dot(-surface.wi), -1.f, 1.f);
     const float n_dot_wo = clamp(normal.dot(sample.wo), -1.f, 1.f);
 
     const float d = D(normal, h, n_dot_h, roughness_sqr);

@@ -15,8 +15,10 @@ public:
         uint n_index[3];
     };
 
-    ObjectMesh(const std::vector<Vec3f> &vertices, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material = nullptr);
-    ObjectMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &normals, const std::vector<TriangleData> &triangle_data, std::shared_ptr<Material> material = nullptr);
+    ObjectMesh(const std::vector<Vec3f> &vertices, const std::vector<TriangleData> &triangle_data,
+               std::shared_ptr<Material> material = nullptr, std::shared_ptr<VolumeProperties> volume = nullptr);
+    ObjectMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3f> &normals, const std::vector<TriangleData> &triangle_data,
+               std::shared_ptr<Material> material = nullptr, std::shared_ptr<VolumeProperties> volume = nullptr);
 
     Type get_type() { return Object::Mesh; }
     Surface process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray);

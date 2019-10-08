@@ -9,7 +9,7 @@
 struct LightSample {
     Vec3f position;
     Vec3f intensity;
-    float pdf;
+    float pdf = 0.f;
 };
 
 class Light

@@ -13,7 +13,7 @@
 #include "../Materials/MaterialGGXReflect.h"
 #include "../Materials/MaterialGGXRefract.h"
 #include "../Materials/MaterialDielectric.h"
-#include "../Lights/RectangleLight.h"
+#include "../Lights/LightRectangle.h"
 #include "../Textures/Image.h"
 #include "MeshFile.h"
 
@@ -160,9 +160,17 @@ public:
                     if((*it)["file"]["type"].is_string() && (*it)["file"]["name"].is_string())
                     {
                         std::shared_ptr<Material> material = ((*it)["material"].is_string()) ? materials[(*it)["material"]] : nullptr;
+
+                        std::shared_ptr<VolumeProperties> volume;
+                        if((*it)["volume"].is_array())
+                        {
+                            const Vec3f density = get_vec3f(*it, "volume");
+                            volume = std::shared_ptr<VolumeProperties>(new VolumeProperties(density));
+                        }
+
                         std::shared_ptr<ObjectMesh> mesh;
                         if ((*it)["file"]["type"] == "obj")
-                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], material);
+                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], material, volume);
 
                         if(mesh)
                             scene.add_object(mesh);
@@ -171,7 +179,7 @@ public:
 
                 if((*it)["type"] == "sphere")
                 {
-                    const float scale = get_float(*it, "scale", 1.f);
+                    const Vec3f scale = get_vec3f(*it, "scale", 1.f);
                     const Vec3f rotation = 2.f * PI * get_vec3f(*it, "rotation") / 360.f;
                     const Vec3f translation = get_vec3f(*it, "translation");
 
@@ -180,13 +188,20 @@ public:
                     transform = transform * Transform3f::z_rotation(rotation.z);
                     transform = transform * Transform3f::y_rotation(rotation.y);
                     transform = transform * Transform3f::x_rotation(rotation.x);
-                    transform = transform * Transform3f::scale(Vec3f(scale));
+                    transform = transform * Transform3f::scale(scale);
 
                     std::shared_ptr<Material> material;
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(material, transform));
+                    std::shared_ptr<VolumeProperties> volume;
+                    if((*it)["volume"].is_array())
+                    {
+                        const Vec3f density = get_vec3f(*it, "volume");
+                        volume = std::shared_ptr<VolumeProperties>(new VolumeProperties(density));
+                    }
+
+                    std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(material, transform, volume));
                     scene.add_object(sphere);
                 }
 
@@ -208,7 +223,14 @@ public:
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<ObjectBox> box(new ObjectBox(material, transform));
+                    std::shared_ptr<VolumeProperties> volume;
+                    if((*it)["volume"].is_array())
+                    {
+                        const Vec3f density = get_vec3f(*it, "volume");
+                        volume = std::shared_ptr<VolumeProperties>(new VolumeProperties(density));
+                    }
+
+                    std::shared_ptr<ObjectBox> box(new ObjectBox(material, transform, volume));
                     scene.add_object(box);
                 }
 
@@ -229,7 +251,7 @@ public:
                     const bool double_sided = get_bool(*it, "double_sided");
 
 
-                    std::shared_ptr<RectangleLight> rectangle_light(new RectangleLight(position, u, v, intensity, double_sided));
+                    std::shared_ptr<LightRectangle> rectangle_light(new LightRectangle(position, u, v, intensity, double_sided));
                     scene.add_light(rectangle_light);
                 }
 
@@ -241,7 +263,7 @@ public:
                     if((*it)["texture"].is_string())
                         texture = textures[(*it)["texture"]];
 
-                    std::shared_ptr<EnvironmentLight> environment_light(new EnvironmentLight(intensity, texture));
+                    std::shared_ptr<LightEnvironment> environment_light(new LightEnvironment(intensity, texture));
                     scene.add_light(environment_light);
                 }
 

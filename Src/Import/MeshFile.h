@@ -8,7 +8,7 @@
 class MeshFile
 {
 public:
-    static std::shared_ptr<ObjectMesh> ImportOBJ(const std::string filename, std::shared_ptr<Material> material)
+    static std::shared_ptr<ObjectMesh> ImportOBJ(const std::string filename, std::shared_ptr<Material> material, std::shared_ptr<VolumeProperties> volume = nullptr)
     {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
@@ -52,6 +52,6 @@ public:
             }
         }
 
-        return std::shared_ptr<ObjectMesh>(new ObjectMesh(vertices, normals, triangle_data, material));
+        return std::shared_ptr<ObjectMesh>(new ObjectMesh(vertices, normals, triangle_data, material, volume));
     }
 };

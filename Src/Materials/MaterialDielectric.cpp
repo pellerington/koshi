@@ -41,7 +41,7 @@ bool MaterialDielectric::sample_material(const Surface &surface, std::deque<Mate
     const float refractive_weight = refractive_samples / total_samples;
     for(uint i = reflective_samples; i < total_samples; i++)
         samples[i].pdf *= refractive_weight;
-
+        
     return true;
 }
 

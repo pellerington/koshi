@@ -1,15 +1,15 @@
-#include "RectangleLight.h"
+#include "LightRectangle.h"
 
 #include <iostream>
 #include "../Math/RNG.h"
 
-RectangleLight::RectangleLight(const Vec3f &position, const Vec3f &u, const Vec3f &v, const Vec3f &intensity, const bool double_sided)
+LightRectangle::LightRectangle(const Vec3f &position, const Vec3f &u, const Vec3f &v, const Vec3f &intensity, const bool double_sided)
 : Light(Type::Rectangle, intensity), position(position), u(u), v(v), normal(u.normalized().cross(v.normalized()))
 , area(u.length() * v.length()), double_sided(double_sided)
 {
 }
 
-bool RectangleLight::evaluate_light(const Ray &ray, LightSample &light_sample)
+bool LightRectangle::evaluate_light(const Ray &ray, LightSample &light_sample)
 {
     const float t = (position - ray.pos).dot(normal) / (ray.dir.dot(normal));
 
@@ -33,7 +33,7 @@ bool RectangleLight::evaluate_light(const Ray &ray, LightSample &light_sample)
     return true;
 }
 
-bool RectangleLight::sample_light(const uint num_samples, const Surface &surface, std::deque<LightSample> &light_samples)
+bool LightRectangle::sample_light(const uint num_samples, const Surface &surface, std::deque<LightSample> &light_samples)
 {
     std::vector<Vec2f> rnd;
     RNG::Rand2d(num_samples, rnd);
