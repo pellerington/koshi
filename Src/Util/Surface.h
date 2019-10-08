@@ -1,9 +1,13 @@
 #pragma once
 
 #include <cfloat>
+#include <unordered_set>
 #include "../Math/Types.h"
 #include "../Objects/Object.h"
+#include "../Volume/Volume.h"
 class Object;
+
+typedef std::unordered_set<std::shared_ptr<VolumeProperties>> Volumes;
 
 #define SAMPLES_PER_SA 64
 
@@ -28,4 +32,7 @@ struct Surface
     const Transform3f transform;
     const Vec3f front_position;
     const Vec3f back_position;
+
+    void set_volumes(Volumes * _volumes) { volumes = _volumes; }
+    Volumes * volumes = nullptr;
 };

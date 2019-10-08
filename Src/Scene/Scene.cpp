@@ -64,7 +64,9 @@ Surface Scene::intersect(Ray &ray, VolumeStack * volume_stack)
     else
     {
         ray.hit = true;
-        return rtc_to_obj[rtcRayHit.hit.geomID]->process_intersection(rtcRayHit, ray);
+        Surface surface = rtc_to_obj[rtcRayHit.hit.geomID]->process_intersection(rtcRayHit, ray);
+        surface.set_volumes(volume_stack->exit_volumes());
+        return surface;
     }
 }
 

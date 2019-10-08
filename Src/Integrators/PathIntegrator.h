@@ -14,7 +14,7 @@ struct PathSample
     uint depth;
     float quality;
 
-    //Volumes which we are inside?
+    Volumes * volumes = nullptr;
 };
 
 class PathIntegrator : public Integrator

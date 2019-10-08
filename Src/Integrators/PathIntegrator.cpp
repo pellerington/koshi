@@ -18,7 +18,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
         ray.t = (in_sample.lsample->position - ray.pos).length();
 
     // Intersect with our scene
-    VolumeStack volumes;
+    VolumeStack volumes(in_sample.volumes);
     Surface surface = scene->intersect(ray, &volumes);
 
     // Volume stack and integrator should be one thing.
@@ -106,6 +106,7 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
         PathSample sample;
         sample.parent = &in_sample;
         sample.depth = in_sample.depth + 1;
+        sample.volumes = surface.volumes;
         sample.quality = in_sample.quality * material_samples[i].quality;
         sample.msample = &material_samples[i];
         sample.type = PathSample::Material;
@@ -129,6 +130,7 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
     {
         PathSample sample;
         sample.parent = &in_sample;
+        sample.volumes = surface.volumes;
         sample.depth = in_sample.depth + 1;
         sample.quality = 1.f;
         sample.lsample = &light_samples[i];
