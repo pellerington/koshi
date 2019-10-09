@@ -6,7 +6,6 @@
 #include "../Math/Types.h"
 #include "../Dependency/json.hpp"
 #include "../Scene/Scene.h"
-#include "../Objects/ObjectTriangle.h"
 #include "../Objects/ObjectSphere.h"
 #include "../Objects/ObjectBox.h"
 #include "../Materials/MaterialLambert.h"
@@ -141,25 +140,22 @@ public:
             for (auto it = scene_file["objects"].begin(); it != scene_file["objects"].end(); ++it)
             {
 
-                if((*it)["type"] == "triangle")
-                {
-                    const Vec3f v0 = get_vec3f(*it, "v0");
-                    const Vec3f v1 = get_vec3f(*it, "v1");
-                    const Vec3f v2 = get_vec3f(*it, "v2");
-
-                    std::shared_ptr<Material> material;
-                    if((*it)["material"].is_string())
-                        material = materials[(*it)["material"]];
-
-                    std::shared_ptr<ObjectTriangle> triangle(new ObjectTriangle(v0, v1, v2, material));
-                    scene.add_object(triangle);
-                }
-
                 if((*it)["type"] == "mesh")
                 {
                     if((*it)["file"]["type"].is_string() && (*it)["file"]["name"].is_string())
                     {
                         std::shared_ptr<Material> material = ((*it)["material"].is_string()) ? materials[(*it)["material"]] : nullptr;
+
+                        const Vec3f scale = get_vec3f(*it, "scale", 1.f);
+                        const Vec3f rotation = 2.f * PI * get_vec3f(*it, "rotation") / 360.f;
+                        const Vec3f translation = get_vec3f(*it, "translation");
+
+                        Transform3f transform;
+                        transform = transform * Transform3f::translation(translation);
+                        transform = transform * Transform3f::z_rotation(rotation.z);
+                        transform = transform * Transform3f::y_rotation(rotation.y);
+                        transform = transform * Transform3f::x_rotation(rotation.x);
+                        transform = transform * Transform3f::scale(scale);
 
                         std::shared_ptr<VolumeProperties> volume;
                         if((*it)["volume"].is_array())
@@ -170,7 +166,7 @@ public:
 
                         std::shared_ptr<ObjectMesh> mesh;
                         if ((*it)["file"]["type"] == "obj")
-                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], material, volume);
+                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], transform, material, volume);
 
                         if(mesh)
                             scene.add_object(mesh);
@@ -249,7 +245,6 @@ public:
                     const Vec3f v = get_vec3f(*it, "v");
                     const Vec3f position = get_vec3f(*it, "position") - (0.5f*u + 0.5f*v);
                     const bool double_sided = get_bool(*it, "double_sided");
-
 
                     std::shared_ptr<LightRectangle> rectangle_light(new LightRectangle(position, u, v, intensity, double_sided));
                     scene.add_light(rectangle_light);

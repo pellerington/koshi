@@ -118,7 +118,6 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
 
         Vec3f in_color = integrate(ray, sample);
 
-
         float weight = material_sample_weight;
         if(multiple_importance_sample)
             weight *= (sample.msample->pdf * sample.msample->pdf) / ((sample.msample->pdf * sample.msample->pdf) + (sample.lsample->pdf * sample.lsample->pdf));

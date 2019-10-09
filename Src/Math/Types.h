@@ -24,3 +24,8 @@ static const Vec3f VEC3F_ONES = 1.f;
 static const Box3f BOX3F_UNIT = Box3f(Vec3f(0.f), Vec3f(1.f));
 
 typedef unsigned int uint;
+
+struct VERT_DATA { float x, y, z, r; };
+struct NORM_DATA { float x, y, z; };
+struct TRI_DATA { uint v0, v1, v2; };
+struct QUAD_DATA { uint v0, v1, v2, v3; };

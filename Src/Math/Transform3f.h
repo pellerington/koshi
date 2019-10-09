@@ -156,6 +156,16 @@ public:
         return inverse;
     }
 
+    bool is_identity() const
+    {
+        for(uint y = 0; y < 4; y++)
+            for(uint x = 0; x < 4; x++)
+                if(rows[y][x] != (y == x) ? 1.f : 0.f)
+                    return false;
+                    
+        return true;
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const Transform3f& t)
     {
         os << "{" << t.rows[0][0] << " " << t.rows[0][1] << " " << t.rows[0][2] << " " << t.rows[0][3] << "\n";

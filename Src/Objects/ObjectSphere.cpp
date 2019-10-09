@@ -31,7 +31,7 @@ ObjectSphere::ObjectSphere(std::shared_ptr<Material> material, const Transform3f
     scale = obj_to_world.multiply(Vec3f(1.f,0.f,0.f), false).length();
 
     // geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_SPHERE_POINT);
-    // RTCVertex * vertex = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT4, sizeof(RTCVertex), 1);
+    // VERT_DATA * vertex = (VERT_DATA*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT4, sizeof(VERT_DATA), 1);
     // vertex[0].x = position.x;
     // vertex[0].y = position.y;
     // vertex[0].z = position.z;
@@ -39,7 +39,7 @@ ObjectSphere::ObjectSphere(std::shared_ptr<Material> material, const Transform3f
 
     geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_SUBDIVISION);
 
-    RTCVertex * vertices = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), 12);
+    VERT_DATA * vertices = (VERT_DATA*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(VERT_DATA), 12);
     for(uint i = 0; i < 12; i++)
     {
         const Vec3f v = obj_to_world * icosahedron_vertices[i];

@@ -27,7 +27,15 @@ public:
     {
         box_min.min(box.min());
         box_max.max(box.max());
-        box_center = (box_max + box_min) / 2.f;
+        box_center = (box_max + box_min) * 0.5f;
+        box_length = box_max - box_min;
+    }
+
+    void extend(const Vec3f &v)
+    {
+        box_min.min(v);
+        box_max.max(v);
+        box_center = (box_max + box_min) * 0.5f;
         box_length = box_max - box_min;
     }
 

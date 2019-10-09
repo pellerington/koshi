@@ -23,7 +23,6 @@ public:
 
     enum Type
     {
-        Triangle,
         Mesh,
         Sphere,
         Box

@@ -1,72 +1,58 @@
 #include "ObjectMesh.h"
 
-ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<TriangleData> &triangle_data,
-                       std::shared_ptr<Material> material, std::shared_ptr<VolumeProperties> volume)
-: Object(material, Transform3f(), volume)
+ObjectMesh::ObjectMesh(uint _vertices_size, uint _triangles_size, uint _normals_size, VERT_DATA * _vertices, TRI_DATA * _tri_vindex, NORM_DATA * _normals, TRI_DATA * _tri_nindex,
+                       const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<VolumeProperties> volume)
+: Object(material, obj_to_world, volume),
+  vertices_size(_vertices_size), triangles_size(_triangles_size), normals_size(_normals_size),
+  vertices(_vertices), tri_vindex(_tri_vindex), normals(_normals), tri_nindex(_tri_nindex)
 {
+    //Transform our vertices and update bbox;
+    bbox = Box3f();
+    const bool transform = !obj_to_world.is_identity();
+    for(uint i = 0; i < vertices_size; i++)
+    {
+        Vec3f v(vertices[i].x, vertices[i].y, vertices[i].z);
+        if(transform) v = obj_to_world * v;
+        bbox.extend(v);
+        vertices[i].x = v.x; vertices[i].y = v.y; vertices[i].z = v.z;
+    }
+    for(uint i = 0; i < normals_size && transform; i++)
+    {
+        Vec3f n(normals[i].x, normals[i].y, normals[i].z);
+        if(transform) n = obj_to_world.multiply(n, false);
+        normals[i].x = n.x; normals[i].y = n.y; normals[i].z = n.z;
+    }
+
     geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
-    vertices = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), _vertices.size());
-    for(uint i = 0; i < _vertices.size(); i++)
-    {
-        vertices[i].x = _vertices[i].x;
-        vertices[i].y = _vertices[i].y;
-        vertices[i].z = _vertices[i].z;
-    }
-
-    triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), triangle_data.size());
-    for(uint i = 0; i < triangle_data.size(); i++)
-    {
-        triangles[i].v0 = triangle_data[i].v_index[0];
-        triangles[i].v1 = triangle_data[i].v_index[1];
-        triangles[i].v2 = triangle_data[i].v_index[2];
-    }
-}
-
-ObjectMesh::ObjectMesh(const std::vector<Vec3f> &_vertices, const std::vector<Vec3f> &_normals, const std::vector<TriangleData> &triangle_data,
-                       std::shared_ptr<Material> material, std::shared_ptr<VolumeProperties> volume)
-: Object(material, Transform3f(), volume)
-{
-    geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
-
-    vertices = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), _vertices.size());
-    for(uint i = 0; i < _vertices.size(); i++)
-    {
-        vertices[i].x = _vertices[i].x;
-        vertices[i].y = _vertices[i].y;
-        vertices[i].z = _vertices[i].z;
-    }
-
-    triangles = (RTCTriangle*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(RTCTriangle), triangle_data.size());
-    for(uint i = 0; i < triangle_data.size(); i++)
-    {
-        triangles[i].v0 = triangle_data[i].v_index[0];
-        triangles[i].v1 = triangle_data[i].v_index[1];
-        triangles[i].v2 = triangle_data[i].v_index[2];
-    }
-
-    // std::vector<std::shared_ptr<Vec3f>> normal_ptrs;
-    // normal_ptrs.reserve(_normals.size());
-    // std::transform(_normals.begin(), _normals.end(), normal_ptrs.begin(), [](Vec3f& v) { return std::make_shared<Vec3f>(v); });
-    // normals.resize(triangle_data.size());
-    // for(uint i = 0; i < normals.size(); i++)
-    // {
-    //     normals[i][0] = normal_ptrs[triangle_data[i].n_index[0]];
-    //     normals[i][1] = normal_ptrs[triangle_data[i].n_index[1]];
-    //     normals[i][2] = normal_ptrs[triangle_data[i].n_index[2]];
-    // }
+    rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, vertices, 0, sizeof(VERT_DATA), vertices_size);
+    rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, tri_vindex, 0, sizeof(TRI_DATA), triangles_size);
 }
 
 Surface ObjectMesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
 {
+    const Vec3f normal = (normals_size > 0)
+    ? (Vec3f(normals[tri_nindex[rtcRayHit.hit.primID].v0].x, normals[tri_nindex[rtcRayHit.hit.primID].v0].y, normals[tri_nindex[rtcRayHit.hit.primID].v0].z) * (1.f - (rtcRayHit.hit.u + rtcRayHit.hit.v))
+     + Vec3f(normals[tri_nindex[rtcRayHit.hit.primID].v1].x, normals[tri_nindex[rtcRayHit.hit.primID].v1].y, normals[tri_nindex[rtcRayHit.hit.primID].v1].z) * rtcRayHit.hit.u
+     + Vec3f(normals[tri_nindex[rtcRayHit.hit.primID].v2].x, normals[tri_nindex[rtcRayHit.hit.primID].v2].y, normals[tri_nindex[rtcRayHit.hit.primID].v2].z) * rtcRayHit.hit.v).normalized()
+    : Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized();
+
     return Surface(
         this,
         ray.get_position(ray.t),
-        Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
+        normal,//Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
         // Smooth normals here (use ray.hit.primID to get triangle)
         // surface.normal = (smooth_normals) ? (1.f - u - v) * *normals[0] + u * *normals[1] + v * *normals[2] : normal;
         ray.dir,
         rtcRayHit.hit.u,
         rtcRayHit.hit.v
     );
+}
+
+ObjectMesh::~ObjectMesh()
+{
+    delete[] vertices;
+    delete[] tri_vindex;
+    delete[] normals;
+    delete[] tri_nindex;
 }

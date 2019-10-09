@@ -29,14 +29,14 @@ ObjectBox::ObjectBox(std::shared_ptr<Material> material, const Transform3f &obj_
 
     geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_QUAD);
 
-    RTCVertex * vertices = (RTCVertex*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(RTCVertex), 8);
+    VERT_DATA * vertices = (VERT_DATA*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(VERT_DATA), 8);
     for(uint i = 0; i < 8; i++)
     {
         const Vec3f v = obj_to_world * box_vertices[i];
         vertices[i].x = v.x; vertices[i].y = v.y; vertices[i].z = v.z;
     }
 
-    RTCQuad * quads = (RTCQuad*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT4, sizeof(RTCQuad), 6);
+    QUAD_DATA * quads = (QUAD_DATA*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT4, sizeof(QUAD_DATA), 6);
     for(uint i = 0; i < 6; i++)
     {
         quads[i].v0 = box_indices[i][0]; quads[i].v1 = box_indices[i][1];

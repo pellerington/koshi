@@ -58,7 +58,7 @@ bool MaterialGGXRefract::sample_material(const Surface &surface, std::deque<Mate
         const float g = G1(-surface.wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
         const Vec3f f = fresnel->Ft(fabs(h_dot_wi));
 
-        const float denom = std::pow(ior_in * h_dot_wi + ior_out * h_dot_wo, 2);
+        const float denom = std::pow(ior_in * h_dot_wi + ior_out * h_dot_wo + EPSILON_F, 2);
 
         sample.fr = ior_out * ior_out * (fabs(h_dot_wi) * fabs(h_dot_wo)) / (fabs(n_dot_wi) * fabs(n_dot_wo));
         sample.fr *= refractive_color * f * g * d * fabs(n_dot_wo) / denom;
@@ -69,6 +69,7 @@ bool MaterialGGXRefract::sample_material(const Surface &surface, std::deque<Mate
         if(!sample.pdf || is_black(sample.fr))
             samples.pop_back();
     }
+
 
     return true;
 }
@@ -94,7 +95,7 @@ bool MaterialGGXRefract::evaluate_material(const Surface &surface, MaterialSampl
     const float g = G1(-surface.wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
     const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
 
-    const float denom = std::pow(ior_in * h_dot_wi + ior_out * h_dot_wo, 2);
+    const float denom = std::pow(ior_in * h_dot_wi + ior_out * h_dot_wo + EPSILON_F, 2);
 
     sample.fr = ior_out * ior_out * (fabs(h_dot_wi) * fabs(h_dot_wo)) / (fabs(n_dot_wi) * fabs(n_dot_wo));
     sample.fr *= refractive_color * f * g * d * fabs(n_dot_wo) / denom;
