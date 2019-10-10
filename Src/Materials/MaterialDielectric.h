@@ -10,12 +10,12 @@ class MaterialDielectric : public Material
 public:
     MaterialDielectric(const Vec3f &reflective_color = VEC3F_ZERO, const Vec3f &refractive_color = VEC3F_ZERO,
                const float &roughness = 0.f, const float &ior = 1.f, const Vec3f &emission = VEC3F_ZERO);
-    std::shared_ptr<Material> instance(const Surface &surface);
+    std::shared_ptr<Material> instance(const Surface * surface);
 
     Type get_type() { return Material::Dielectric; }
 
-    bool sample_material(const Surface &surface, std::deque<MaterialSample> &samples, float sample_reduction = 1.f);
-    bool evaluate_material(const Surface &surface, MaterialSample &sample);
+    bool sample_material(std::vector<MaterialSample> &samples, float sample_reduction = 1.f);
+    bool evaluate_material( MaterialSample &sample);
     const Vec3f get_emission() { return emission; }
 
 private:

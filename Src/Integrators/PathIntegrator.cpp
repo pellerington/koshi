@@ -29,7 +29,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
         return (ray.hit) ? Vec3f(0.f) : volume_integrator.shadow(ray.t) * in_sample.lsample->intensity;
 
     // Check if we intersected any lights
-    std::deque<LightSample> light_results;
+    std::vector<LightSample> light_results;
     if(in_sample.type != PathSample::Camera || scene->settings.display_lights)
         scene->evaluate_lights(ray, light_results);
     for(uint i = 0; i < light_results.size(); i++)
@@ -70,7 +70,7 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
     Vec3f color = VEC3F_ZERO;
 
     // Get our material instance
-    std::shared_ptr<Material> material = (surface.object->material) ? surface.object->material->instance(surface) : std::shared_ptr<Material>(new Material());
+    std::shared_ptr<Material> material = (surface.object->material) ? surface.object->material->instance(&surface) : std::shared_ptr<Material>(new Material());
 
     // Add any emissive component of the material. If our color is fully saturated end here.
     color += material->get_emission();
@@ -81,13 +81,13 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
     const float sample_multiplier = scene->settings.quality * in_sample.quality;
 
     // Sample the material
-    std::deque<MaterialSample> material_samples;
+    std::vector<MaterialSample> material_samples;
     if(scene->settings.sample_material)
-        material->sample_material(surface, material_samples, sample_multiplier);
+        material->sample_material(material_samples, sample_multiplier);
     const uint n_material_samples = material_samples.size();
 
     // Sample the lights
-    std::deque<LightSample> light_samples;
+    std::vector<LightSample> light_samples;
     if(scene->settings.sample_lights)
         scene->sample_lights(surface, light_samples, sample_multiplier);
     const uint n_light_samples = light_samples.size();
@@ -138,7 +138,7 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
         sample.msample = &msample;
         msample.wo = (sample.lsample->position - surface.position).normalized();
 
-        if(!material->evaluate_material(surface, msample)) continue;
+        if(!material->evaluate_material(msample)) continue;
 
         const float wo_dot_n = sample.msample->wo.dot(surface.normal);
         Ray ray((wo_dot_n >= 0.f) ? surface.front_position : surface.back_position, sample.msample->wo);

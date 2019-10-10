@@ -33,7 +33,7 @@ bool LightEnvironment::evaluate_light(const Ray &ray, LightSample &light_sample)
     return true;
 }
 
-bool LightEnvironment::sample_light(const uint num_samples, const Surface &surface, std::deque<LightSample> &light_samples)
+bool LightEnvironment::sample_light(const uint num_samples, const Surface &surface, std::vector<LightSample> &light_samples)
 {
     return false;
 }

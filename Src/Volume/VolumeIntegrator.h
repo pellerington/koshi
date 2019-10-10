@@ -14,11 +14,11 @@ public:
         {
             if(t < curr_volume->tmax)
             {
-                tr *= Vec3f::exp(curr_volume->density * (curr_volume->tmin - t));
+                tr *= Vec3f::exp(curr_volume->max_density * (curr_volume->tmin - t));
                 break;
             }
             else
-                tr *= Vec3f::exp(curr_volume->density * (curr_volume->tmin - curr_volume->tmax));
+                tr *= Vec3f::exp(curr_volume->max_density * (curr_volume->tmin - curr_volume->tmax));
         }
 
         return tr;

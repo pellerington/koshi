@@ -33,7 +33,7 @@ bool LightRectangle::evaluate_light(const Ray &ray, LightSample &light_sample)
     return true;
 }
 
-bool LightRectangle::sample_light(const uint num_samples, const Surface &surface, std::deque<LightSample> &light_samples)
+bool LightRectangle::sample_light(const uint num_samples, const Surface &surface, std::vector<LightSample> &light_samples)
 {
     std::vector<Vec2f> rnd;
     RNG::Rand2d(num_samples, rnd);

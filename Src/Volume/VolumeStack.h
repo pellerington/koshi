@@ -9,17 +9,10 @@
 #include <iostream>
 #include <memory>
 
-struct VolumeIntersect
-{
-    VolumeIntersect(const std::shared_ptr<VolumeProperties> &volume_prop, const bool add) : volume_prop(volume_prop), add(add) {}
-    const std::shared_ptr<VolumeProperties> &volume_prop;
-    const bool add;
-};
-
 class VolumeStack
 {
 public:
-    VolumeStack(std::unordered_set<std::shared_ptr<VolumeProperties>> * entry_volumes = nullptr)
+    VolumeStack(std::unordered_set<VolumeProperties*> * entry_volumes = nullptr)
     {
         if(entry_volumes)
         for(auto it = entry_volumes->begin(); it != entry_volumes->end(); it++)
@@ -36,10 +29,18 @@ public:
 
     void build(const float &tend);
 
-    inline std::unordered_set<std::shared_ptr<VolumeProperties>> * exit_volumes() { return &volume_prop_tracker; }
+    inline std::unordered_set<VolumeProperties*> * exit_volumes() { return &volume_prop_tracker; }
 
 private:
-    std::unordered_set<std::shared_ptr<VolumeProperties>> volume_prop_tracker;
+    std::unordered_set<VolumeProperties*> volume_prop_tracker;
+
+    struct VolumeIntersect
+    {
+        VolumeIntersect(const std::shared_ptr<VolumeProperties> &volume_prop, const bool add) : volume_prop(volume_prop.get()), add(add) {}
+        VolumeIntersect(VolumeProperties * volume_prop, const bool add) : volume_prop(volume_prop), add(add) {}
+        VolumeProperties * volume_prop;
+        bool add;
+    };
     std::map<float, std::vector<VolumeIntersect>> intersects;
 
     std::vector<Volume> volumes;

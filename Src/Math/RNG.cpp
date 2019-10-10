@@ -4,3 +4,5 @@ std::uniform_real_distribution<float> RNG::distribution = std::uniform_real_dist
 
 std::random_device rd;
 std::mt19937 RNG::generator = std::mt19937(rd());
+
+double RNG::n = 1;

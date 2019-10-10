@@ -70,7 +70,7 @@ Surface Scene::intersect(Ray &ray, VolumeStack * volume_stack)
     }
 }
 
-bool Scene::evaluate_lights(const Ray &ray, std::deque<LightSample> &light_results)
+bool Scene::evaluate_lights(const Ray &ray, std::vector<LightSample> &light_results)
 {
     for(uint i = 0; i < lights.size(); i++)
     {
@@ -94,7 +94,7 @@ Vec3f Scene::evaluate_environment_light(const Ray &ray)
     return VEC3F_ZERO;
 }
 
-bool Scene::sample_lights(const Surface &surface, std::deque<LightSample> &light_samples, const float sample_multiplier)
+bool Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier)
 {
     for(size_t i = 0; i < lights.size(); i++)
     {

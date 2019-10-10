@@ -11,17 +11,18 @@ MaterialGGXReflect::MaterialGGXReflect(const Vec3f &specular_color, const float 
 {
 }
 
-std::shared_ptr<Material> MaterialGGXReflect::instance(const Surface &surface)
+std::shared_ptr<Material> MaterialGGXReflect::instance(const Surface * surface)
 {
     std::shared_ptr<MaterialGGXReflect> material(new MaterialGGXReflect(*this));
+    material->surface = surface;
     if(!fresnel)
         material->fresnel = std::shared_ptr<Fresnel>(new FresnelMetalic(specular_color));
     return material;
 }
 
-bool MaterialGGXReflect::sample_material(const Surface &surface, std::deque<MaterialSample> &samples, const float sample_reduction)
+bool MaterialGGXReflect::sample_material(std::vector<MaterialSample> &samples, const float sample_reduction)
 {
-    if(!surface.enter)
+    if(!surface || !surface->enter)
         return false;
 
     // Estimate the number of samples
@@ -39,18 +40,18 @@ bool MaterialGGXReflect::sample_material(const Surface &surface, std::deque<Mate
 
         const float theta = TWO_PI * rnd[i][0];
         const float phi = atanf(roughness * sqrtf(rnd[i][1]) / sqrtf(1.f - rnd[i][1]));
-        const Vec3f h = surface.transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta));
+        const Vec3f h = surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta));
 
-        const float h_dot_wi = clamp(h.dot(-surface.wi), -1.f, 1.f);
-        sample.wo = (2.f * h_dot_wi * h + surface.wi);
+        const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
+        sample.wo = (2.f * h_dot_wi * h + surface->wi);
 
-        const float n_dot_h = clamp(h.dot(surface.normal), -1.f, 1.f);
+        const float n_dot_h = clamp(h.dot(surface->normal), -1.f, 1.f);
         const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
-        const float n_dot_wi = surface.n_dot_wi;
-        const float n_dot_wo = clamp(surface.normal.dot(sample.wo), -1.f, 1.f);
+        const float n_dot_wi = surface->n_dot_wi;
+        const float n_dot_wo = clamp(surface->normal.dot(sample.wo), -1.f, 1.f);
 
-        const float d = D(surface.normal, h, n_dot_h, roughness_sqr);
-        const float g = G1(-surface.wi, surface.normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, surface.normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
+        const float d = D(surface->normal, h, n_dot_h, roughness_sqr);
+        const float g = G1(-surface->wi, surface->normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, surface->normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
         const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
 
         sample.fr = (n_dot_wo > 0.f) ? (specular_color * f * g * d) / (4.f * n_dot_wi) : VEC3F_ZERO;
@@ -63,20 +64,20 @@ bool MaterialGGXReflect::sample_material(const Surface &surface, std::deque<Mate
     return true;
 }
 
-bool MaterialGGXReflect::evaluate_material(const Surface &surface, MaterialSample &sample)
+bool MaterialGGXReflect::evaluate_material(MaterialSample &sample)
 {
-    if(sample.wo.dot(surface.normal) < 0)
+    if(!surface || sample.wo.dot(surface->normal) < 0)
         return false;
 
-    const Vec3f h = (sample.wo - surface.wi).normalized();
-    const float n_dot_h = clamp(h.dot(surface.normal), -1.f, 1.f);
-    const float h_dot_wi = clamp(h.dot(-surface.wi), -1.f, 1.f);
+    const Vec3f h = (sample.wo - surface->wi).normalized();
+    const float n_dot_h = clamp(h.dot(surface->normal), -1.f, 1.f);
+    const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
     const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
-    const float n_dot_wi = surface.n_dot_wi;
-    const float n_dot_wo = clamp(surface.normal.dot(sample.wo), -1.f, 1.f);
+    const float n_dot_wi = surface->n_dot_wi;
+    const float n_dot_wo = clamp(surface->normal.dot(sample.wo), -1.f, 1.f);
 
-    const float d = D(surface.normal, h, n_dot_h, roughness_sqr);
-    const float g = G1(-surface.wi, surface.normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, surface.normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
+    const float d = D(surface->normal, h, n_dot_h, roughness_sqr);
+    const float g = G1(-surface->wi, surface->normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, surface->normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
     const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
 
     sample.fr = (specular_color * f * g * d) / (4.f * n_dot_wi);

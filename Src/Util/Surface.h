@@ -7,7 +7,7 @@
 #include "../Volume/Volume.h"
 class Object;
 
-typedef std::unordered_set<std::shared_ptr<VolumeProperties>> Volumes;
+typedef std::unordered_set<VolumeProperties*> Volumes;
 
 #define SAMPLES_PER_SA 64
 

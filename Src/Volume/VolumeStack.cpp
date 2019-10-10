@@ -28,9 +28,9 @@ void VolumeStack::build(const float &tend)
         {
             volumes.push_back(Volume());
             volumes.back().tmin = isect->first;
-            volumes.back().density = 0.f;
+            volumes.back().max_density = 0.f;
             for(auto vol_prop = volume_prop_tracker.begin(); vol_prop != volume_prop_tracker.end(); vol_prop++)
-                volumes.back().density += (*vol_prop)->density;
+                volumes.back().max_density += (*vol_prop)->max_density;
         }
     }
 
