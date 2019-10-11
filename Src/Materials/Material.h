@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <queue>
+#include <memory>
 #include "../Math/Types.h"
 #include "../Util/Surface.h"
 class Surface;
@@ -28,7 +29,8 @@ public:
         Lambert,
         GGXReflect,
         GGXRefract,
-        Dielectric
+        Dielectric,
+        Volume
     };
     virtual Type get_type() { return None; }
 

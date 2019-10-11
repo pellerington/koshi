@@ -1,7 +1,7 @@
 #include "ObjectMesh.h"
 
 ObjectMesh::ObjectMesh(uint _vertices_size, uint _triangles_size, uint _normals_size, VERT_DATA * _vertices, TRI_DATA * _tri_vindex, NORM_DATA * _normals, TRI_DATA * _tri_nindex,
-                       const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<VolumeProperties> volume)
+                       const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<Volume> volume)
 : Object(material, obj_to_world, volume),
   vertices_size(_vertices_size), triangles_size(_triangles_size), normals_size(_normals_size),
   vertices(_vertices), tri_vindex(_tri_vindex), normals(_normals), tri_nindex(_tri_nindex)
@@ -38,7 +38,6 @@ Surface ObjectMesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &
     : Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized();
 
     return Surface(
-        this,
         ray.get_position(ray.t),
         normal,//Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
         // Smooth normals here (use ray.hit.primID to get triangle)

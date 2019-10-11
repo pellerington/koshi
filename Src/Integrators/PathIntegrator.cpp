@@ -3,6 +3,7 @@
 #include <cmath>
 #include "../Util/Color.h"
 #include "../Volume/VolumeIntegrator.h"
+#include "../Util/Intersect.h"
 
 void PathIntegrator::pre_render()
 {
@@ -18,11 +19,10 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
         ray.t = (in_sample.lsample->position - ray.pos).length();
 
     // Intersect with our scene
-    VolumeStack volumes(in_sample.volumes);
-    Surface surface = scene->intersect(ray, &volumes);
+    Intersect intersect = scene->intersect(ray);
 
-    // Volume stack and integrator should be one thing.
-    VolumeIntegrator volume_integrator(volumes);
+    // Create a volume integrator
+    VolumeIntegrator volume_integrator(intersect.volumes);
 
     // If we are unshadowed return the light sample intensity
     if(in_sample.type == PathSample::Light)
@@ -59,18 +59,19 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     // Volume in-scattering goes here
 
     // Integrate the surface
-    color += volume_integrator.shadow(ray.t) * integrate_surface(surface, in_sample);
+    color += volume_integrator.shadow(ray.t) * integrate_surface(intersect, in_sample);
 
     return color;
 }
 
-Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_sample) const
+Vec3f PathIntegrator::integrate_surface(const Intersect &intersect, PathSample &in_sample) const
 {
     // Initialize output
     Vec3f color = VEC3F_ZERO;
 
     // Get our material instance
-    std::shared_ptr<Material> material = (surface.object->material) ? surface.object->material->instance(&surface) : std::shared_ptr<Material>(new Material());
+    std::shared_ptr<Material> material = (intersect.object->material) ? intersect.object->material->instance(&intersect.surface)
+                                                                      : std::shared_ptr<Material>(new Material());
 
     // Add any emissive component of the material. If our color is fully saturated end here.
     color += material->get_emission();
@@ -89,7 +90,7 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
     // Sample the lights
     std::vector<LightSample> light_samples;
     if(scene->settings.sample_lights)
-        scene->sample_lights(surface, light_samples, sample_multiplier);
+        scene->sample_lights(intersect.surface, light_samples, sample_multiplier);
     const uint n_light_samples = light_samples.size();
 
     // Return if we have no samples
@@ -106,15 +107,15 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
         PathSample sample;
         sample.parent = &in_sample;
         sample.depth = in_sample.depth + 1;
-        sample.volumes = surface.volumes;
         sample.quality = in_sample.quality * material_samples[i].quality;
         sample.msample = &material_samples[i];
         sample.type = PathSample::Material;
         LightSample lsample;
         sample.lsample = &lsample;
 
-        const float wo_dot_n = sample.msample->wo.dot(surface.normal);
-        Ray ray((wo_dot_n >= 0.f) ? surface.front_position : surface.back_position, sample.msample->wo);
+        const float wo_dot_n = sample.msample->wo.dot(intersect.surface.normal);
+        Ray ray((wo_dot_n >= 0.f) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
+        ray.in_volumes = intersect.volumes.exit_volumes();
 
         Vec3f in_color = integrate(ray, sample);
 
@@ -129,19 +130,19 @@ Vec3f PathIntegrator::integrate_surface(const Surface &surface, PathSample &in_s
     {
         PathSample sample;
         sample.parent = &in_sample;
-        sample.volumes = surface.volumes;
         sample.depth = in_sample.depth + 1;
         sample.quality = 1.f;
         sample.lsample = &light_samples[i];
         sample.type = PathSample::Light;
         MaterialSample msample;
         sample.msample = &msample;
-        msample.wo = (sample.lsample->position - surface.position).normalized();
+        msample.wo = (sample.lsample->position - intersect.surface.position).normalized();
 
         if(!material->evaluate_material(msample)) continue;
 
-        const float wo_dot_n = sample.msample->wo.dot(surface.normal);
-        Ray ray((wo_dot_n >= 0.f) ? surface.front_position : surface.back_position, sample.msample->wo);
+        const float wo_dot_n = sample.msample->wo.dot(intersect.surface.normal);
+        Ray ray((wo_dot_n >= 0.f) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
+        ray.in_volumes = intersect.volumes.exit_volumes();
 
         Vec3f in_color = integrate(ray, sample);
 

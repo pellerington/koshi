@@ -22,7 +22,7 @@ static uint box_indices[6][4] = {
     {0, 1, 2, 3},
 };
 
-ObjectBox::ObjectBox(std::shared_ptr<Material> material, const Transform3f &obj_to_world, std::shared_ptr<VolumeProperties> volume)
+ObjectBox::ObjectBox(std::shared_ptr<Material> material, const Transform3f &obj_to_world, std::shared_ptr<Volume> volume)
 : Object(material, obj_to_world, volume)
 {
     bbox = obj_to_world * BOX3F_UNIT;
@@ -47,7 +47,6 @@ ObjectBox::ObjectBox(std::shared_ptr<Material> material, const Transform3f &obj_
 Surface ObjectBox::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
 {
     return Surface(
-        this,
         ray.get_position(ray.t),
         Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
         ray.dir,

@@ -4,44 +4,54 @@
 
 #include <vector>
 #include <map>
-#include <unordered_set>
+#include <set>
 #include <algorithm>
 #include <iostream>
 #include <memory>
 
+struct VolumeIntersect //VolumeIntersect??? Then make VolumeIntersect VolumeTemp??
+{
+    float tmin, tmax;
+    Vec3f max_density, min_density;
+    std::vector<Volume*> volume_prop;
+    //Vector<Vec3f> UVW_BEGIN, UVW_LEN
+};
+
 class VolumeStack
 {
 public:
-    VolumeStack(std::unordered_set<VolumeProperties*> * entry_volumes = nullptr)
+    VolumeStack(const std::unordered_set<Volume*> * entry_volumes = nullptr)
     {
         if(entry_volumes)
         for(auto it = entry_volumes->begin(); it != entry_volumes->end(); it++)
-            intersects[0.f].emplace_back(*it, true);
+            hits[0.f].push_back(VolumeHit(true, *it));
     }
 
-    inline void add_intersect(const float &t, const std::shared_ptr<VolumeProperties> &volume_prop) { intersects[t].emplace_back(volume_prop, true); }
-    inline void sub_intersect(const float &t, const std::shared_ptr<VolumeProperties> &volume_prop) { intersects[t].emplace_back(volume_prop, false); }
+    inline void add_intersect(const float &t, const std::shared_ptr<Volume> &volume) {
+        hits[t].push_back(VolumeHit(true, volume.get()));
+    }
+    inline void sub_intersect(const float &t, const std::shared_ptr<Volume> &volume) {
+        hits[t].push_back(VolumeHit(false, volume.get()));
+    }
 
-    inline const Volume& operator[](const int i) const { return volumes[i]; }
+    inline const VolumeIntersect& operator[](const int i) const { return volumes[i]; }
+    inline const uint size() const { return volumes.size(); }
     inline const auto begin() const { return volumes.begin(); }
     inline const auto end() const { return volumes.end(); }
-    inline const uint size() const { return volumes.size(); }
 
     void build(const float &tend);
 
-    inline std::unordered_set<VolumeProperties*> * exit_volumes() { return &volume_prop_tracker; }
+    inline const std::unordered_set<Volume*> * exit_volumes() const { return &volume_tracker; }
 
 private:
-    std::unordered_set<VolumeProperties*> volume_prop_tracker;
-
-    struct VolumeIntersect
-    {
-        VolumeIntersect(const std::shared_ptr<VolumeProperties> &volume_prop, const bool add) : volume_prop(volume_prop.get()), add(add) {}
-        VolumeIntersect(VolumeProperties * volume_prop, const bool add) : volume_prop(volume_prop), add(add) {}
-        VolumeProperties * volume_prop;
-        bool add;
+    struct VolumeHit {
+        VolumeHit(bool enter, Volume * volume) : enter(enter), volume(volume) {}
+        bool enter;
+        Volume * volume;
     };
-    std::map<float, std::vector<VolumeIntersect>> intersects;
+    std::map<float, std::vector<VolumeHit>> hits;
 
-    std::vector<Volume> volumes;
+    std::unordered_set<Volume*> volume_tracker;
+
+    std::vector<VolumeIntersect> volumes;
 };

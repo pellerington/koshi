@@ -31,11 +31,13 @@ void Scene::pre_render()
     rtcCommitScene(rtc_scene);
 }
 
-Surface Scene::intersect(Ray &ray, VolumeStack * volume_stack)
+Intersect Scene::intersect(Ray &ray)
 {
+    VolumeStack volume_stack(ray.in_volumes);
+
     RTCIntersectContextExtended context;
     context.scene = this;
-    context.volume_stack = volume_stack;
+    context.volume_stack = &volume_stack;
     RTCIntersectContext * rtc_context = &context;
     rtcInitIntersectContext(rtc_context);
 
@@ -53,20 +55,20 @@ Surface Scene::intersect(Ray &ray, VolumeStack * volume_stack)
     /* intersect ray with scene */
     rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
 
-    volume_stack->build(rtcRayHit.ray.tfar);
+    volume_stack.build(rtcRayHit.ray.tfar);
 
     ray.t = rtcRayHit.ray.tfar;
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
         ray.hit = false;
-        return Surface();
+        Surface surface;
+        return Intersect(nullptr, std::move(surface), std::move(volume_stack));
     }
     else
     {
         ray.hit = true;
         Surface surface = rtc_to_obj[rtcRayHit.hit.geomID]->process_intersection(rtcRayHit, ray);
-        surface.set_volumes(volume_stack->exit_volumes());
-        return surface;
+        return Intersect(rtc_to_obj[rtcRayHit.hit.geomID], std::move(surface), std::move(volume_stack));
     }
 }
 

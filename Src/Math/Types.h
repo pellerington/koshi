@@ -5,7 +5,6 @@
 #include <Eigen/Geometry>
 #include "Vec3f.h"
 #include "Vec2.h"
-#include "Transform3f.h"
 #include "Box3f.h"
 
 #define HALF_PI 1.57079632679
@@ -21,7 +20,7 @@
 static const Vec3f VEC3F_ZERO = 0.f;
 static const Vec3f VEC3F_ONES = 1.f;
 
-static const Box3f BOX3F_UNIT = Box3f(Vec3f(0.f), Vec3f(1.f));
+static const Box3f BOX3F_UNIT = Box3f(VEC3F_ZERO, VEC3F_ONES);
 
 typedef unsigned int uint;
 

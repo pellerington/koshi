@@ -5,7 +5,7 @@
 #include "../Materials/Material.h"
 #include "../Lights/LightEnvironment.h"
 #include "../Textures/Texture.h"
-#include "../Volume/VolumeStack.h"
+#include "../Util/Intersect.h"
 
 #include "Embree.h"
 #include "Camera.h"
@@ -31,7 +31,7 @@ public:
 
     void pre_render();
     static void get_volumes_callback(const RTCFilterFunctionNArguments * args);
-    Surface intersect(Ray &ray, VolumeStack * volume_stack);
+    Intersect intersect(Ray &ray);
     bool evaluate_lights(const Ray &ray, std::vector<LightSample> &light_results);
     Vec3f evaluate_environment_light(const Ray &ray);
     bool sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier = 1.f);

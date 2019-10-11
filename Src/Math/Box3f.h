@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Vec3f.h"
-#include "../Util/Ray.h"
 
 class Box3f
 {
@@ -37,20 +36,6 @@ public:
         box_max.max(v);
         box_center = (box_max + box_min) * 0.5f;
         box_length = box_max - box_min;
-    }
-
-    inline bool intersect(const Ray &ray)
-    {
-        const Vec3f t1 = (box_min - ray.pos) * ray.inv_dir;
-        const Vec3f t2 = (box_max - ray.pos) * ray.inv_dir;
-        const float tmin = Vec3f::min(t1, t2).max();
-        const float tmax = Vec3f::max(t1, t2).min();
-
-        // Return tmin/tmax?
-        if (tmax < 0 || tmin > tmax || tmin > ray.t)
-            return false;
-
-        return true;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Box3f& b)

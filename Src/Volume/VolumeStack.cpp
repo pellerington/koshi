@@ -2,38 +2,38 @@
 
 void VolumeStack::build(const float &tend)
 {
-    volume_prop_tracker.clear();
+    volume_tracker.clear();
 
-    for(auto isect = intersects.begin(); isect != intersects.end(); isect++)
+    for(auto hit = hits.begin(); hit != hits.end(); hit++)
     {
-        if(isect->first > tend)
+        if(hit->first > tend)
             break;
 
         // If we have atleast one volume and things on the stack, add the tmax to the last
-        if(volume_prop_tracker.size() > 0 && volumes.size() > 0)
-            volumes.back().tmax = isect->first;
+        if(volume_tracker.size() > 0 && volumes.size() > 0)
+            volumes.back().tmax = hit->first;
 
         // Update current volumes
-        for(auto isect_volume = isect->second.begin(); isect_volume != isect->second.end(); isect_volume++)
+        for(auto hit_volume = hit->second.begin(); hit_volume != hit->second.end(); hit_volume++)
         {
-            auto cv = std::find(volume_prop_tracker.begin(), volume_prop_tracker.end(), isect_volume->volume_prop);
-            if(cv != volume_prop_tracker.end() && !isect_volume->add)
-                volume_prop_tracker.erase(cv);
-            else if(cv == volume_prop_tracker.end() && isect_volume->add)
-                volume_prop_tracker.insert(isect_volume->volume_prop);
+            auto cv = std::find(volume_tracker.begin(), volume_tracker.end(), hit_volume->volume);
+            if(cv != volume_tracker.end() && !hit_volume->enter)
+                volume_tracker.erase(cv);
+            else if(cv == volume_tracker.end() && hit_volume->enter)
+                volume_tracker.insert(hit_volume->volume);
         }
 
         // If we have volumes on the stack start a new volume
-        if(volume_prop_tracker.size() > 0)
+        if(volume_tracker.size() > 0)
         {
-            volumes.push_back(Volume());
-            volumes.back().tmin = isect->first;
+            volumes.push_back(VolumeIntersect());
+            volumes.back().tmin = hit->first;
             volumes.back().max_density = 0.f;
-            for(auto vol_prop = volume_prop_tracker.begin(); vol_prop != volume_prop_tracker.end(); vol_prop++)
-                volumes.back().max_density += (*vol_prop)->max_density;
+            for(auto volume = volume_tracker.begin(); volume != volume_tracker.end(); volume++)
+                volumes.back().max_density += (*volume)->max_density;
         }
     }
 
-    if(volume_prop_tracker.size() > 0)
+    if(volume_tracker.size() > 0)
         volumes.back().tmax = tend;
 }

@@ -157,11 +157,11 @@ public:
                         transform = transform * Transform3f::x_rotation(rotation.x);
                         transform = transform * Transform3f::scale(scale);
 
-                        std::shared_ptr<VolumeProperties> volume;
+                        std::shared_ptr<Volume> volume;
                         if((*it)["volume"].is_array())
                         {
                             const Vec3f density = get_vec3f(*it, "volume");
-                            volume = std::shared_ptr<VolumeProperties>(new VolumeProperties(density));
+                            volume = std::shared_ptr<Volume>(new Volume(density));
                         }
 
                         std::shared_ptr<ObjectMesh> mesh;
@@ -190,11 +190,11 @@ public:
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<VolumeProperties> volume;
+                    std::shared_ptr<Volume> volume;
                     if((*it)["volume"].is_array())
                     {
                         const Vec3f density = get_vec3f(*it, "volume");
-                        volume = std::shared_ptr<VolumeProperties>(new VolumeProperties(density));
+                        volume = std::shared_ptr<Volume>(new Volume(density));
                     }
 
                     std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(material, transform, volume));
@@ -219,11 +219,11 @@ public:
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<VolumeProperties> volume;
+                    std::shared_ptr<Volume> volume;
                     if((*it)["volume"].is_array())
                     {
                         const Vec3f density = get_vec3f(*it, "volume");
-                        volume = std::shared_ptr<VolumeProperties>(new VolumeProperties(density));
+                        volume = std::shared_ptr<Volume>(new Volume(density));
                     }
 
                     std::shared_ptr<ObjectBox> box(new ObjectBox(material, transform, volume));

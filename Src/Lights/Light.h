@@ -5,6 +5,7 @@
 
 #include <queue>
 #include <iostream>
+#include <memory>
 
 struct LightSample {
     Vec3f position;

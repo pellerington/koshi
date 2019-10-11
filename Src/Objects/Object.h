@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "../Scene/Embree.h"
-#include "../Materials/Material.h"
 #include "../Util/Surface.h"
 #include "../Util/Ray.h"
 #include "../Volume/VolumeStack.h"
@@ -16,10 +15,10 @@ class Object
 {
 public:
     Object() : material(nullptr), obj_to_world(Transform3f()), world_to_obj(Transform3f()) {}
-    Object(std::shared_ptr<Material> material, const Transform3f &obj_to_world, std::shared_ptr<VolumeProperties> volume = nullptr)
+    Object(std::shared_ptr<Material> material, const Transform3f &obj_to_world, std::shared_ptr<Volume> volume = nullptr)
     : volume(volume), material(material), obj_to_world(obj_to_world), world_to_obj(Transform3f::inverse(obj_to_world)) {}
 
-    std::shared_ptr<VolumeProperties> volume;
+    std::shared_ptr<Volume> volume;
 
     enum Type
     {

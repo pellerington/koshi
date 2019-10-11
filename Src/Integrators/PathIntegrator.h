@@ -13,8 +13,6 @@ struct PathSample
     PathSample * parent;
     uint depth;
     float quality;
-
-    Volumes * volumes = nullptr;
 };
 
 class PathIntegrator : public Integrator
@@ -31,5 +29,5 @@ public:
         return integrate(ray, sample);
     }
     Vec3f integrate(Ray &ray, PathSample &in_sample) const;
-    Vec3f integrate_surface(const Surface &surface, PathSample &in_sample) const;
+    Vec3f integrate_surface(const Intersect &intersect, PathSample &in_sample) const;
 };

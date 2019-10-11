@@ -2,6 +2,7 @@
 
 #include "../Math/RNG.h"
 #include "../Util/Surface.h"
+#include "../Util/Ray.h"
 
 class Camera
 {
