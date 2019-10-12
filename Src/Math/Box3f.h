@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cfloat>
 #include "Vec3f.h"
 
 class Box3f

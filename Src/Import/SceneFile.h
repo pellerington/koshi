@@ -135,6 +135,27 @@ public:
             }
         }
 
+        std::map<std::string, std::shared_ptr<Volume>> volumes;
+        if(scene_file["volumes"].is_array())
+        {
+            for (auto it = scene_file["volumes"].begin(); it != scene_file["volumes"].end(); ++it)
+            {
+                if((*it)["type"].is_string() && (*it)["name"].is_string())
+                {
+                    if((*it)["type"] == "volume")
+                    {
+                        const float density = get_float(*it, "density");
+                        const Vec3f transparency = get_vec3f(*it, "transparency", 1.f);
+                        const Vec3f scattering = get_vec3f(*it, "scattering");
+                        const Vec3f emission = get_vec3f(*it, "emission");
+
+                        std::shared_ptr<Volume> volume(new Volume(density, scattering, transparency, emission));
+                        volumes[(*it)["name"]] = volume;
+                    }
+                }
+            }
+        }
+
         if(scene_file["objects"].is_array())
         {
             for (auto it = scene_file["objects"].begin(); it != scene_file["objects"].end(); ++it)
@@ -157,12 +178,7 @@ public:
                         transform = transform * Transform3f::x_rotation(rotation.x);
                         transform = transform * Transform3f::scale(scale);
 
-                        std::shared_ptr<Volume> volume;
-                        if((*it)["volume"].is_array())
-                        {
-                            const Vec3f density = get_vec3f(*it, "volume");
-                            volume = std::shared_ptr<Volume>(new Volume(density));
-                        }
+                        std::shared_ptr<Volume> volume = ((*it)["volume"].is_string()) ? volumes[(*it)["volume"]] : nullptr;
 
                         std::shared_ptr<ObjectMesh> mesh;
                         if ((*it)["file"]["type"] == "obj")
@@ -191,11 +207,8 @@ public:
                         material = materials[(*it)["material"]];
 
                     std::shared_ptr<Volume> volume;
-                    if((*it)["volume"].is_array())
-                    {
-                        const Vec3f density = get_vec3f(*it, "volume");
-                        volume = std::shared_ptr<Volume>(new Volume(density));
-                    }
+                    if((*it)["volume"].is_string())
+                        volume = volumes[(*it)["volume"]];
 
                     std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(material, transform, volume));
                     scene.add_object(sphere);
@@ -220,16 +233,12 @@ public:
                         material = materials[(*it)["material"]];
 
                     std::shared_ptr<Volume> volume;
-                    if((*it)["volume"].is_array())
-                    {
-                        const Vec3f density = get_vec3f(*it, "volume");
-                        volume = std::shared_ptr<Volume>(new Volume(density));
-                    }
+                    if((*it)["volume"].is_string())
+                        volume = volumes[(*it)["volume"]];
 
                     std::shared_ptr<ObjectBox> box(new ObjectBox(material, transform, volume));
                     scene.add_object(box);
                 }
-
             }
         }
 

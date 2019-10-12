@@ -14,11 +14,9 @@ class Material;
 class Object
 {
 public:
-    Object() : material(nullptr), obj_to_world(Transform3f()), world_to_obj(Transform3f()) {}
+    Object() : material(nullptr), volume(nullptr), obj_to_world(Transform3f()), world_to_obj(Transform3f()) {}
     Object(std::shared_ptr<Material> material, const Transform3f &obj_to_world, std::shared_ptr<Volume> volume = nullptr)
-    : volume(volume), material(material), obj_to_world(obj_to_world), world_to_obj(Transform3f::inverse(obj_to_world)) {}
-
-    std::shared_ptr<Volume> volume;
+    : material(material), volume(volume ? std::shared_ptr<Volume>(new Volume(*volume)) : nullptr), obj_to_world(obj_to_world), world_to_obj(Transform3f::inverse(obj_to_world)) {}
 
     enum Type
     {
@@ -47,6 +45,7 @@ public:
     const RTCGeometry& get_rtc_geometry() { return geom; }
 
     std::shared_ptr<Material> material; // This should be const
+    std::shared_ptr<Volume> volume;
     const Transform3f obj_to_world;
     const Transform3f world_to_obj;
 

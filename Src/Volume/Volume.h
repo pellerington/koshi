@@ -1,17 +1,30 @@
 #pragma once
 
-#include "../Materials/MaterialVolume.h"
 #include "../Math/Vec3f.h"
-#include <vector>
+#include "../Materials/Material.h"
 
-// Move this to its own place so we can give it it's own constructor
 class Volume
 {
 public:
-    Volume(const Vec3f &max_density) : max_density(max_density) {}
-    // Volume(const std::shared_ptr<MaterialVolume> &material) : material(material) {}
-    std::shared_ptr<MaterialVolume> material;
+    Volume(const float &density = 0.f, const Vec3f &scattering = VEC3F_ZERO, const Vec3f &transparency = VEC3F_ONES, const Vec3f &emission = VEC3F_ZERO);
+
     Vec3f max_density, min_density;
-    // bool is_homogenous?
-    // bool is_multiscat?
+
+    virtual bool is_heterogeneous() { return false; }
+    // is_multiscattering???
+    // sample_lights???
+
+    virtual bool sample_volume(const Vec3f &wi, std::vector<MaterialSample> &samples, float sample_reduction = 1.f); // UVW as well?
+    virtual bool evaluate_volume(const Vec3f &wi, MaterialSample &sample); // UVW as well?
+
+    //virtual const float anistropy() { return -1 < x < 1 } // Probably not needed
+    virtual Vec3f get_density(const Vec3f &uvw = VEC3F_ZERO);
+    virtual Vec3f get_scattering(const Vec3f &uvw = VEC3F_ZERO);
+    virtual Vec3f get_emission(const Vec3f &uvw = VEC3F_ZERO);
+
+private:
+    const Vec3f density;
+    const Vec3f scattering;
+    const Vec3f emission;
+
 };
