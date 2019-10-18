@@ -43,5 +43,5 @@ public:
 private:
     static std::mt19937 generator;
     static std::uniform_real_distribution<float> distribution;
-    static double n;
+    static float n;
 };

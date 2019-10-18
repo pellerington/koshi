@@ -146,10 +146,11 @@ public:
                     {
                         const float density = get_float(*it, "density");
                         const Vec3f transparency = get_vec3f(*it, "transparency", 1.f);
+                        const float g = get_float(*it, "anistropy");
                         const Vec3f scattering = get_vec3f(*it, "scattering");
                         const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Volume> volume(new Volume(density, scattering, transparency, emission));
+                        std::shared_ptr<Volume> volume(new Volume(density, scattering, g, transparency, emission));
                         volumes[(*it)["name"]] = volume;
                     }
                 }

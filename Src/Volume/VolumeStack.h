@@ -9,18 +9,18 @@
 #include <iostream>
 #include <memory>
 
-struct VolumeIntersect //VolumeIntersect??? Then make VolumeIntersect VolumeTemp??
+struct VolumeIntersect
 {
     float tmin, tmax;
     Vec3f max_density, min_density;
-    std::vector<Volume*> volume_prop;
+    std::vector<Volume*> volumes;
     //Vector<Vec3f> UVW_BEGIN, UVW_LEN
 };
 
 class VolumeStack
 {
 public:
-    VolumeStack(const std::unordered_set<Volume*> * entry_volumes = nullptr)
+    VolumeStack(const std::vector<Volume*> * entry_volumes = nullptr)
     {
         if(entry_volumes)
         for(auto it = entry_volumes->begin(); it != entry_volumes->end(); it++)
@@ -34,14 +34,20 @@ public:
         hits[t].push_back(VolumeHit(false, volume.get()));
     }
 
-    inline const VolumeIntersect& operator[](const int i) const { return volumes[i]; }
-    inline const uint size() const { return volumes.size(); }
+    inline const auto operator[](const float &t) const {
+        if(t < tmin || t > tmax)
+            return volumes.end();
+        return std::lower_bound(volumes.begin(), volumes.end(), t, [](const VolumeIntersect &v, const float &t) -> bool { return t < v.tmin; });
+    }
     inline const auto begin() const { return volumes.begin(); }
     inline const auto end() const { return volumes.end(); }
+    inline const uint num_volumes() const { return volumes.size(); }
 
     void build(const float &tend);
 
-    inline const std::unordered_set<Volume*> * exit_volumes() const { return &volume_tracker; }
+    inline const std::vector<Volume*> * get_exit_volumes() const { return &exit_volumes; }
+
+    float tmin, tmax;
 
 private:
     struct VolumeHit {
@@ -51,7 +57,8 @@ private:
     };
     std::map<float, std::vector<VolumeHit>> hits;
 
-    std::unordered_set<Volume*> volume_tracker;
+    std::vector<Volume*> exit_volumes;
 
     std::vector<VolumeIntersect> volumes;
+
 };

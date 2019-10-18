@@ -13,6 +13,9 @@
 
 int main(int argc, char *argv[])
 {
+
+    std::cout << "Started Render." << '\n';
+
     int threads = 1;
     std::string filename;
     for(int i = 1; i < argc-1; i++)

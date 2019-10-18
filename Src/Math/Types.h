@@ -7,15 +7,16 @@
 #include "Vec2.h"
 #include "Box3f.h"
 
-#define HALF_PI 1.57079632679
-#define PI 3.14159265359
-#define TWO_PI 6.28318530718
+#define HALF_PI 1.57079632679f
+#define PI 3.14159265359f
+#define TWO_PI 6.28318530718f
 
-#define INV_PI 0.31830988618
-#define INV_TWO_PI 0.15915494309
+#define INV_PI 0.31830988618f
+#define INV_TWO_PI 0.15915494309f
+#define INV_FOUR_PI 0.07957747154f
 
 #define EPSILON_F 0.000001f
-#define DELTA_PDF 1e9
+#define DELTA_PDF 1e9f
 
 static const Vec3f VEC3F_ZERO = 0.f;
 static const Vec3f VEC3F_ONES = 1.f;

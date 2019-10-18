@@ -57,6 +57,8 @@ public:
     inline Vec3f operator/ (const float &n) const { return Vec3f(_mm_div_ps(data, _mm_set_ps1(n))); }
     friend inline Vec3f operator/ (const float &n, const Vec3f &other) { return Vec3f(_mm_div_ps(_mm_set_ps1(n), other.data)); }
 
+    inline bool operator< (const float &n) const { return x < n && y < n && z < n; }
+
     inline float length() const {
         __m128 sqr = _mm_mul_ps(data, data);
         return sqrtf(sqr[0] + sqr[1] + sqr[2]);
@@ -97,6 +99,8 @@ public:
     inline void max(const Vec3f &other) { data = _mm_max_ps(data, other.data); }
     inline float max() const { return (x > y && x > z) ? x : ((y > z) ? y : z); }
 
+    inline void abs() { x = fabs(x); y = fabs(y); z = fabs(z); }
+
     inline static Vec3f exp(const Vec3f &v) {
         Vec3f x(v);
         x = 1.f + x / 256.f;
@@ -104,6 +108,7 @@ public:
         x *= x; x *= x; x *= x; x *= x;
         return x;
     }
+
 
     friend std::ostream& operator<<(std::ostream& os, const Vec3f& v)
     {

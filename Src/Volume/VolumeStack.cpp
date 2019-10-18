@@ -2,7 +2,7 @@
 
 void VolumeStack::build(const float &tend)
 {
-    volume_tracker.clear();
+    std::unordered_set<Volume*> volume_tracker;
 
     for(auto hit = hits.begin(); hit != hits.end(); hit++)
     {
@@ -26,14 +26,27 @@ void VolumeStack::build(const float &tend)
         // If we have volumes on the stack start a new volume
         if(volume_tracker.size() > 0)
         {
-            volumes.push_back(VolumeIntersect());
+            volumes.emplace_back();
             volumes.back().tmin = hit->first;
             volumes.back().max_density = 0.f;
             for(auto volume = volume_tracker.begin(); volume != volume_tracker.end(); volume++)
+            {
                 volumes.back().max_density += (*volume)->max_density;
+                volumes.back().volumes.push_back(*volume);
+            }
         }
     }
 
     if(volume_tracker.size() > 0)
+    {
         volumes.back().tmax = tend;
+        exit_volumes.insert(exit_volumes.end(), volume_tracker.begin(), volume_tracker.end());
+    }
+
+    tmin = tmax = 0.f;
+    if(volumes.size() > 0)
+    {
+        tmin = volumes.front().tmin;
+        tmax = volumes.back().tmax;
+    }
 }
