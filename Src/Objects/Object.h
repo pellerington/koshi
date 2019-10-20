@@ -37,7 +37,7 @@ public:
         n.normalize();
 
         if(n.dot(-wi) > 0.f)
-            volumes->add_intersect(RTCRayN_tfar(args->ray, args->N, 0), volume);
+            volumes->add_intersect(RTCRayN_tfar(args->ray, args->N, 0), volume, (material != nullptr));
         else
             volumes->sub_intersect(RTCRayN_tfar(args->ray, args->N, 0), volume);
     }

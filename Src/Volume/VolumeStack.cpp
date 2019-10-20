@@ -41,7 +41,10 @@ void VolumeStack::build(const float &tend)
     {
         volumes.back().tmax = tend;
         exit_volumes.insert(exit_volumes.end(), volume_tracker.begin(), volume_tracker.end());
+        enter_volumes.insert(enter_volumes.end(), volume_tracker.begin(), volume_tracker.end());
     }
+    if(object_volume)
+        enter_volumes.push_back(object_volume);
 
     tmin = tmax = 0.f;
     if(volumes.size() > 0)

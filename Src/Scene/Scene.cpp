@@ -7,12 +7,13 @@ struct RTCIntersectContextExtended : public RTCIntersectContext {
 
 void Scene::get_volumes_callback(const RTCFilterFunctionNArguments * args)
 {
-    *(args->valid) = 0;
     RTCIntersectContextExtended * context = (RTCIntersectContextExtended*) args->context;
     Scene * scene = context->scene;
 
     uint geomID = RTCHitN_geomID(args->hit, args->N, 0);
     scene->rtc_to_obj[geomID]->process_volume_intersection(args, context->volume_stack);
+
+    *(args->valid) = (scene->rtc_to_obj[geomID]->material != nullptr);
 }
 
 void Scene::pre_render()
@@ -24,7 +25,7 @@ void Scene::pre_render()
         rtcCommitGeometry(geom);
         const uint rtcid = rtcAttachGeometry(rtc_scene, geom);
         rtc_to_obj[rtcid] = objects[i];
-        if(!objects[i]->material && objects[i]->volume)
+        if(objects[i]->volume)
             rtcSetGeometryIntersectFilterFunction(geom, &Scene::get_volumes_callback);
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
