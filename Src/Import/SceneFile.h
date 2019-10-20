@@ -9,6 +9,7 @@
 #include "../Objects/ObjectSphere.h"
 #include "../Objects/ObjectBox.h"
 #include "../Materials/MaterialLambert.h"
+#include "../Materials/MaterialBackLambert.h"
 #include "../Materials/MaterialGGXReflect.h"
 #include "../Materials/MaterialGGXRefract.h"
 #include "../Materials/MaterialDielectric.h"
@@ -92,6 +93,16 @@ public:
                         const Vec3f emission = get_vec3f(*it, "emission");
 
                         std::shared_ptr<Material> material(new MaterialLambert(diffuse_color, emission));
+                        materials[(*it)["name"]] = material;
+                        scene.add_material(material);
+                    }
+
+                    if((*it)["type"] == "back_lambert")
+                    {
+                        const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
+                        const Vec3f emission = get_vec3f(*it, "emission");
+
+                        std::shared_ptr<Material> material(new MaterialBackLambert(diffuse_color, emission));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }

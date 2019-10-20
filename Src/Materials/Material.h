@@ -27,6 +27,7 @@ public:
     {
         None,
         Lambert,
+        BackLambert,
         GGXReflect,
         GGXRefract,
         Dielectric,

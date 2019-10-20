@@ -33,15 +33,6 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     // Add the emission from our volume
     color += volume_integrator.emission();
 
-    // If we hit nothing end it here. Incorporate this into our main evaluate light?
-    if(!ray.hit && !intersect.volumes.num_volumes() /* <- replace this with no scattering? */)
-    {
-        Vec3f environment = scene->evaluate_environment_light(ray);
-        if(in_sample.type != PathSample::Camera || scene->settings.display_lights)
-            color += environment;
-        return color;
-    }
-
     // Check if we intersected any lights
     std::vector<LightSample> light_results;
     if(in_sample.type != PathSample::Camera || scene->settings.display_lights)
@@ -55,6 +46,15 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
             in_sample.lsample->intensity += light_results[i].intensity;
             in_sample.lsample->pdf += light_results[i].pdf;
         }
+    }
+
+    // If we hit nothing end it here. Incorporate this into our main evaluate light?
+    if(!ray.hit && !intersect.volumes.num_volumes() /* <- replace this with no scattering? */)
+    {
+        Vec3f environment = scene->evaluate_environment_light(ray);
+        if(in_sample.type != PathSample::Camera || scene->settings.display_lights)
+            color += environment;
+        return color;
     }
 
     // Check if we should terminate.

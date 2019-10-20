@@ -24,7 +24,7 @@ void Scene::pre_render()
         rtcCommitGeometry(geom);
         const uint rtcid = rtcAttachGeometry(rtc_scene, geom);
         rtc_to_obj[rtcid] = objects[i];
-        if(objects[i]->volume)
+        if(!objects[i]->material && objects[i]->volume)
             rtcSetGeometryIntersectFilterFunction(geom, &Scene::get_volumes_callback);
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
