@@ -9,9 +9,8 @@ LightEnvironment::LightEnvironment(const Vec3f &intensity, std::shared_ptr<Textu
 
 bool LightEnvironment::evaluate_light(const Ray &ray, LightSample &light_sample)
 {
-    // if(ray.hit)
-        // return false;
-
+    if(!ray.hit && ray.tmax < FLT_MAX)
+        return false;
 
     float theta = acosf(ray.dir.y);
     float phi = atanf((ray.dir.z + EPSILON_F) / (ray.dir.x + EPSILON_F));

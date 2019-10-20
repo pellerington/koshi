@@ -15,8 +15,10 @@ struct Ray
     const Vec3f dir;
     const Vec3f inv_dir;
     // TODO: tmin/tmax
-    float t = FLT_MAX;
     bool hit = false;
+    float t = FLT_MAX;
+    float tmin = 0.f;
+    float tmax = FLT_MAX;
 
     const std::vector<Volume*> * in_volumes;
 };

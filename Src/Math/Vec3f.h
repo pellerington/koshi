@@ -109,6 +109,9 @@ public:
         return x;
     }
 
+    inline Vec3f lambda(float (*f)(const float)) {
+        return Vec3f(f(x), f(y), f(z));
+    }
 
     friend std::ostream& operator<<(std::ostream& os, const Vec3f& v)
     {

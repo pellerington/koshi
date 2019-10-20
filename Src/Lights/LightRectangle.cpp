@@ -19,7 +19,7 @@ bool LightRectangle::evaluate_light(const Ray &ray, LightSample &light_sample)
     if(ray.dir.dot(-normal) < 0 && !double_sided)
         return false;
 
-    if(t > ray.t || t < 0)
+    if(t > ray.tmax || t < 0)
         return false;
 
     const float tu = u.normalized().dot(light_sample.position - position);

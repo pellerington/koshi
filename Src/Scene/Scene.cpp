@@ -7,8 +7,8 @@ struct RTCIntersectContextExtended : public RTCIntersectContext {
 
 void Scene::get_volumes_callback(const RTCFilterFunctionNArguments * args)
 {
-    *(args->valid ) = 0;
-    RTCIntersectContextExtended * context = (RTCIntersectContextExtended*)args->context;
+    *(args->valid) = 0;
+    RTCIntersectContextExtended * context = (RTCIntersectContextExtended*) args->context;
     Scene * scene = context->scene;
 
     uint geomID = RTCHitN_geomID(args->hit, args->N, 0);
@@ -44,20 +44,19 @@ Intersect Scene::intersect(Ray &ray)
     RTCRayHit rtcRayHit;
     rtcRayHit.ray.org_x = ray.pos[0]; rtcRayHit.ray.org_y = ray.pos[1]; rtcRayHit.ray.org_z = ray.pos[2];
     rtcRayHit.ray.dir_x = ray.dir[0]; rtcRayHit.ray.dir_y = ray.dir[1]; rtcRayHit.ray.dir_z = ray.dir[2];
-    rtcRayHit.ray.tnear = 0.f;
-    rtcRayHit.ray.tfar = ray.t;
+    rtcRayHit.ray.tnear = ray.tmin;
+    rtcRayHit.ray.tfar = ray.tmax;
     rtcRayHit.ray.time = 0.f;
     rtcRayHit.ray.mask = -1;
     rtcRayHit.hit.geomID = RTC_INVALID_GEOMETRY_ID;
     rtcRayHit.hit.primID = RTC_INVALID_GEOMETRY_ID;
     rtcRayHit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
 
-    /* intersect ray with scene */
+    // Intersect ray with scene
     rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
 
     volume_stack.build(rtcRayHit.ray.tfar);
 
-    ray.t = rtcRayHit.ray.tfar;
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
         ray.hit = false;
@@ -66,6 +65,7 @@ Intersect Scene::intersect(Ray &ray)
     }
     else
     {
+        ray.t = rtcRayHit.ray.tfar;
         ray.hit = true;
         Surface surface = rtc_to_obj[rtcRayHit.hit.geomID]->process_intersection(rtcRayHit, ray);
         return Intersect(rtc_to_obj[rtcRayHit.hit.geomID], std::move(surface), std::move(volume_stack));

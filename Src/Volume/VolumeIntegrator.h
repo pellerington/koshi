@@ -7,10 +7,11 @@ class VolumeIntegrator
 {
 public:
     VolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes) : scene(scene), ray(ray), volumes(volumes) {}
-    Vec3f shadow(const float &t);
-    Vec3f integrate(Vec3f &out_weight, std::vector<VolumeSample> &samples, VolumeSample * in_sample);
+    virtual Vec3f shadow(const float &t) = 0;
+    virtual Vec3f emission(/* float pdf for direct sampling???*/) = 0;
+    virtual void scatter(std::vector<VolumeSample> &samples) = 0;
 
-private:
+protected:
     Scene * scene;
     Ray& ray;
     const VolumeStack& volumes;
