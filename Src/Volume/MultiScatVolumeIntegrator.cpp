@@ -40,6 +40,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             null_density.abs();
             // TODO: Ignore zero densities
             // null_density *= density.lambda([](const float n) { return (n == 0.f) ? 0.f : 1.f; });
+            // also set shadowing for the other wavelengths to 1.
 
             // TODO: We need to pass in history probabilites somehow
             float n_prob = null_density.max();
@@ -66,24 +67,42 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             {
                 // Cap the ray tmax so lights cant be evaluated further.
                 ray.tmax = tmax = t;
-                weight *= scattering / (sampling_density * s_prob);
                 has_scatter = true;
+                sample.pos = ray.get_position(t);
+                sample.quality = 1.f;
+                sample.exit_volumes = &volume_isect->volumes;
 
-                // if(volume_isect->volumes.size() == 1)
-                // {
+                if(volume_isect->volumes.size() > 1)
+                {
                     // Set up sample
-                    sample.pos = ray.get_position(t);
                     volume_isect->volumes[0]->sample_volume(ray.dir, sample);
+                    weight *= scattering / (sampling_density * s_prob);
                     sample.weight = weight;
-                    sample.quality = 1.f;
-                    sample.exit_volumes = &volume_isect->volumes;
                     return;
-                // }
-                // else
-                // {
-                //     // Pick a scatter!
-                //     // Also divide by the probability we picked this scatter?
-                // }
+                }
+                else
+                {
+                    float inv_scattering_sum = 0.f;
+                    for(uint i = 0; i < scattering_cache.size(); i++)
+                        inv_scattering_sum += scattering_cache[i].max();
+                    inv_scattering_sum = 1.f / inv_scattering_sum;
+
+                    const float r = RNG::Rand();
+                    float culm_prob = 0.f;
+                    for(uint i = 0; i < scattering_cache.size(); i++)
+                    {
+                        const float prob = scattering_cache[i].max() * inv_scattering_sum;
+                        culm_prob += prob;
+                        if(culm_prob > r)
+                        {
+                            // Sample this volume
+                            volume_isect->volumes[i]->sample_volume(ray.dir, sample);
+                            weight *= scattering_cache[i] / (sampling_density * s_prob * prob);
+                            sample.weight = weight;
+                            return;
+                        }
+                    }
+                }
             }
 
             // Null event
