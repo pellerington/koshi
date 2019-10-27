@@ -39,12 +39,12 @@ Surface ObjectMesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &
 
     return Surface(
         ray.get_position(ray.t),
-        normal,//Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
-        // Smooth normals here (use ray.hit.primID to get triangle)
-        // surface.normal = (smooth_normals) ? (1.f - u - v) * *normals[0] + u * *normals[1] + v * *normals[2] : normal;
+        normal,
+        Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
         ray.dir,
         rtcRayHit.hit.u,
-        rtcRayHit.hit.v
+        rtcRayHit.hit.v,
+        ray.ior
     );
 }
 

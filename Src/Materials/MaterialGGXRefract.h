@@ -15,6 +15,7 @@ public:
     bool sample_material(std::vector<MaterialSample> &samples, const float sample_reduction = 1.f);
     bool evaluate_material(MaterialSample &sample);
     const Vec3f get_emission() { return emission; }
+    const float get_ior() { return ior; }
     void set_fresnel(std::shared_ptr<Fresnel> _fresnel) { fresnel = _fresnel; }
 
 private:
@@ -25,4 +26,5 @@ private:
     const float ior;
     std::shared_ptr<Fresnel> fresnel;
     const Vec3f emission;
+    float ior_in = 1.f, ior_out = 1.f;
 };

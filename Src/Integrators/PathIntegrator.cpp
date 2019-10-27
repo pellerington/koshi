@@ -82,6 +82,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
         sample.lsample = &lsample;
 
         Ray ray(sample.vsample->pos, sample.vsample->wo);
+        ray.ior = intersect.surface.ior;
         ray.in_volumes = sample.vsample->exit_volumes;
 
         color += sample.vsample->weight * integrate(ray, sample);
@@ -146,9 +147,11 @@ Vec3f PathIntegrator::integrate_surface(const Intersect &intersect, PathSample &
         LightSample lsample;
         sample.lsample = &lsample;
 
-        const float wo_dot_n = sample.msample->wo.dot(intersect.surface.normal);
-        Ray ray((wo_dot_n >= 0.f) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
-        ray.in_volumes = (wo_dot_n > 0.f) ? intersect.volumes.get_exit_volumes() : intersect.volumes.get_enter_volumes();
+        const bool inside_object = sample.msample->wo.dot(intersect.surface.normal) < 0;
+        Ray ray((!inside_object) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
+        ray.ior = get_next_ior(material, intersect.surface, inside_object);
+        // Need to test case when reflecting while already inside an object which has a volume.
+        ray.in_volumes = (!inside_object) ? intersect.volumes.get_exit_volumes() : intersect.volumes.get_enter_volumes();
 
         Vec3f in_color = integrate(ray, sample);
 
@@ -176,7 +179,7 @@ Vec3f PathIntegrator::integrate_surface(const Intersect &intersect, PathSample &
 
         const float wo_dot_n = sample.msample->wo.dot(intersect.surface.normal);
         Ray ray((wo_dot_n >= 0.f) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
-        ray.in_volumes = (wo_dot_n > 0.f) ? intersect.volumes.get_exit_volumes() : intersect.volumes.get_enter_volumes();
+        ray.in_volumes = (wo_dot_n >= 0.f) ? intersect.volumes.get_exit_volumes() : intersect.volumes.get_enter_volumes();
         ray.tmax = dir.length(); // Set our tmax so we can perform shadowing.
 
         Vec3f in_color = integrate(ray, sample);

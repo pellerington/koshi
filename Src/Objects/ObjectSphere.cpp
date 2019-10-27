@@ -62,9 +62,11 @@ Surface ObjectSphere::process_intersection(const RTCRayHit &rtcRayHit, const Ray
     const Vec3f hit_point = ray.get_position(ray.t);
     return Surface (
         hit_point,
-        (hit_point - position).normalized(), /*Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),*/
+        (hit_point - position).normalized(),
+        Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
         ray.dir,
         rtcRayHit.hit.u, // These are incorrect for spheres and need to be explicitly set
-        rtcRayHit.hit.v
+        rtcRayHit.hit.v,
+        ray.ior
     );
 }

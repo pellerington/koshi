@@ -7,7 +7,7 @@
 #include <iostream>
 
 MaterialGGXReflect::MaterialGGXReflect(const Vec3f &specular_color, const float &roughness, std::shared_ptr<Fresnel> _fresnel, const Vec3f &emission)
-: specular_color(specular_color), roughness(clamp(roughness*roughness, 0.000001f, 0.999999f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), fresnel(_fresnel), emission(emission)
+: specular_color(specular_color), roughness(clamp(roughness*roughness, 0.01f, 0.99f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), fresnel(_fresnel), emission(emission)
 {
 }
 
@@ -22,7 +22,7 @@ std::shared_ptr<Material> MaterialGGXReflect::instance(const Surface * surface)
 
 bool MaterialGGXReflect::sample_material(std::vector<MaterialSample> &samples, const float sample_reduction)
 {
-    if(!surface || !surface->enter)
+    if(!surface)
         return false;
 
     // Estimate the number of samples
@@ -34,25 +34,29 @@ bool MaterialGGXReflect::sample_material(std::vector<MaterialSample> &samples, c
 
     for(uint i = 0; i < rnd.size(); i++)
     {
+        const float theta = TWO_PI * rnd[i][0];
+        const float phi = atanf(roughness * sqrtf(rnd[i][1]) / sqrtf(1.f - rnd[i][1]));
+        const Vec3f h = (surface->front ? 1.f : -1.f) * (surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
+        const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
+
+        // If we are inside the only time we want to call this is if we have total internal reflection.
+        const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
+        if(!surface->front && f < 1.f)
+            continue;
+
         samples.emplace_back();
         MaterialSample &sample = samples.back();
         sample.quality = quality;
-
-        const float theta = TWO_PI * rnd[i][0];
-        const float phi = atanf(roughness * sqrtf(rnd[i][1]) / sqrtf(1.f - rnd[i][1]));
-        const Vec3f h = surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta));
-
-        const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
         sample.wo = (2.f * h_dot_wi * h + surface->wi);
 
-        const float n_dot_h = clamp(h.dot(surface->normal), -1.f, 1.f);
+        const Vec3f normal = (surface->front ? 1.f : -1.f) * surface->normal;
+        const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
         const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
-        const float n_dot_wi = surface->n_dot_wi;
-        const float n_dot_wo = clamp(surface->normal.dot(sample.wo), -1.f, 1.f);
+        const float n_dot_wi = fabs(surface->n_dot_wi);
+        const float n_dot_wo = clamp(normal.dot(sample.wo), -1.f, 1.f);
 
-        const float d = D(surface->normal, h, n_dot_h, roughness_sqr);
-        const float g = G1(-surface->wi, surface->normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, surface->normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
-        const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
+        const float d = D(normal, h, n_dot_h, roughness_sqr);
+        const float g = G1(-surface->wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
 
         sample.fr = (n_dot_wo > 0.f) ? (specular_color * f * g * d) / (4.f * n_dot_wi) : VEC3F_ZERO;
         sample.pdf = (d * n_dot_h) / (4.f * h_dot_wo);

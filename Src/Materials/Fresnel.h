@@ -30,12 +30,15 @@ private:
 class FresnelDielectric : public Fresnel
 {
 public:
-    FresnelDielectric(const float &ior_in, const float &ior_t)
-    : F0(std::pow(std::abs((ior_t - ior_in) / (ior_t + ior_in)), 2)) {}
+    FresnelDielectric(const float &ior_in, const float &ior_out)
+    : eta(ior_in / ior_out), F0(std::pow(std::abs((ior_out - ior_in) / (ior_out + ior_in)), 2.f)) {}
     Vec3f Fr(const float &cosi)
     {
+        if(1.f - eta * eta * (1.f - cosi * cosi) < 0.f)
+            return 1.f;
         return F0 + (1.f - F0) * std::pow(1.f - cosi, 5);
     }
 private:
+    const float eta;
     const float F0;
 };

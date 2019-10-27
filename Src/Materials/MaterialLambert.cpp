@@ -2,6 +2,7 @@
 
 #include "../Math/RNG.h"
 #include "../Math/Helpers.h"
+#include "../Util/Color.h"
 #include <cmath>
 #include <iostream>
 
@@ -19,7 +20,7 @@ std::shared_ptr<Material> MaterialLambert::instance(const Surface * surface)
 
 bool MaterialLambert::sample_material(std::vector<MaterialSample> &samples, const float sample_reduction)
 {
-    if(!surface || !surface->enter)
+    if(!surface || !surface->front)
         return false;
 
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_reduction);
@@ -59,7 +60,7 @@ bool MaterialLambert::sample_material(std::vector<MaterialSample> &samples, cons
 
 bool MaterialLambert::evaluate_material(MaterialSample &sample)
 {
-    if(!surface || !surface->enter)
+    if(!surface || !surface->front)
         return false;
 
     sample.fr = diffuse_color * INV_PI * sample.wo.dot(surface->normal);

@@ -3,7 +3,7 @@
 #include <cfloat>
 #include <unordered_set>
 #include "../Math/Types.h"
-
+#include "IorStack.h"
 #include "../Volume/Volume.h"
 
 struct Ray
@@ -20,6 +20,7 @@ struct Ray
     float tmin = 0.f;
     float tmax = FLT_MAX;
 
+    IorStack ior;
     const std::vector<Volume*> * in_volumes;
 };
 
@@ -45,6 +46,6 @@ inline bool get_refation(const Surface &surface, const float &eta, Vec3f &out)
     float k = 1.f - eta * eta * (1.f - n_dot_wi * n_dot_wi);
     if(k < 0) return false;
 
-    return eta * surface.wi + (eta * fabs(n_dot_wi) - sqrtf(k)) * ((surface.enter) ? surface.normal : -surface.normal);
+    return eta * surface.wi + (eta * fabs(n_dot_wi) - sqrtf(k)) * ((surface.front) ? surface.normal : -surface.normal);
 }
 */

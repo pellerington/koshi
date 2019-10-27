@@ -49,8 +49,10 @@ Surface ObjectBox::process_intersection(const RTCRayHit &rtcRayHit, const Ray &r
     return Surface(
         ray.get_position(ray.t),
         Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
+        Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
         ray.dir,
         rtcRayHit.hit.u,
-        rtcRayHit.hit.v
+        rtcRayHit.hit.v,
+        ray.ior
     );
 }

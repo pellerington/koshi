@@ -18,7 +18,10 @@ std::shared_ptr<Material> MaterialDielectric::instance(const Surface * surface)
     std::shared_ptr<MaterialDielectric> material(new MaterialDielectric(*this));
     material->surface = surface;
 
-    material->fresnel = (surface->enter) ? std::shared_ptr<Fresnel>(new FresnelDielectric(1.f, ior)) : std::shared_ptr<Fresnel>(new FresnelNone);
+    const float ior_in = surface->ior.curr_ior;
+    const float ior_out = surface->front ? ior : ((surface->ior.prev) ? surface->ior.prev->curr_ior : 1.f);
+
+    material->fresnel = std::shared_ptr<Fresnel>(new FresnelDielectric(ior_in, ior_out));
     material->ggx_reflect = std::dynamic_pointer_cast<MaterialGGXReflect>(material->ggx_reflect->instance(surface));
     material->ggx_reflect->set_fresnel(material->fresnel);
     material->ggx_refract = std::dynamic_pointer_cast<MaterialGGXRefract>(material->ggx_refract->instance(surface));
@@ -32,8 +35,7 @@ bool MaterialDielectric::sample_material(std::vector<MaterialSample> &samples, c
     if(!surface)
         return false;
 
-    if(surface->enter)
-        ggx_reflect->sample_material(samples, sample_reduction);
+    ggx_reflect->sample_material(samples, sample_reduction);
     const float reflective_samples = samples.size();
     ggx_refract->sample_material(samples, sample_reduction);
     const float refractive_samples = samples.size() - reflective_samples;
@@ -58,7 +60,7 @@ bool MaterialDielectric::evaluate_material(MaterialSample &sample)
     sample.pdf = 0.f;
 
     MaterialSample isample = sample;
-    if(surface->enter)
+    if(surface->front)
         if(ggx_reflect->evaluate_material(isample))
         {
             sample.fr += isample.fr;

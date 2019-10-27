@@ -7,7 +7,7 @@
 #include <iostream>
 
 MaterialGGXRefract::MaterialGGXRefract(const Vec3f &refractive_color, const float &roughness, const float &ior, std::shared_ptr<Fresnel> _fresnel, const Vec3f &emission)
-: refractive_color(refractive_color), roughness(clamp(roughness*roughness, 0.000001f, 0.999999f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), ior(ior), fresnel(_fresnel), emission(emission)
+: refractive_color(refractive_color), roughness(clamp(roughness*roughness, 0.01f, 0.99f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), ior(ior), fresnel(_fresnel), emission(emission)
 {
 }
 
@@ -15,8 +15,9 @@ std::shared_ptr<Material> MaterialGGXRefract::instance(const Surface * surface)
 {
     std::shared_ptr<MaterialGGXRefract> material(new MaterialGGXRefract(*this));
     material->surface = surface;
-    if(!fresnel)
-        material->fresnel = (surface->enter) ? std::shared_ptr<Fresnel>(new FresnelDielectric(1.f, ior)) : std::shared_ptr<Fresnel>(new FresnelNone);
+    material->ior_in = surface->ior.curr_ior;
+    material->ior_out = surface->front ? ior : ((surface->ior.prev) ? surface->ior.prev->curr_ior : 1.f);
+    if(!fresnel) material->fresnel = std::shared_ptr<Fresnel>(new FresnelDielectric(material->ior_in, material->ior_out));
     return material;
 }
 
@@ -34,12 +35,9 @@ bool MaterialGGXRefract::sample_material(std::vector<MaterialSample> &samples, c
 
     for(uint i = 0; i < rnd.size(); i++)
     {
-        const float ior_in = surface->enter ? 1.f : ior;
-        const float ior_out = surface->enter ? ior : 1.f;
-
         const float theta = TWO_PI * rnd[i][0];
         const float phi = atanf(roughness * sqrtf(rnd[i][1]) / sqrtf(1.f - rnd[i][1]));
-        const Vec3f h = ((surface->enter) ? 1.f : -1.f) * (surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
+        const Vec3f h = ((surface->front) ? 1.f : -1.f) * (surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
 
         const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
         const float eta = ior_in / ior_out;
@@ -51,8 +49,7 @@ bool MaterialGGXRefract::sample_material(std::vector<MaterialSample> &samples, c
         sample.quality = quality;
         sample.wo = eta * surface->wi + (eta * fabs(h_dot_wi) - sqrtf(k)) * h;
 
-        const Vec3f normal = ((surface->enter) ? surface->normal : -surface->normal);
-
+        const Vec3f normal = ((surface->front) ? surface->normal : -surface->normal);
         const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
         const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
         const float n_dot_wi = clamp(normal.dot(-surface->wi), -1.f, 1.f);
@@ -74,20 +71,19 @@ bool MaterialGGXRefract::sample_material(std::vector<MaterialSample> &samples, c
             samples.pop_back();
     }
 
-
     return true;
 }
 
 bool MaterialGGXRefract::evaluate_material(MaterialSample &sample)
 {
+    // Currently see no reason to evaulate this.
+    return false;
+
     if(!surface || sample.wo.dot(surface->wi) > 0.f)
         return false;
 
-    const float ior_in = surface->enter ? 1.f : ior;
-    const float ior_out = surface->enter ? ior : 1.f;
-
-    const Vec3f normal = ((surface->enter) ? surface->normal : -surface->normal);
-    const Vec3f h = ((surface->enter) ? 1.f : -1.f) * (-surface->wi*ior_in + sample.wo*ior_out).normalized();
+    const Vec3f normal = ((surface->front) ? surface->normal : -surface->normal);
+    const Vec3f h = ((surface->front) ? 1.f : -1.f) * (-surface->wi*ior_in + sample.wo*ior_out).normalized();
 
     const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
     const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
