@@ -3,6 +3,7 @@
 #include <smmintrin.h> // SSE4.1
 #include <ostream>
 #include <cmath>
+#include <iostream>
 
 class Vec3f
 {
@@ -91,6 +92,10 @@ public:
         return v;
     }
 
+    inline static Vec3f clamp(const Vec3f &_v, const float min, const float max) {
+        Vec3f v = _v; v.min(max); v.max(min); return v;
+    }
+
     inline static Vec3f min(const Vec3f &v0, const Vec3f &v1) { return Vec3f(_mm_min_ps(v0.data, v1.data)); }
     inline void min(const Vec3f &other) { data = _mm_min_ps(data, other.data); }
     inline float min() const { return (x < y && x < z) ? x : ((y < z) ? y : z); }
@@ -98,6 +103,8 @@ public:
     inline static Vec3f max(const Vec3f &v0, const Vec3f &v1) { return Vec3f(_mm_max_ps(v0.data, v1.data)); }
     inline void max(const Vec3f &other) { data = _mm_max_ps(data, other.data); }
     inline float max() const { return (x > y && x > z) ? x : ((y > z) ? y : z); }
+
+    inline float avg() const { return (x + y + z) * 0.333333333f; }
 
     inline void abs() { x = fabs(x); y = fabs(y); z = fabs(z); }
 

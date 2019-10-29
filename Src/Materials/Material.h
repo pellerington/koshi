@@ -15,6 +15,8 @@ struct MaterialSample
     Vec3f fr;
     float pdf;
     float quality = 1.f;
+    struct MaterialData { virtual ~MaterialData() = default; };
+    MaterialData * data = nullptr;
 };
 
 class Material
@@ -31,7 +33,7 @@ public:
         GGXReflect,
         GGXRefract,
         Dielectric,
-        Volume
+        Subsurface
     };
     virtual Type get_type() { return None; }
 

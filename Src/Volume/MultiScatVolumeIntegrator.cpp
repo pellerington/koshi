@@ -1,6 +1,6 @@
 #include "MultiScatVolumeIntegrator.h"
 
-MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes)
+MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample)
 : VolumeIntegrator(scene, ray, volumes)
 {
     weight = VEC3F_ONES;
@@ -9,6 +9,9 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
 
     if(!volumes.num_volumes())
         return;
+
+    MultiScatData * const in_data = (in_sample) ? dynamic_cast<MultiScatData * const>(in_sample->data) : nullptr;
+    const Vec3f weight_history = (in_data) ? in_data->weight_history : VEC3F_ONES;
 
     float t = volumes.tmin;
 
@@ -43,9 +46,10 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             // also set shadowing for the other wavelengths to 1.
 
             // TODO: We need to pass in history probabilites somehow
-            float n_prob = null_density.max();
-            float s_prob = scattering.max();
-            float a_prob = absorbtion.max();
+            const Vec3f full_weight = weight_history * weight;
+            float n_prob = (full_weight * null_density).avg();//null_density.max();
+            float s_prob = (full_weight * scattering).avg();//scattering.max();
+            float a_prob = 0.f;//(full_weight * absorbtion).avg();//absorbtion.max();
             const float inv_sum = 1.f / (n_prob + s_prob + a_prob);
             n_prob *= inv_sum; s_prob *= inv_sum; a_prob *= inv_sum;
 
@@ -77,7 +81,9 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                     // Set up sample
                     volume_isect->volumes[0]->sample_volume(ray.dir, sample);
                     weight *= scattering / (sampling_density * s_prob);
-                    sample.weight = weight;
+                    sample.fr = weight;
+                    data.weight_history = weight_history * weight;
+                    sample.data = &data;
                     return;
                 }
                 else
@@ -98,7 +104,9 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                             // Sample this volume
                             volume_isect->volumes[i]->sample_volume(ray.dir, sample);
                             weight *= scattering_cache[i] / (sampling_density * s_prob * prob);
-                            sample.weight = weight;
+                            sample.fr = weight;
+                            data.weight_history = weight_history * weight;
+                            sample.data = &data;
                             return;
                         }
                     }
@@ -112,6 +120,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             }
         }
     }
+
 }
 
 Vec3f MultiScatVolumeIntegrator::emission()

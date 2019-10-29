@@ -13,6 +13,7 @@
 #include "../Materials/MaterialGGXReflect.h"
 #include "../Materials/MaterialGGXRefract.h"
 #include "../Materials/MaterialDielectric.h"
+#include "../Materials/MaterialSubsurface.h"
 #include "../Lights/LightRectangle.h"
 #include "../Textures/Image.h"
 #include "MeshFile.h"
@@ -81,6 +82,8 @@ public:
         }
 
         std::map<std::string, std::shared_ptr<Material>> materials;
+        std::map<std::string, std::shared_ptr<Volume>> volumes;
+
         if(scene_file["materials"].is_array())
         {
             for (auto it = scene_file["materials"].begin(); it != scene_file["materials"].end(); ++it)
@@ -142,11 +145,25 @@ public:
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
+
+                    if((*it)["type"] == "subsurface")
+                    {
+                        const float density = get_float(*it, "density");
+                        const Vec3f subsurface_transparency = get_vec3f(*it, "subsurface_transparency");
+                        const Vec3f subsurface_color = get_vec3f(*it, "subsurface_color");
+                        const float diffuse_weight = get_float(*it, "diffuse_weight");
+
+                        std::shared_ptr<Volume> volume(new Volume(density, subsurface_color, 0.f, subsurface_transparency));
+                        volumes[std::string("material_") + std::string((*it)["name"])] = volume;
+
+                        std::shared_ptr<Material> material(new MaterialSubsurface(subsurface_color, diffuse_weight));
+                        materials[(*it)["name"]] = material;
+                        scene.add_material(material);
+                    }
                 }
             }
         }
 
-        std::map<std::string, std::shared_ptr<Volume>> volumes;
         if(scene_file["volumes"].is_array())
         {
             for (auto it = scene_file["volumes"].begin(); it != scene_file["volumes"].end(); ++it)
@@ -156,7 +173,7 @@ public:
                     if((*it)["type"] == "volume")
                     {
                         const float density = get_float(*it, "density");
-                        const Vec3f transparency = get_vec3f(*it, "transparency", 1.f);
+                        const Vec3f transparency = get_vec3f(*it, "transparency");
                         const float g = get_float(*it, "anistropy");
                         const Vec3f scattering = get_vec3f(*it, "scattering");
                         const Vec3f emission = get_vec3f(*it, "emission");
@@ -190,7 +207,11 @@ public:
                         transform = transform * Transform3f::x_rotation(rotation.x);
                         transform = transform * Transform3f::scale(scale);
 
-                        std::shared_ptr<Volume> volume = ((*it)["volume"].is_string()) ? volumes[(*it)["volume"]] : nullptr;
+                        std::shared_ptr<Volume> volume = nullptr;
+                        if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
+                            volume = volumes[std::string("material_") + std::string((*it)["material"])];
+                        else if((*it)["volume"].is_string())
+                            volume = volumes[(*it)["volume"]];
 
                         std::shared_ptr<ObjectMesh> mesh;
                         if ((*it)["file"]["type"] == "obj")
@@ -218,8 +239,10 @@ public:
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<Volume> volume;
-                    if((*it)["volume"].is_string())
+                    std::shared_ptr<Volume> volume = nullptr;
+                    if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
+                        volume = volumes[std::string("material_") + std::string((*it)["material"])];
+                    else if((*it)["volume"].is_string())
                         volume = volumes[(*it)["volume"]];
 
                     std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(material, transform, volume));
@@ -244,8 +267,10 @@ public:
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<Volume> volume;
-                    if((*it)["volume"].is_string())
+                    std::shared_ptr<Volume> volume = nullptr;
+                    if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
+                        volume = volumes[std::string("material_") + std::string((*it)["material"])];
+                    else if((*it)["volume"].is_string())
                         volume = volumes[(*it)["volume"]];
 
                     std::shared_ptr<ObjectBox> box(new ObjectBox(material, transform, volume));

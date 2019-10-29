@@ -5,20 +5,16 @@
 #include "../Math/RNG.h"
 class Volume;
 
-struct VolumeSample
+struct VolumeSample : MaterialSample
 {
     Vec3f pos;
-    Vec3f wo;
-    Vec3f weight;
-    // float pdf;
-    float quality = 1.f;
     const std::vector<Volume*> * exit_volumes;
 };
 
 class Volume
 {
 public:
-    Volume(const float &density = 0.f, const Vec3f &scattering = VEC3F_ZERO, const float &g = 0.f, const Vec3f &transparency = VEC3F_ONES, const Vec3f &emission = VEC3F_ZERO);
+    Volume(const float &density = 0.f, const Vec3f &scattering = VEC3F_ZERO, const float &g = 0.f, const Vec3f &transparency = VEC3F_ZERO, const Vec3f &emission = VEC3F_ZERO);
 
     Vec3f max_density, min_density;
 

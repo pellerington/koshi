@@ -67,6 +67,7 @@ Intersect Scene::intersect(Ray &ray)
     else
     {
         ray.t = rtcRayHit.ray.tfar;
+        ray.tmax = rtcRayHit.ray.tfar;
         ray.hit = true;
         Surface surface = rtc_to_obj[rtcRayHit.hit.geomID]->process_intersection(rtcRayHit, ray);
         return Intersect(rtc_to_obj[rtcRayHit.hit.geomID], std::move(surface), std::move(volume_stack));

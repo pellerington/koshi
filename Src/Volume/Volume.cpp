@@ -1,9 +1,8 @@
 #include "Volume.h"
 
 Volume::Volume(const float &_density, const Vec3f &_scattering, const float &g, const Vec3f &_transparency, const Vec3f &_emission)
-: density(_transparency*_density), scattering(_scattering), emission(_emission), g(g), g_sqr(g*g), g_inv(1.f/g), g_abs(fabs(g))
+: density(Vec3f::clamp(VEC3F_ONES-_transparency, 0.f, 1.f)*_density), scattering(_scattering), emission(_emission), g(g), g_sqr(g*g), g_inv(1.f/g), g_abs(fabs(g))
 {
-
     // if(!is_heterogeneous())
     // {
         max_density = get_density();

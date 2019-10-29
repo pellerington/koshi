@@ -2,10 +2,15 @@
 
 #include "VolumeIntegrator.h"
 
+// Find a way to make ptrs so we don't need this.
+struct MultiScatData : public MaterialSample::MaterialData {
+    Vec3f weight_history;
+};
+
 class MultiScatVolumeIntegrator : public VolumeIntegrator
 {
 public:
-    MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes);
+    MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample);
 
     Vec3f shadow(const float &t);
 
@@ -21,4 +26,5 @@ private:
 
     bool has_scatter;
     VolumeSample sample;
+    MultiScatData data;
 };

@@ -27,7 +27,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     }
 
     // Create a volume integrator
-    MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes /*Add volume insample here*/);
+    MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, in_sample.vsample);
     // ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes /*Add volume insample here*/);
 
     // Add the emission from our volume
@@ -85,7 +85,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
         ray.ior = intersect.surface.ior;
         ray.in_volumes = sample.vsample->exit_volumes;
 
-        color += sample.vsample->weight * integrate(ray, sample);
+        color += sample.vsample->fr * integrate(ray, sample);
     }
 
     // Integrate the surface
