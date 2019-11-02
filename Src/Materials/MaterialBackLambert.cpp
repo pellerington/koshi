@@ -40,7 +40,7 @@ bool MaterialBackLambert::sample_material(std::vector<MaterialSample> &samples, 
         sample.wo = surface->transform * Vec3f(x, y, z);
 
 
-        sample.fr = diffuse_color * INV_PI * fabs(sample.wo.dot(surface->normal));
+        sample.weight = diffuse_color * INV_PI * fabs(sample.wo.dot(surface->normal));
         sample.pdf = fabs(y) * INV_PI;
     }
 
@@ -54,7 +54,7 @@ bool MaterialBackLambert::evaluate_material(MaterialSample &sample)
         return false;
 
     const float n_dot_wo = fabs(sample.wo.dot(surface->normal));
-    sample.fr = diffuse_color * INV_PI * n_dot_wo;
+    sample.weight = diffuse_color * INV_PI * n_dot_wo;
     sample.pdf = n_dot_wo * INV_PI;
 
     return true;

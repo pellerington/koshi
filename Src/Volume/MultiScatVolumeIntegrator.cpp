@@ -25,8 +25,10 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             float sampling_density = volume_isect->max_density.max();
             t += -std::log(RNG::Rand()) / sampling_density;
 
+            // if we are outside the volume intersect we are done.
             if(t >= volume_isect->tmax) break;
 
+            // Get our density, scattering, absorbtion
             Vec3f density;
             Vec3f scattering;
             std::vector<Vec3f> scattering_cache(volume_isect->volumes.size());
@@ -39,13 +41,10 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             }
             Vec3f absorbtion = density - scattering;
 
+            // Get our null density
             Vec3f null_density = sampling_density - density;
             null_density.abs();
-            // TODO: Ignore zero densities
-            // null_density *= density.lambda([](const float n) { return (n == 0.f) ? 0.f : 1.f; });
-            // also set shadowing for the other wavelengths to 1.
 
-            // TODO: We need to pass in history probabilites somehow
             const Vec3f full_weight = weight_history * weight;
             float n_prob = (full_weight * null_density).avg();//null_density.max();
             float s_prob = (full_weight * scattering).avg();//scattering.max();
@@ -53,6 +52,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             const float inv_sum = 1.f / (n_prob + s_prob + a_prob);
             n_prob *= inv_sum; s_prob *= inv_sum; a_prob *= inv_sum;
 
+            // Generate a random number
             const float r = RNG::Rand();
 
             // Absorbtion event
@@ -69,7 +69,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             // Scattering event
             else if(r < 1.f - n_prob)
             {
-                // Cap the ray tmax so lights cant be evaluated further.
+                // Cap the ray tmax so lights cant be evaluated further along the ray.
                 ray.tmax = tmax = t;
                 has_scatter = true;
                 sample.pos = ray.get_position(t);
@@ -81,7 +81,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                     // Set up sample
                     volume_isect->volumes[0]->sample_volume(ray.dir, sample);
                     weight *= scattering / (sampling_density * s_prob);
-                    sample.fr = weight;
+                    sample.weight = weight;
                     data.weight_history = weight_history * weight;
                     sample.data = &data;
                     return;
@@ -104,7 +104,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                             // Sample this volume
                             volume_isect->volumes[i]->sample_volume(ray.dir, sample);
                             weight *= scattering_cache[i] / (sampling_density * s_prob * prob);
-                            sample.fr = weight;
+                            sample.weight = weight;
                             data.weight_history = weight_history * weight;
                             sample.data = &data;
                             return;

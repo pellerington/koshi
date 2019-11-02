@@ -3,7 +3,7 @@
 #include "VolumeIntegrator.h"
 
 // Find a way to make ptrs so we don't need this.
-struct MultiScatData : public MaterialSample::MaterialData {
+struct MultiScatData : public MaterialSample::VoidData {
     Vec3f weight_history;
 };
 

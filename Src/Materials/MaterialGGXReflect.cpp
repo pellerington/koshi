@@ -58,10 +58,10 @@ bool MaterialGGXReflect::sample_material(std::vector<MaterialSample> &samples, c
         const float d = D(normal, h, n_dot_h, roughness_sqr);
         const float g = G1(-surface->wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
 
-        sample.fr = (n_dot_wo > 0.f) ? (specular_color * f * g * d) / (4.f * n_dot_wi) : VEC3F_ZERO;
+        sample.weight = (n_dot_wo > 0.f) ? (specular_color * f * g * d) / (4.f * n_dot_wi) : VEC3F_ZERO;
         sample.pdf = (d * n_dot_h) / (4.f * h_dot_wo);
 
-        if(!sample.pdf || is_black(sample.fr))
+        if(!sample.pdf || is_black(sample.weight))
             samples.pop_back();
     }
 
@@ -84,7 +84,7 @@ bool MaterialGGXReflect::evaluate_material(MaterialSample &sample)
     const float g = G1(-surface->wi, surface->normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, surface->normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
     const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
 
-    sample.fr = (specular_color * f * g * d) / (4.f * n_dot_wi);
+    sample.weight = (specular_color * f * g * d) / (4.f * n_dot_wi);
     sample.pdf = (d * n_dot_h) / (4.f * h_dot_wo);
 
     return true;

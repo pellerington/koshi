@@ -61,13 +61,13 @@ bool MaterialGGXRefract::sample_material(std::vector<MaterialSample> &samples, c
 
         const float denom = std::pow(ior_in * h_dot_wi + ior_out * h_dot_wo + EPSILON_F, 2);
 
-        sample.fr = ior_out * ior_out * (fabs(h_dot_wi) * fabs(h_dot_wo)) / (fabs(n_dot_wi) * fabs(n_dot_wo));
-        sample.fr *= refractive_color * f * g * d * fabs(n_dot_wo) / denom;
-        // sample.fr *= eta * eta;
+        sample.weight = ior_out * ior_out * (fabs(h_dot_wi) * fabs(h_dot_wo)) / (fabs(n_dot_wi) * fabs(n_dot_wo));
+        sample.weight *= refractive_color * f * g * d * fabs(n_dot_wo) / denom;
+        // sample.weight *= eta * eta;
 
         sample.pdf = d * n_dot_h * (ior_out * ior_out * fabs(h_dot_wo)) / denom;
 
-        if(!sample.pdf || is_black(sample.fr))
+        if(!sample.pdf || is_black(sample.weight))
             samples.pop_back();
     }
 
@@ -97,9 +97,9 @@ bool MaterialGGXRefract::evaluate_material(MaterialSample &sample)
 
     const float denom = std::pow(ior_in * h_dot_wi + ior_out * h_dot_wo + EPSILON_F, 2);
 
-    sample.fr = ior_out * ior_out * (fabs(h_dot_wi) * fabs(h_dot_wo)) / (fabs(n_dot_wi) * fabs(n_dot_wo));
-    sample.fr *= refractive_color * f * g * d * fabs(n_dot_wo) / denom;
-    // sample.fr *= eta * eta;
+    sample.weight = ior_out * ior_out * (fabs(h_dot_wi) * fabs(h_dot_wo)) / (fabs(n_dot_wi) * fabs(n_dot_wo));
+    sample.weight *= refractive_color * f * g * d * fabs(n_dot_wo) / denom;
+    // sample.weight *= eta * eta;
 
     sample.pdf = d * n_dot_h * (ior_out * ior_out * fabs(h_dot_wo)) / denom;
 

@@ -12,11 +12,14 @@ class Surface;
 struct MaterialSample
 {
     Vec3f wo;
-    Vec3f fr;
+    Vec3f weight;
     float pdf;
     float quality = 1.f;
-    struct MaterialData { virtual ~MaterialData() = default; };
-    MaterialData * data = nullptr;
+
+    struct VoidData { virtual ~VoidData() = default; };
+    VoidData * data = nullptr;
+
+    virtual ~MaterialSample() = default;
 };
 
 class Material

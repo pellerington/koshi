@@ -56,20 +56,20 @@ bool MaterialDielectric::evaluate_material(MaterialSample &sample)
     if(!surface)
         return false;
 
-    sample.fr = 0.f;
+    sample.weight = 0.f;
     sample.pdf = 0.f;
 
     MaterialSample isample = sample;
     if(surface->front)
         if(ggx_reflect->evaluate_material(isample))
         {
-            sample.fr += isample.fr;
+            sample.weight += isample.weight;
             sample.pdf += isample.pdf;
         }
     isample = sample;
     if(ggx_refract->evaluate_material(isample))
     {
-        sample.fr += isample.fr;
+        sample.weight += isample.weight;
         sample.pdf += isample.pdf;
     }
 

@@ -27,7 +27,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     }
 
     // Create a volume integrator
-    MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, in_sample.vsample);
+    MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, dynamic_cast<VolumeSample*>(in_sample.msample));
     // ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes /*Add volume insample here*/);
 
     // Add the emission from our volume
@@ -76,16 +76,16 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
         PathSample sample;
         sample.depth = in_sample.depth + 1;
         sample.quality = in_sample.quality * volume_samples[i].quality;
-        sample.vsample = &volume_samples[i];
+        sample.msample = &volume_samples[i];
         sample.type = PathSample::Volume;
         LightSample lsample;
         sample.lsample = &lsample;
 
-        Ray ray(sample.vsample->pos, sample.vsample->wo);
+        Ray ray(volume_samples[i].pos, volume_samples[i].wo);
         ray.ior = intersect.surface.ior;
-        ray.in_volumes = sample.vsample->exit_volumes;
+        ray.in_volumes = volume_samples[i].exit_volumes;
 
-        color += sample.vsample->fr * integrate(ray, sample);
+        color += sample.msample->weight * integrate(ray, sample);
     }
 
     // Integrate the surface
@@ -159,7 +159,7 @@ Vec3f PathIntegrator::integrate_surface(const Intersect &intersect, PathSample &
         if(multiple_importance_sample)
             weight *= (sample.msample->pdf * sample.msample->pdf) / ((sample.msample->pdf * sample.msample->pdf) + (sample.lsample->pdf * sample.lsample->pdf));
 
-        color += in_color * sample.msample->fr * weight / sample.msample->pdf;
+        color += in_color * sample.msample->weight * weight / sample.msample->pdf;
     }
 
     for(uint i = 0; i < light_samples.size(); i++)
@@ -188,7 +188,7 @@ Vec3f PathIntegrator::integrate_surface(const Intersect &intersect, PathSample &
         if(multiple_importance_sample)
             weight *= (sample.lsample->pdf * sample.lsample->pdf) / ((sample.msample->pdf * sample.msample->pdf) + (sample.lsample->pdf * sample.lsample->pdf));
 
-        color += in_color * sample.msample->fr * weight / sample.lsample->pdf;
+        color += in_color * sample.msample->weight * weight / sample.lsample->pdf;
     }
 
     return color;
