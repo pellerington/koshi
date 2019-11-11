@@ -2,19 +2,25 @@
 
 #include <iostream>
 
-LightEnvironment::LightEnvironment(const Vec3f &intensity, std::shared_ptr<Texture> texture)
-: Light(Type::Environment, intensity), texture(texture)
+LightEnvironment::LightEnvironment(std::shared_ptr<Light> light, std::shared_ptr<Texture> texture)
+: Object(Transform3f(), light ? light : std::shared_ptr<Light>(new Light(VEC3F_ZERO))), texture(texture)
 {
+    set_null_rtc_geometry();
 }
 
-bool LightEnvironment::evaluate_light(const Ray &ray, LightSample &light_sample)
+bool LightEnvironment::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples)
 {
-    if(!ray.hit && ray.tmax < FLT_MAX)
+    return false;
+}
+
+bool LightEnvironment::evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample)
+{
+    if(!intersect.distant)
         return false;
 
-    float theta = acosf(ray.dir.y);
-    float phi = atanf((ray.dir.z + EPSILON_F) / (ray.dir.x + EPSILON_F));
-    const bool zd = ray.dir.z > 0, xd = ray.dir.x > 0;
+    float theta = acosf(intersect.wi.y);
+    float phi = atanf((intersect.wi.z + EPSILON_F) / (intersect.wi.x + EPSILON_F));
+    const bool zd = intersect.wi.z > 0, xd = intersect.wi.x > 0;
     if(!zd) phi += PI;
     if(xd != zd) phi += PI;
 
@@ -24,15 +30,10 @@ bool LightEnvironment::evaluate_light(const Ray &ray, LightSample &light_sample)
     light_sample.intensity = 1.f;
     if(texture) texture->get_vec3f(v, u, light_sample.intensity);
 
-    light_sample.intensity *= intensity;
+    light_sample.intensity *= light->get_emission();
 
     light_sample.position = Vec3f(FLT_MAX);
     light_sample.pdf = 0.f;
 
     return true;
-}
-
-bool LightEnvironment::sample_light(const uint num_samples, const Surface &surface, std::vector<LightSample> &light_samples)
-{
-    return false;
 }

@@ -23,8 +23,8 @@ static const uint icosahedron_indices[60] = {
     2,  4,  11,     6,  2,  10,     8,  6,  7,      9,  8,  1
 };
 
-ObjectSphere::ObjectSphere(std::shared_ptr<Material> material, const Transform3f &obj_to_world, std::shared_ptr<Volume> volume)
-: Object(material, obj_to_world, volume)
+ObjectSphere::ObjectSphere(const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<Volume> volume)
+: Object(obj_to_world, nullptr, material, volume)
 {
     bbox = obj_to_world * BOX3F_UNIT;
     position = obj_to_world * Vec3f(0.f);

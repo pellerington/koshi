@@ -92,6 +92,10 @@ public:
         return v;
     }
 
+    static inline Vec3f normalize(const Vec3f v) {
+        return v.normalized();
+    }
+
     inline static Vec3f clamp(const Vec3f &_v, const float min, const float max) {
         Vec3f v = _v; v.min(max); v.max(min); return v;
     }

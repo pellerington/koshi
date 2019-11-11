@@ -26,6 +26,8 @@ public:
         sample.type = PathSample::Camera;
         sample.depth = 0;
         sample.quality = 1.f;
+        LightSample lsample;
+        sample.lsample = &lsample;
         return integrate(ray, sample);
     }
     Vec3f integrate(Ray &ray, PathSample &in_sample) const;

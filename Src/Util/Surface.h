@@ -15,9 +15,9 @@ struct Surface
     Surface(const Vec3f &position, const Vec3f &normal, const Vec3f &geometric_normal, const Vec3f &wi, const float u, const float v, const IorStack ior = IorStack())
     : position(position), normal(normal), geometric_normal(normal), wi(wi), u(u), v(v), ior(ior),
       n_dot_wi(normal.dot(-wi)), front(n_dot_wi >= 0.f), transform(Transform3f::normal_transform(normal)),
-      front_position(position + geometric_normal * EPSILON_F),
-      back_position(position + geometric_normal * -EPSILON_F)
-    {}
+      front_position(position + geometric_normal * EPSILON_F), back_position(position + geometric_normal * -EPSILON_F) {}
+
+    Surface(const Vec3f &wi) : wi(wi), distant(true) {}
 
     const Vec3f position;
     const Vec3f normal;
@@ -30,5 +30,6 @@ struct Surface
     const Transform3f transform;
     const Vec3f front_position;
     const Vec3f back_position;
+    const bool distant = false;
 
 };

@@ -6,8 +6,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialLambert::MaterialLambert(const Vec3f &diffuse_color, const Vec3f &emission)
-: diffuse_color(diffuse_color), emission(emission)
+MaterialLambert::MaterialLambert(const Vec3f &diffuse_color)
+: diffuse_color(diffuse_color)
 {
 }
 
@@ -63,12 +63,16 @@ bool MaterialLambert::evaluate_material(MaterialSample &sample)
     if(!surface || !surface->front)
         return false;
 
-    sample.weight = diffuse_color * INV_PI * sample.wo.dot(surface->normal);
+    const float n_dot_wo = surface->normal.dot(sample.wo);
+    if(n_dot_wo < 0.f)
+        return 0.f;
+
+    sample.weight = diffuse_color * INV_PI * n_dot_wo;
 
 #if UNIFORM_SAMPLE
     sample.pdf = INV_TWO_PI;
 #else
-    sample.pdf = surface->normal.dot(sample.wo) * INV_PI;
+    sample.pdf = n_dot_wo * INV_PI;
 #endif
 
     return true;

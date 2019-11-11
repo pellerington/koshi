@@ -21,7 +21,6 @@ class VolumeStack
 {
 public:
     VolumeStack(const std::vector<Volume*> * entry_volumes = nullptr)
-    : object_volume(nullptr)
     {
         if(entry_volumes)
         for(auto it = entry_volumes->begin(); it != entry_volumes->end(); it++)
@@ -32,7 +31,7 @@ public:
         if(!surface)
             hits[t].push_back(VolumeHit(true, volume.get()));
         else
-            object_volume = volume.get();
+            inside_object_volumes.push_back(volume.get());
     }
     inline void sub_intersect(const float &t, const std::shared_ptr<Volume> &volume) {
         hits[t].push_back(VolumeHit(false, volume.get()));
@@ -50,22 +49,20 @@ public:
     void build(const float &tend);
 
     inline const std::vector<Volume*> * get_exit_volumes() const { return &exit_volumes; }
-    inline const std::vector<Volume*> * get_enter_volumes() const { return &enter_volumes; }
+    inline const std::vector<Volume*> * get_inside_object_volumes() const { return &inside_object_volumes; }
 
     float tmin, tmax;
 
 private:
     struct VolumeHit {
-        VolumeHit(bool enter, Volume * volume) : enter(enter), volume(volume) {}
-        bool enter;
+        VolumeHit(const bool add, Volume * volume) : add(add), volume(volume) {}
+        const bool add;
         Volume * volume;
     };
     std::map<float, std::vector<VolumeHit>> hits;
 
     std::vector<Volume*> exit_volumes;
-
-    Volume * object_volume;
-    std::vector<Volume*> enter_volumes;
+    std::vector<Volume*> inside_object_volumes;
 
     std::vector<VolumeIntersect> volumes;
 

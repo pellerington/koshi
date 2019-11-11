@@ -22,8 +22,8 @@ static uint box_indices[6][4] = {
     {0, 1, 2, 3},
 };
 
-ObjectBox::ObjectBox(std::shared_ptr<Material> material, const Transform3f &obj_to_world, std::shared_ptr<Volume> volume)
-: Object(material, obj_to_world, volume)
+ObjectBox::ObjectBox(const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<Volume> volume)
+: Object(obj_to_world, nullptr, material, volume)
 {
     bbox = obj_to_world * BOX3F_UNIT;
 
@@ -42,17 +42,4 @@ ObjectBox::ObjectBox(std::shared_ptr<Material> material, const Transform3f &obj_
         quads[i].v0 = box_indices[i][0]; quads[i].v1 = box_indices[i][1];
         quads[i].v2 = box_indices[i][2]; quads[i].v3 = box_indices[i][3];
     }
-}
-
-Surface ObjectBox::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
-{
-    return Surface(
-        ray.get_position(ray.t),
-        Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
-        Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
-        ray.dir,
-        rtcRayHit.hit.u,
-        rtcRayHit.hit.v,
-        ray.ior
-    );
 }

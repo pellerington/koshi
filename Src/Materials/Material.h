@@ -42,7 +42,6 @@ public:
 
     virtual bool sample_material(std::vector<MaterialSample> &samples, const float sample_reduction = 1.f) { return false; }
     virtual bool evaluate_material(MaterialSample &sample) { return false; }
-    virtual const Vec3f get_emission() { return VEC3F_ZERO; }
     virtual const float get_ior() { return 1.f; }
 
 protected:

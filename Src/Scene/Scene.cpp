@@ -1,19 +1,23 @@
 #include "Scene.h"
 
-struct RTCIntersectContextExtended : public RTCIntersectContext {
-    Scene * scene;
-    VolumeStack * volume_stack;
-};
-
-void Scene::get_volumes_callback(const RTCFilterFunctionNArguments * args)
+void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
 {
-    RTCIntersectContextExtended * context = (RTCIntersectContextExtended*) args->context;
-    Scene * scene = context->scene;
+    IntersectContext * context = (IntersectContext*) args->context;
+    const uint geomID = RTCHitN_geomID(args->hit, args->N, 0);
+    std::shared_ptr<Object> obj = context->scene->rtc_to_obj[geomID];
 
-    uint geomID = RTCHitN_geomID(args->hit, args->N, 0);
-    scene->rtc_to_obj[geomID]->process_volume_intersection(args, context->volume_stack);
+    // If we are invisible don't do anything else
+    if(!(*(args->valid) = obj->process_visibility_intersection(context->ray->camera)))
+        return;
 
-    *(args->valid) = (scene->rtc_to_obj[geomID]->material != nullptr);
+    const double t = RTCRayN_tfar(args->ray, args->N, 0);
+    const Vec3f normal = Vec3f::normalize(Vec3f(RTCHitN_Ng_x(args->hit, args->N, 0), RTCHitN_Ng_y(args->hit, args->N, 0), RTCHitN_Ng_z(args->hit, args->N, 0)));
+    const bool front = normal.dot(-context->ray->dir) > 0.f;
+
+    if(obj->volume)
+        obj->process_volume_intersection(t, front, context->volume_stack);
+
+    *(args->valid) = (obj->material != nullptr || obj->light != nullptr);
 }
 
 void Scene::pre_render()
@@ -25,8 +29,8 @@ void Scene::pre_render()
         rtcCommitGeometry(geom);
         const uint rtcid = rtcAttachGeometry(rtc_scene, geom);
         rtc_to_obj[rtcid] = objects[i];
-        if(objects[i]->volume)
-            rtcSetGeometryIntersectFilterFunction(geom, &Scene::get_volumes_callback);
+        if(objects[i]->volume || objects[i]->variable_visibility())
+            rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
     rtcCommitScene(rtc_scene);
@@ -36,9 +40,11 @@ Intersect Scene::intersect(Ray &ray)
 {
     VolumeStack volume_stack(ray.in_volumes);
 
-    RTCIntersectContextExtended context;
+    IntersectContext context;
     context.scene = this;
+    context.ray = &ray;
     context.volume_stack = &volume_stack;
+
     RTCIntersectContext * rtc_context = &context;
     rtcInitIntersectContext(rtc_context);
 
@@ -61,7 +67,7 @@ Intersect Scene::intersect(Ray &ray)
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
         ray.hit = false;
-        Surface surface;
+        Surface surface = (ray.tmax == FLT_MAX) ? Surface(ray.dir) : Surface();
         return Intersect(nullptr, std::move(surface), std::move(volume_stack));
     }
     else
@@ -74,38 +80,27 @@ Intersect Scene::intersect(Ray &ray)
     }
 }
 
-bool Scene::evaluate_lights(const Ray &ray, std::vector<LightSample> &light_results)
-{
-    for(uint i = 0; i < lights.size(); i++)
-    {
-        LightSample isample;
-        if(lights[i]->evaluate_light(ray, isample))
-            light_results.push_back(isample);
-    }
-
-    return true;
-}
-
-Vec3f Scene::evaluate_environment_light(const Ray &ray)
-{
-    LightSample light_sample;
-    if(environment_light)
-    {
-        if(!environment_light->evaluate_light(ray, light_sample))
-            return VEC3F_ZERO;
-        return light_sample.intensity;
-    }
-    return VEC3F_ZERO;
-}
-
-bool Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier)
+void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier)
 {
     for(size_t i = 0; i < lights.size(); i++)
     {
-        const uint num_samples = std::max(1.f, lights[i]->estimated_samples(surface) * sample_multiplier);
-        lights[i]->sample_light(num_samples, surface, light_samples);
+        // Make a better num_samples estimator.
+        const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_multiplier);
+        lights[i]->sample_light(num_samples, &surface.position, nullptr, light_samples);
     }
-    return true;
+}
+
+void Scene::evaluate_distant_lights(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample)
+{
+    for(size_t i = 0; i < distant_lights.size(); i++)
+    {
+        LightSample isample;
+        if(distant_lights[i]->evaluate_light(intersect, pos, pfar, isample))
+        {
+            light_sample.intensity += isample.intensity;
+            light_sample.pdf += isample.pdf;
+        }
+    }
 }
 
 bool Scene::add_object(std::shared_ptr<Object> object)
@@ -120,12 +115,18 @@ bool Scene::add_material(std::shared_ptr<Material> material)
     return true;
 }
 
-bool Scene::add_light(std::shared_ptr<Light> light)
+bool Scene::add_light(std::shared_ptr<Object> light)
 {
-    if(light->type == Light::Environment)
-        environment_light = light;
-    else
-        lights.push_back(light);
+    lights.push_back(light);
+    add_object(light);
+    return true;
+}
+
+bool Scene::add_distant_light(std::shared_ptr<Object> light)
+{
+    distant_lights.push_back(light);
+    lights.push_back(light);
+    add_object(light);
     return true;
 }
 

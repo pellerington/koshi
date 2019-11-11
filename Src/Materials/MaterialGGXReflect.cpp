@@ -6,8 +6,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialGGXReflect::MaterialGGXReflect(const Vec3f &specular_color, const float &roughness, std::shared_ptr<Fresnel> _fresnel, const Vec3f &emission)
-: specular_color(specular_color), roughness(clamp(roughness*roughness, 0.01f, 0.99f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), fresnel(_fresnel), emission(emission)
+MaterialGGXReflect::MaterialGGXReflect(const Vec3f &specular_color, const float &roughness, std::shared_ptr<Fresnel> _fresnel)
+: specular_color(specular_color), roughness(clamp(roughness*roughness, 0.01f, 0.99f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), fresnel(_fresnel)
 {
 }
 

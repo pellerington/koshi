@@ -6,8 +6,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialDielectric::MaterialDielectric(const Vec3f &reflective_color, const Vec3f &refractive_color, const float &roughness, const float &ior, const Vec3f &emission)
-: ior(ior), emission(emission)
+MaterialDielectric::MaterialDielectric(const Vec3f &reflective_color, const Vec3f &refractive_color, const float &roughness, const float &ior)
+: ior(ior)
 {
     ggx_reflect = std::shared_ptr<MaterialGGXReflect>(new MaterialGGXReflect(reflective_color, roughness, fresnel));
     ggx_refract = std::shared_ptr<MaterialGGXRefract>(new MaterialGGXRefract(refractive_color, roughness, ior, fresnel));

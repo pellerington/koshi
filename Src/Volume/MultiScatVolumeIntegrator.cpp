@@ -135,7 +135,7 @@ Vec3f MultiScatVolumeIntegrator::shadow(const float &t)
     // This would mean the ray would naturally terminate at the light.
     // Could be an emissive material which samples a ray straight past it if the user wants it to be transparent.
 
-    if(t < tmax)
+    if(!has_scatter)
         return weight;
     return VEC3F_ZERO;
 }

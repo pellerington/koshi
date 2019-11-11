@@ -14,7 +14,8 @@
 #include "../Materials/MaterialGGXRefract.h"
 #include "../Materials/MaterialDielectric.h"
 #include "../Materials/MaterialSubsurface.h"
-#include "../Lights/LightRectangle.h"
+#include "../Lights/LightArea.h"
+#include "../Lights/LightEnvironment.h"
 #include "../Textures/Image.h"
 #include "MeshFile.h"
 
@@ -93,9 +94,8 @@ public:
                     if((*it)["type"] == "lambert")
                     {
                         const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
-                        const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new MaterialLambert(diffuse_color, emission));
+                        std::shared_ptr<Material> material(new MaterialLambert(diffuse_color));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -103,9 +103,8 @@ public:
                     if((*it)["type"] == "back_lambert")
                     {
                         const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
-                        const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new MaterialBackLambert(diffuse_color, emission));
+                        std::shared_ptr<Material> material(new MaterialBackLambert(diffuse_color));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -114,9 +113,8 @@ public:
                     {
                         const Vec3f specular_color = get_vec3f(*it, "specular_color");
                         const float roughness = get_float(*it, "roughness");
-                        const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new MaterialGGXReflect(specular_color, roughness, nullptr, emission));
+                        std::shared_ptr<Material> material(new MaterialGGXReflect(specular_color, roughness, nullptr));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -126,9 +124,8 @@ public:
                         const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
                         const float ior = get_float(*it, "ior", 1.f);
                         const float roughness = get_float(*it, "roughness");
-                        const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Material> material(new MaterialGGXRefract(refractive_color, roughness, ior, nullptr, emission));
+                        std::shared_ptr<Material> material(new MaterialGGXRefract(refractive_color, roughness, ior, nullptr));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -137,11 +134,10 @@ public:
                     {
                         const Vec3f reflective_color = get_vec3f(*it, "reflective_color");
                         const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
-                        const float ior = get_float(*it, "ior", 1.f);
                         const float roughness = get_float(*it, "roughness");
-                        const Vec3f emission = get_vec3f(*it, "emission");
+                        const float ior = get_float(*it, "ior", 1.f);
 
-                        std::shared_ptr<Material> material(new MaterialDielectric(reflective_color, refractive_color, roughness, ior, emission));
+                        std::shared_ptr<Material> material(new MaterialDielectric(reflective_color, refractive_color, roughness, ior));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -245,7 +241,7 @@ public:
                     else if((*it)["volume"].is_string())
                         volume = volumes[(*it)["volume"]];
 
-                    std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(material, transform, volume));
+                    std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(transform, material, volume));
                     scene.add_object(sphere);
                 }
 
@@ -273,7 +269,7 @@ public:
                     else if((*it)["volume"].is_string())
                         volume = volumes[(*it)["volume"]];
 
-                    std::shared_ptr<ObjectBox> box(new ObjectBox(material, transform, volume));
+                    std::shared_ptr<ObjectBox> box(new ObjectBox(transform, material, volume));
                     scene.add_object(box);
                 }
             }
@@ -284,28 +280,40 @@ public:
             for (auto it = scene_file["lights"].begin(); it != scene_file["lights"].end(); ++it)
             {
 
-                if((*it)["type"] == "rectangle")
-                {
-                    const Vec3f intensity = get_vec3f(*it, "intensity");
-                    const Vec3f u = get_vec3f(*it, "u");
-                    const Vec3f v = get_vec3f(*it, "v");
-                    const Vec3f position = get_vec3f(*it, "position") - (0.5f*u + 0.5f*v);
-                    const bool double_sided = get_bool(*it, "double_sided");
-
-                    std::shared_ptr<LightRectangle> rectangle_light(new LightRectangle(position, u, v, intensity, double_sided));
-                    scene.add_light(rectangle_light);
-                }
-
                 if((*it)["type"] == "environment")
                 {
                     const Vec3f intensity = get_vec3f(*it, "intensity");
+                    std::shared_ptr<Light> light(new Light(intensity));
 
                     std::shared_ptr<Texture> texture;
                     if((*it)["texture"].is_string())
                         texture = textures[(*it)["texture"]];
 
-                    std::shared_ptr<LightEnvironment> environment_light(new LightEnvironment(intensity, texture));
-                    scene.add_light(environment_light);
+                    std::shared_ptr<LightEnvironment> environment_light(new LightEnvironment(light, texture));
+                    scene.add_distant_light(environment_light);
+                }
+
+                if((*it)["type"] == "area")
+                {
+                    const Vec3f scale = get_vec3f(*it, "scale", 1.f);
+                    const Vec3f rotation = 2.f * PI * get_vec3f(*it, "rotation") / 360.f;
+                    const Vec3f translation = get_vec3f(*it, "translation");
+
+                    Transform3f transform;
+                    transform = transform * Transform3f::translation(translation);
+                    transform = transform * Transform3f::z_rotation(rotation.z);
+                    transform = transform * Transform3f::y_rotation(rotation.y);
+                    transform = transform * Transform3f::x_rotation(rotation.x);
+                    transform = transform * Transform3f::scale(scale);
+
+                    const Vec3f intensity = get_vec3f(*it, "intensity");
+                    std::shared_ptr<Light> light(new Light(intensity));
+
+                    const bool double_sided = get_bool(*it, "double_sided");
+                    const bool hide_camera = get_bool(*it, "hide_camera", true);
+
+                    std::shared_ptr<LightArea> area_light(new LightArea(transform, light, double_sided, hide_camera));
+                    scene.add_light(area_light);
                 }
 
             }

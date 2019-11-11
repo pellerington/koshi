@@ -6,8 +6,10 @@
 #include <cmath>
 #include <iostream>
 
-MaterialGGXRefract::MaterialGGXRefract(const Vec3f &refractive_color, const float &roughness, const float &ior, std::shared_ptr<Fresnel> _fresnel, const Vec3f &emission)
-: refractive_color(refractive_color), roughness(clamp(roughness*roughness, 0.01f, 0.99f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), ior(ior), fresnel(_fresnel), emission(emission)
+MaterialGGXRefract::MaterialGGXRefract(const Vec3f &refractive_color, const float &roughness, const float &ior, std::shared_ptr<Fresnel> _fresnel)
+: refractive_color(refractive_color),
+  roughness(clamp(roughness*roughness, 0.01f, 0.99f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)),
+  ior(ior), fresnel(_fresnel)
 {
 }
 

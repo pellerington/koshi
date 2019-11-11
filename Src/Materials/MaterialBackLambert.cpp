@@ -5,8 +5,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialBackLambert::MaterialBackLambert(const Vec3f &diffuse_color, const Vec3f &emission)
-: diffuse_color(diffuse_color), emission(emission)
+MaterialBackLambert::MaterialBackLambert(const Vec3f &diffuse_color)
+: diffuse_color(diffuse_color)
 {
 }
 
@@ -49,7 +49,6 @@ bool MaterialBackLambert::sample_material(std::vector<MaterialSample> &samples, 
 
 bool MaterialBackLambert::evaluate_material(MaterialSample &sample)
 {
-
     if(!surface || sample.wo.dot(surface->normal) * surface->n_dot_wi > 0.f)
         return false;
 

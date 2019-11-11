@@ -8,18 +8,25 @@
 
 struct Ray
 {
-    Ray(const Vec3f &pos, const Vec3f &dir)
-    : pos(pos), dir(dir), inv_dir(1.f / dir) {}
+    Ray(const Vec3f &pos, const Vec3f &dir, const bool &camera = false)
+    : pos(pos), dir(dir), inv_dir(1.f / dir), camera(camera) {}
+
+    // Gets the position at t along the ray.
     inline Vec3f get_position(const float &_t) const { return pos + _t * dir; }
+
+    // Basic info about our ray.
     const Vec3f pos;
     const Vec3f dir;
     const Vec3f inv_dir;
-    // TODO: tmin/tmax
+
+    // Variables. These can be altered afterwards.
     bool hit = false;
     float t = FLT_MAX;
     float tmin = 0.f;
     float tmax = FLT_MAX;
 
+    // Optional info about our ray.
+    const bool camera;
     IorStack ior;
     const std::vector<Volume*> * in_volumes;
 };

@@ -14,7 +14,6 @@ public:
 
     bool sample_material(std::vector<MaterialSample> &samples, float sample_reduction = 1.f);
     bool evaluate_material( MaterialSample &sample);
-    const Vec3f get_emission() { return VEC3F_ZERO; }
 
 private:
     const float diffuse_weight;
