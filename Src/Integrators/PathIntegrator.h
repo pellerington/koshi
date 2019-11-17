@@ -7,7 +7,7 @@ struct PathSample
     MaterialSample * msample = nullptr;
     LightSample    * lsample = nullptr;
 
-    enum Type { Camera, Material, Volume, Light };
+    enum Type { Camera, Reflection, Transmission, Volume, Light };
     Type type;
 
     PathSample * parent;

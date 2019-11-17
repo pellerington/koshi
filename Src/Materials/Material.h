@@ -16,6 +16,9 @@ struct MaterialSample
     float pdf;
     float quality = 1.f;
 
+    enum Type { None, Diffuse, Glossy, Specular };
+    Type type = Type::None;
+
     struct VoidData { virtual ~VoidData() = default; };
     VoidData * data = nullptr;
 

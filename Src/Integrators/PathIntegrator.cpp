@@ -128,11 +128,11 @@ Vec3f PathIntegrator::integrate_surface(const Intersect &intersect, PathSample &
         sample.depth = in_sample.depth + 1;
         sample.quality = in_sample.quality * material_samples[i].quality;
         sample.msample = &material_samples[i];
-        sample.type = PathSample::Material;
+        const bool inside_object = sample.msample->wo.dot(intersect.surface.normal) < 0;
+        sample.type = !inside_object ? PathSample::Reflection : PathSample::Transmission;
         LightSample lsample;
         sample.lsample = &lsample;
 
-        const bool inside_object = sample.msample->wo.dot(intersect.surface.normal) < 0;
         Ray ray((!inside_object) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
         ray.ior = get_next_ior(material, intersect.surface, inside_object);
         // Need to test case when reflecting while already inside an object which has a volume.

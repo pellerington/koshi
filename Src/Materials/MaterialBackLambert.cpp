@@ -38,10 +38,9 @@ bool MaterialBackLambert::sample_material(std::vector<MaterialSample> &samples, 
         const float r = sqrtf(rnd[i][1]);
         const float x = r * cosf(theta), z = r * sinf(theta), y = ((surface->front) ? -1.f : 1.f) * sqrtf(std::max(EPSILON_F, 1.f - rnd[i][1]));
         sample.wo = surface->transform * Vec3f(x, y, z);
-
-
         sample.weight = diffuse_color * INV_PI * fabs(sample.wo.dot(surface->normal));
         sample.pdf = fabs(y) * INV_PI;
+        sample.type = MaterialSample::Diffuse;
     }
 
     return true;

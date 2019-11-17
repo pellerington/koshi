@@ -40,8 +40,6 @@ bool MaterialLambert::sample_material(std::vector<MaterialSample> &samples, cons
         const float theta = TWO_PI * rnd[i][0];
         const float phi = acosf(rnd[i][1]);
         sample.wo = surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta));
-
-        sample.weight = diffuse_color * INV_PI * sample.wo.dot(surface->normal);;
         sample.pdf = INV_TWO_PI;
 #else
         // Cosine Sample
@@ -49,10 +47,10 @@ bool MaterialLambert::sample_material(std::vector<MaterialSample> &samples, cons
         const float r = sqrtf(rnd[i][1]);
         const float x = r * cosf(theta), z = r * sinf(theta), y = sqrtf(std::max(EPSILON_F, 1.f - rnd[i][1]));
         sample.wo = surface->transform * Vec3f(x, y, z);
-
-        sample.weight = diffuse_color * INV_PI * sample.wo.dot(surface->normal);
         sample.pdf = y * INV_PI;
 #endif
+        sample.weight = diffuse_color * INV_PI * sample.wo.dot(surface->normal);
+        sample.type = MaterialSample::Diffuse;
     }
 
     return true;

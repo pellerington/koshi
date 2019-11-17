@@ -60,8 +60,9 @@ bool MaterialGGXReflect::sample_material(std::vector<MaterialSample> &samples, c
 
         sample.weight = (n_dot_wo > 0.f) ? (specular_color * f * g * d) / (4.f * n_dot_wi) : VEC3F_ZERO;
         sample.pdf = (d * n_dot_h) / (4.f * h_dot_wo);
+        sample.type = (roughness < 0.02f) ? MaterialSample::Specular : MaterialSample::Glossy;
 
-        if(!sample.pdf || is_black(sample.weight))
+        if(sample.pdf < 0.01f || is_black(sample.weight))
             samples.pop_back();
     }
 
