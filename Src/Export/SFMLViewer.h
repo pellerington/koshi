@@ -26,8 +26,13 @@ public:
         {
             sf::Event event;
             while (window.pollEvent(event))
+            {
                 if (event.type == sf::Event::Closed)
                     window.close();
+                if (event.type == sf::Event::MouseButtonPressed)
+                    if (event.mouseButton.button == sf::Mouse::Left)
+                        std::cout << render->get_pixel_color(image_width * event.mouseButton.x/screen_width, image_height * event.mouseButton.y/screen_height) << std::endl;
+            }
 
             update_pixels(render, pixels);
             texture.update(pixels);

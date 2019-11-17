@@ -33,7 +33,6 @@ public:
         {
             settings.quality = get_float(scene_file["settings"], "quality");
             settings.max_depth = get_uint(scene_file["settings"], "max_depth");
-            settings.display_lights = get_bool(scene_file["settings"], "display_lights");
             settings.sample_lights = get_bool(scene_file["settings"], "sample_lights", true);
             settings.sample_material = get_bool(scene_file["settings"], "sample_material", true);
         }
@@ -147,12 +146,13 @@ public:
                         const float density = get_float(*it, "density");
                         const Vec3f subsurface_transparency = get_vec3f(*it, "subsurface_transparency");
                         const Vec3f subsurface_color = get_vec3f(*it, "subsurface_color");
+                        const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
                         const float diffuse_weight = get_float(*it, "diffuse_weight");
 
                         std::shared_ptr<Volume> volume(new Volume(density, subsurface_color, 0.f, subsurface_transparency));
                         volumes[std::string("material_") + std::string((*it)["name"])] = volume;
 
-                        std::shared_ptr<Material> material(new MaterialSubsurface(subsurface_color, diffuse_weight));
+                        std::shared_ptr<Material> material(new MaterialSubsurface(diffuse_color, diffuse_weight));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }

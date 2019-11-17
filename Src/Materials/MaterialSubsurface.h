@@ -7,7 +7,7 @@
 class MaterialSubsurface : public Material
 {
 public:
-    MaterialSubsurface(const Vec3f &subsurface_color = VEC3F_ZERO, const float diffuse_weight = 0.5f);
+    MaterialSubsurface(const Vec3f &diffuse_color = VEC3F_ZERO, const float diffuse_weight = 0.5f);
     std::shared_ptr<Material> instance(const Surface * surface);
 
     Type get_type() { return Material::Subsurface; }

@@ -18,7 +18,6 @@ public:
     {
         uint max_depth = 2;
         float quality = 1;
-        bool display_lights = false;
         bool sample_lights = true;
         bool sample_material = true;
     };

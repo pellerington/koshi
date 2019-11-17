@@ -6,10 +6,10 @@
 #include <cmath>
 #include <iostream>
 
-MaterialSubsurface::MaterialSubsurface(const Vec3f &subsurface_color, const float diffuse_weight)
+MaterialSubsurface::MaterialSubsurface(const Vec3f &diffuse_color, const float diffuse_weight)
 : diffuse_weight(clamp(diffuse_weight, EPSILON_F, 1.f - EPSILON_F))
 {
-    lambert = std::shared_ptr<MaterialLambert>(new MaterialLambert(subsurface_color));
+    lambert = std::shared_ptr<MaterialLambert>(new MaterialLambert(diffuse_color));
     back_lambert = std::shared_ptr<MaterialBackLambert>(new MaterialBackLambert(VEC3F_ONES));
 }
 
@@ -30,9 +30,9 @@ bool MaterialSubsurface::sample_material(std::vector<MaterialSample> &samples, c
         return false;
 
     if(surface->front)
-        lambert->sample_material(samples, sample_reduction);
+        lambert->sample_material(samples, sample_reduction*diffuse_weight);
     const float front_samples = samples.size();
-    back_lambert->sample_material(samples, sample_reduction);
+    back_lambert->sample_material(samples, sample_reduction*(surface->front ? 1.f-diffuse_weight : 1.f));
     const float back_samples = samples.size() - front_samples;
     const float total_samples = front_samples + back_samples;
 

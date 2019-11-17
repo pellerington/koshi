@@ -33,30 +33,34 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     // Add the emission from our volume
     color += volume_integrator.emission();
 
-    // We should do this after volume scattering?
-    if(!ray.hit && ray.tmax == FLT_MAX)
+    // Evaluate any light we hit.
+    const Vec3f shadow_tmax = volume_integrator.shadow(ray.t);
+    if(!is_black(shadow_tmax))
     {
-        scene->evaluate_distant_lights(intersect.surface, &ray.pos, nullptr, *in_sample.lsample);
-        color += volume_integrator.shadow(ray.tmax) * in_sample.lsample->intensity;
+        if(ray.hit && intersect.object->evaluate_light(intersect.surface, &ray.pos, nullptr, *in_sample.lsample))
+        {
+            color += shadow_tmax * in_sample.lsample->intensity;
+        }
+        else if(!ray.hit && ray.tmax == FLT_MAX)
+        {
+            scene->evaluate_distant_lights(intersect.surface, &ray.pos, nullptr, *in_sample.lsample);
+            color += volume_integrator.shadow(ray.tmax) * in_sample.lsample->intensity;
+        }
     }
 
-    // We should do this at the surface level.
-    if(ray.hit && intersect.object->evaluate_light(intersect.surface, &ray.pos, nullptr, *in_sample.lsample))
-    {
-        color += volume_integrator.shadow(ray.t) * in_sample.lsample->intensity;
-    }
-
-    // Check if we should terminate.
+    // Check if we should terminate early.
     if(is_saturated(color) || in_sample.depth > scene->settings.max_depth)
         return color;
 
-    // TODO: this is causing problems
-    // Exit if our sample is too low quality
-    const float kill_prob = std::min(1.f, in_sample.quality * 16.f /* <- Let a user set this */);
-    if(RNG::Rand() > kill_prob)
-        return color / kill_prob;
 
-    // TODO: change this to a scatter points so that we can sample lights from them!
+    /* Scatter our volume and our surface. */
+
+    // Maybe kill our ray.
+    const float surv_prob = std::pow(in_sample.quality, 1.f/(scene->settings.max_depth-1.f));
+    // const float kill_prob = 1.f - surv_prob;
+    if(RNG::Rand() > surv_prob)
+        return color;
+
     // Scatter our volume
     std::vector<VolumeSample> volume_samples;
     volume_integrator.scatter(volume_samples);
@@ -78,13 +82,10 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     }
 
     // Integrate the surface
-    if(ray.hit)
-    {
-        const Vec3f shadow = volume_integrator.shadow(ray.t);
-        color += !is_black(shadow) ? shadow * integrate_surface(intersect, in_sample) : VEC3F_ZERO;
-    }
+    if(!is_black(shadow_tmax) && ray.hit)
+        color +=  shadow_tmax * integrate_surface(intersect, in_sample);
 
-    return color / kill_prob;
+    return color / surv_prob;
 }
 
 Vec3f PathIntegrator::integrate_surface(const Intersect &intersect, PathSample &in_sample) const
