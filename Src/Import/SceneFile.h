@@ -32,7 +32,8 @@ public:
         if(!scene_file["settings"].is_null())
         {
             settings.quality = get_float(scene_file["settings"], "quality");
-            settings.max_depth = get_uint(scene_file["settings"], "max_depth");
+            settings.depth = get_uint(scene_file["settings"], "depth", 2);
+            settings.max_depth = get_uint(scene_file["settings"], "max_depth", 32);
             settings.sample_lights = get_bool(scene_file["settings"], "sample_lights", true);
             settings.sample_material = get_bool(scene_file["settings"], "sample_material", true);
         }

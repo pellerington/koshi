@@ -17,6 +17,7 @@ public:
     struct Settings
     {
         uint max_depth = 2;
+        uint depth = 32;
         float quality = 1;
         bool sample_lights = true;
         bool sample_material = true;

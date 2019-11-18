@@ -9,6 +9,7 @@
 
 void PathIntegrator::pre_render()
 {
+    quality_threshold = std::pow(1.f / SAMPLES_PER_SA, scene->settings.depth);
 }
 
 Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
@@ -52,13 +53,8 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     if(is_saturated(color) || in_sample.depth > scene->settings.max_depth)
         return color;
 
-
-    /* Scatter our volume and our surface. */
-
-    // Maybe kill our ray.
-    const float surv_prob = std::pow(in_sample.quality, 1.f/(scene->settings.max_depth-1.f));
-    // const float kill_prob = 1.f - surv_prob;
-    if(RNG::Rand() > surv_prob)
+    //Kill our ray if we are below the threshold.
+    if(in_sample.quality < quality_threshold)
         return color;
 
     // Scatter our volume
@@ -81,14 +77,14 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
         color += sample.msample->weight * integrate(ray, sample);
     }
 
-    // Integrate the surface
+    // Scatter the surface
     if(!is_black(shadow_tmax) && ray.hit)
-        color +=  shadow_tmax * integrate_surface(intersect, in_sample);
+        color +=  shadow_tmax * scatter_surface(intersect, in_sample);
 
-    return color / surv_prob;
+    return color;
 }
 
-Vec3f PathIntegrator::integrate_surface(const Intersect &intersect, PathSample &in_sample) const
+Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in_sample) const
 {
     // Initialize output
     Vec3f color = VEC3F_ZERO;

@@ -31,5 +31,7 @@ public:
         return integrate(ray, sample);
     }
     Vec3f integrate(Ray &ray, PathSample &in_sample) const;
-    Vec3f integrate_surface(const Intersect &intersect, PathSample &in_sample) const;
+private:
+    Vec3f scatter_surface(const Intersect &intersect, PathSample &in_sample) const;
+    double quality_threshold = 1.f;
 };

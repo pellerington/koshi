@@ -24,7 +24,7 @@ bool MaterialLambert::sample_material(std::vector<MaterialSample> &samples, cons
         return false;
 
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_reduction);
-    const float quality = 1.f / num_samples;
+    const float quality = 1.f / SAMPLES_PER_SA;
 
     std::vector<Vec2f> rnd;
     RNG::Rand2d(num_samples, rnd);

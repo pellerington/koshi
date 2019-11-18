@@ -27,7 +27,7 @@ bool MaterialGGXReflect::sample_material(std::vector<MaterialSample> &samples, c
 
     // Estimate the number of samples
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * roughness_sqrt * sample_reduction);
-    const float quality = 1.f / num_samples;
+    const float quality = 1.f / (SAMPLES_PER_SA * roughness_sqrt);
 
     std::vector<Vec2f> rnd;
     RNG::Rand2d(num_samples, rnd);
