@@ -29,6 +29,7 @@ void Scene::pre_render()
         rtcCommitGeometry(geom);
         const uint rtcid = rtcAttachGeometry(rtc_scene, geom);
         rtc_to_obj[rtcid] = objects[i];
+        objects[i]->set_id(rtcid);
         if(objects[i]->volume || objects[i]->variable_visibility())
             rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
     }

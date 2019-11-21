@@ -38,12 +38,28 @@ inline bool intersect_bbox(const Ray &ray, const Box3f &box)
     const float tmin = Vec3f::min(t1, t2).max();
     const float tmax = Vec3f::max(t1, t2).min();
 
-    // Return tmin/tmax?
-    if (tmax < 0 || tmin > tmax || tmin > ray.t)
+    if (tmax < 0 || tmin > tmax)
         return false;
 
     return true;
 }
+
+inline bool intersect_bbox(const Ray &ray, const Box3f &box, float &_tmin, float &_tmax)
+{
+    const Vec3f t1 = (box.min() - ray.pos) * ray.inv_dir;
+    const Vec3f t2 = (box.max() - ray.pos) * ray.inv_dir;
+    const float tmin = Vec3f::min(t1, t2).max();
+    const float tmax = Vec3f::max(t1, t2).min();
+
+    if (tmax < 0 || tmin > tmax)
+        return false;
+
+    _tmin = tmin;
+    _tmax = tmax;
+
+    return true;
+}
+
 
 /*
 inline bool get_refation(const Surface &surface, const float &eta, Vec3f &out)

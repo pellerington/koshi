@@ -77,9 +77,11 @@ public:
     std::shared_ptr<Material> material;
     std::shared_ptr<Volume> volume;
 
+    void set_id(const uint _id) { id = _id; }
 
 protected:
     const bool hide_camera;
     RTCGeometry geom;
     Box3f bbox;
+    uint id = -1;
 };
