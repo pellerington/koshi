@@ -58,7 +58,7 @@ public:
         return transform;
     }
 
-    static const Transform3f normal_transform(const Vec3f &n)
+    static const Transform3f basis_transform(const Vec3f &n)
     {
         Transform3f transform;
         const Vec3f nu = (std::fabs(n[0]) > std::fabs(n[1]))
@@ -162,7 +162,7 @@ public:
             for(uint x = 0; x < 4; x++)
                 if(rows[y][x] != (y == x) ? 1.f : 0.f)
                     return false;
-                    
+
         return true;
     }
 

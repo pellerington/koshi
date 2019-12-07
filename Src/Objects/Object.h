@@ -31,6 +31,7 @@ public:
         Sphere,
         Box,
         LightArea,
+        LightSphere,
         LightEnvironment
     };
     virtual Type get_type() = 0;
@@ -56,6 +57,11 @@ public:
             rtcRayHit.hit.v,
             ray.ior
         );
+    }
+
+    void set_filter_function(void (*_intersection_callback)(const RTCFilterFunctionNArguments *))
+    {
+        intersection_callback = _intersection_callback;
     }
 
     virtual bool variable_visibility() { return hide_camera; }
@@ -84,4 +90,5 @@ protected:
     RTCGeometry geom;
     Box3f bbox;
     uint id = -1;
+    void (*intersection_callback)(const RTCFilterFunctionNArguments *) = nullptr;
 };

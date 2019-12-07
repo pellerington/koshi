@@ -15,9 +15,11 @@
 #include "../Materials/MaterialDielectric.h"
 #include "../Materials/MaterialSubsurface.h"
 #include "../Lights/LightArea.h"
+#include "../Lights/LightSphere.h"
 #include "../Lights/LightEnvironment.h"
 #include "../Textures/Image.h"
 #include "MeshFile.h"
+#include "../Export/DebugObj.h"
 
 class SceneFile
 {
@@ -317,6 +319,27 @@ public:
                     scene.add_light(area_light);
                 }
 
+                if((*it)["type"] == "sphere")
+                {
+                    const Vec3f scale = get_vec3f(*it, "scale", 1.f);
+                    const Vec3f rotation = 2.f * PI * get_vec3f(*it, "rotation") / 360.f;
+                    const Vec3f translation = get_vec3f(*it, "translation");
+
+                    Transform3f transform;
+                    transform = transform * Transform3f::translation(translation);
+                    transform = transform * Transform3f::z_rotation(rotation.z);
+                    transform = transform * Transform3f::y_rotation(rotation.y);
+                    transform = transform * Transform3f::x_rotation(rotation.x);
+                    transform = transform * Transform3f::scale(scale);
+
+                    const Vec3f intensity = get_vec3f(*it, "intensity");
+                    std::shared_ptr<Light> light(new Light(intensity));
+
+                    const bool hide_camera = get_bool(*it, "hide_camera", true);
+
+                    std::shared_ptr<LightSphere> sphere_light(new LightSphere(transform, light, hide_camera));
+                    scene.add_light(sphere_light);
+                }
             }
         }
 

@@ -39,7 +39,8 @@ bool LightArea::sample_light(const uint num_samples, const Vec3f * pos, const Ve
     {
         const Vec3f light_pos = obj_to_world * Vec3f(rnd[i][0]*2.f-1.f, rnd[i][1]*2.f-1.f, 0.f);
         const Vec3f dir = *pos - light_pos;
-        const float cos_theta = normal.dot(dir.normalized());
+        const float sqr_len = dir.sqr_length();
+        const float cos_theta = normal.dot(dir / sqrtf(sqr_len));
         if(cos_theta < 0.f && !double_sided)
             continue;
 
@@ -48,8 +49,7 @@ bool LightArea::sample_light(const uint num_samples, const Vec3f * pos, const Ve
 
         light_sample.position = obj_to_world * Vec3f(rnd[i][0]*2.f-1.f, rnd[i][1]*2.f-1.f, 0.f);
         light_sample.intensity = light->get_emission();
-        // TODO: if we have no pos just return 1 / area;
-        light_sample.pdf = dir.sqr_length() / (area * (fabs(cos_theta) + EPSILON_F));
+        light_sample.pdf = sqr_len / (area * (fabs(cos_theta) + EPSILON_F));
     }
 
     return true;
@@ -64,9 +64,10 @@ bool LightArea::evaluate_light(const Surface &intersect, const Vec3f * pos, cons
     light_sample.intensity = light->get_emission();
 
     const Vec3f dir = *pos - light_sample.position;
-    const float cos_theta = fabs(normal.dot(dir.normalized()));
+    const float sqr_len = dir.sqr_length();
+    const float cos_theta = fabs(normal.dot(dir / sqrtf(sqr_len)));
 
-    light_sample.pdf = dir.sqr_length() / (area * cos_theta);
+    light_sample.pdf = sqr_len / (area * cos_theta);
 
     return true;
 }

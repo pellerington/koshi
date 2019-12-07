@@ -7,7 +7,7 @@ void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
     std::shared_ptr<Object> obj = context->scene->rtc_to_obj[geomID];
 
     // If we are invisible don't do anything else
-    if(!(*(args->valid) = obj->process_visibility_intersection(context->ray->camera)))
+    if(!(*(args->valid) = obj->process_visibility_intersection(context->ray->camera) ? -1 : 0))
         return;
 
     const double t = RTCRayN_tfar(args->ray, args->N, 0);
@@ -17,7 +17,7 @@ void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
     if(obj->volume)
         obj->process_volume_intersection(t, front, context->volume_stack);
 
-    *(args->valid) = (obj->material != nullptr || obj->light != nullptr);
+    *(args->valid) = (obj->material != nullptr || obj->light != nullptr) ? -1 : 0;
 }
 
 void Scene::pre_render()
@@ -26,12 +26,15 @@ void Scene::pre_render()
     for(size_t i = 0; i < objects.size(); i++)
     {
         const RTCGeometry& geom = objects[i]->get_rtc_geometry();
+        if(objects[i]->volume || objects[i]->variable_visibility())
+        {
+            objects[i]->set_filter_function(&Scene::intersection_callback);
+            rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
+        }
         rtcCommitGeometry(geom);
         const uint rtcid = rtcAttachGeometry(rtc_scene, geom);
         rtc_to_obj[rtcid] = objects[i];
         objects[i]->set_id(rtcid);
-        if(objects[i]->volume || objects[i]->variable_visibility())
-            rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
     rtcCommitScene(rtc_scene);
@@ -85,7 +88,7 @@ void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &ligh
 {
     for(size_t i = 0; i < lights.size(); i++)
     {
-        // Make a better num_samples estimator.
+        // Make a better num_samples estimator using bbox.
         const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_multiplier);
         lights[i]->sample_light(num_samples, &surface.position, nullptr, light_samples);
     }

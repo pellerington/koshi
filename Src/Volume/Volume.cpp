@@ -20,7 +20,7 @@ bool Volume::sample_volume(const Vec3f &wi, VolumeSample &sample)
     float sin_phi = sqrtf(std::max(EPSILON_F, 1.f - cos_phi * cos_phi));
 
     const float x = sin_phi * cosf(theta), z = sin_phi * sinf(theta), y = cos_phi;
-    sample.wo = Transform3f::normal_transform(wi) * Vec3f(x, y, z);
+    sample.wo = Transform3f::basis_transform(wi) * Vec3f(x, y, z);
 
     // sample.pdf = INV_FOUR_PI * (1.f - g_sqr) / std::pow(1.f + g_sqr - 2.f * g * cos_phi, 1.5f);
 

@@ -1,7 +1,7 @@
 #include "ObjectSphere.h"
 
-ObjectSphere::ObjectSphere(const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<Volume> volume)
-: Object(obj_to_world, nullptr, material, volume)
+ObjectSphere::ObjectSphere(const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<Volume> volume, std::shared_ptr<Light> light, const bool hide_camera)
+: Object(obj_to_world, light, material, volume, hide_camera)
 {
     bbox = obj_to_world * Box3f(Vec3f(-1.f), Vec3f(1.f));
     center = obj_to_world * Vec3f(0.f);
@@ -49,14 +49,41 @@ ObjectSphere::ObjectSphere(const Transform3f &obj_to_world, std::shared_ptr<Mate
             if(t < RTCRayN_tfar(rays, args->N, i) && t > RTCRayN_tnear(rays, args->N, i))
             {
                 args->valid[i] = -1;
+                const float tfar_prev = RTCRayN_tfar(rays, args->N, i);
                 RTCRayN_tfar(rays, args->N, i) = t;
                 const Vec3f normal = (sphere_position - sphere->center).normalized();
+                const float n_x_prev = RTCHitN_Ng_x(hits, args->N, i);
                 RTCHitN_Ng_x(hits, args->N, i) = normal.x;
+                const float n_y_prev = RTCHitN_Ng_y(hits, args->N, i);
                 RTCHitN_Ng_y(hits, args->N, i) = normal.y;
+                const float n_z_prev = RTCHitN_Ng_z(hits, args->N, i);
                 RTCHitN_Ng_z(hits, args->N, i) = normal.z;
+                const uint prev_id = RTCHitN_geomID(hits, args->N, i);
                 RTCHitN_geomID(hits, args->N, i) = sphere->id;
+
+                if(sphere->intersection_callback)
+                {
+                    RTCFilterFunctionNArguments filter_args;
+                    filter_args.valid = args->valid;
+                    filter_args.geometryUserPtr = args->geometryUserPtr;
+                    filter_args.context = args->context;
+                    filter_args.ray = rays;
+                    filter_args.hit = hits;
+                    filter_args.N = args->N;
+
+                    sphere->intersection_callback(&filter_args);
+
+                    if(!args->valid[i])
+                    {
+                        RTCRayN_tfar(rays, args->N, i) = tfar_prev;
+                        RTCHitN_Ng_x(hits, args->N, i) = n_x_prev;
+                        RTCHitN_Ng_y(hits, args->N, i) = n_y_prev;
+                        RTCHitN_Ng_z(hits, args->N, i) = n_z_prev;
+                        RTCHitN_geomID(hits, args->N, i) = prev_id;
+                    }
+                }
             }
         }
-    };
+    };    
     rtcSetGeometryIntersectFunction(geom, intersect_callback);
 }
