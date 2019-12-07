@@ -70,7 +70,7 @@ bool MaterialGGXRefract::sample_material(std::vector<MaterialSample> &samples, c
         sample.pdf = d * n_dot_h * (ior_out * ior_out * fabs(h_dot_wo)) / denom;
         sample.type = (roughness < 0.02f) ? MaterialSample::Specular : MaterialSample::Glossy;
 
-        if(!sample.pdf || is_black(sample.weight))
+        if(!sample.pdf)
             samples.pop_back();
     }
 

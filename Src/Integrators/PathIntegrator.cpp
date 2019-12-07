@@ -134,7 +134,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         // Need to test case when reflecting while already inside an object which has a volume.
         ray.in_volumes = (!inside_object) ? intersect.volumes.get_exit_volumes() : intersect.volumes.get_inside_object_volumes();
 
-        Vec3f in_color = integrate(ray, sample);
+        const Vec3f in_color = (is_black(sample.msample->weight)) ? 0.f : integrate(ray, sample);
 
         float weight = material_sample_weight;
         if(multiple_importance_sample)
@@ -162,7 +162,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         ray.in_volumes = (wo_dot_n >= 0.f) ? intersect.volumes.get_exit_volumes() : intersect.volumes.get_inside_object_volumes();
         ray.tmax = (sample.lsample->position - ray.pos).length() - EPSILON_F; // Set our tmax so we can perform shadowing.
 
-        Vec3f in_color = integrate(ray, sample);
+        const Vec3f in_color = integrate(ray, sample);
 
         float weight = light_sample_weight;
         if(multiple_importance_sample)
