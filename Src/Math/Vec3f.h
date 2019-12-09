@@ -120,6 +120,13 @@ public:
         return x;
     }
 
+    inline void floor() {
+        x = std::floor(x); y = std::floor(y); z = std::floor(z);
+    }
+    inline static Vec3f floor(const Vec3f &v) {
+        return Vec3f(std::floor(v.x), std::floor(v.y), std::floor(v.z));
+    }
+
     inline Vec3f lambda(float (*f)(const float)) {
         return Vec3f(f(x), f(y), f(z));
     }

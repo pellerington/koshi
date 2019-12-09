@@ -6,8 +6,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialLambert::MaterialLambert(const Vec3f &diffuse_color)
-: diffuse_color(diffuse_color)
+MaterialLambert::MaterialLambert(const AttributeVec3f &diffuse_color_attr)
+: diffuse_color_attr(diffuse_color_attr)
 {
 }
 
@@ -15,6 +15,7 @@ std::shared_ptr<Material> MaterialLambert::instance(const Surface * surface)
 {
     std::shared_ptr<MaterialLambert> material(new MaterialLambert(*this));
     material->surface = surface;
+    material->diffuse_color = diffuse_color_attr.get_value(surface->u, surface->v, 0.f);
     return material;
 }
 

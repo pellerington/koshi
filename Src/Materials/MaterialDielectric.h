@@ -8,8 +8,10 @@
 class MaterialDielectric : public Material
 {
 public:
-    MaterialDielectric(const Vec3f &reflective_color = VEC3F_ZERO, const Vec3f &refractive_color = VEC3F_ZERO,
-                       const float &roughness = 0.f, const float &ior = 1.f);
+    MaterialDielectric(const AttributeVec3f &reflective_color_attribute,
+                       const AttributeVec3f &refractive_color_attribute,
+                       const AttributeFloat &roughness_attribute,
+                       const float &ior = 1.f);
     std::shared_ptr<Material> instance(const Surface * surface);
 
     Type get_type() { return Material::Dielectric; }

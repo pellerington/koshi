@@ -18,6 +18,8 @@
 #include "../Lights/LightSphere.h"
 #include "../Lights/LightEnvironment.h"
 #include "../Textures/Image.h"
+#include "../Textures/Checker.h"
+#include "../Textures/Gradient.h"
 #include "MeshFile.h"
 #include "../Export/DebugObj.h"
 
@@ -80,6 +82,23 @@ public:
                             textures[(*it)["name"]] = texture;
                         }
                     }
+                    if((*it)["type"] == "checker")
+                    {
+                        const Vec3f scale = get_vec3f(*it, "scale", 0.f);
+                        std::shared_ptr<Texture> texture(new Checker(scale));
+                        scene.add_texture(texture);
+                        textures[(*it)["name"]] = texture;
+                    }
+                    if((*it)["type"] == "gradient")
+                    {
+                        const Vec3f min = get_vec3f(*it, "min", 0.f);
+                        const Vec3f max = get_vec3f(*it, "max", 1.f);
+                        const uint axis = get_uint(*it, "axis", 0);
+                        std::shared_ptr<Texture> texture(new Gradient(min, max, axis));
+                        scene.add_texture(texture);
+                        textures[(*it)["name"]] = texture;
+
+                    }
                 }
             }
         }
@@ -96,8 +115,9 @@ public:
                     if((*it)["type"] == "lambert")
                     {
                         const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
+                        std::shared_ptr<Texture> diffuse_color_texture = ((*it)["diffuse_color_texture"].is_string()) ? textures[(*it)["diffuse_color_texture"]] : nullptr;
 
-                        std::shared_ptr<Material> material(new MaterialLambert(diffuse_color));
+                        std::shared_ptr<Material> material(new MaterialLambert(AttributeVec3f(diffuse_color_texture, diffuse_color)));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -105,8 +125,9 @@ public:
                     if((*it)["type"] == "back_lambert")
                     {
                         const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
+                        std::shared_ptr<Texture> diffuse_color_texture = ((*it)["diffuse_color_texture"].is_string()) ? textures[(*it)["diffuse_color_texture"]] : nullptr;
 
-                        std::shared_ptr<Material> material(new MaterialBackLambert(diffuse_color));
+                        std::shared_ptr<Material> material(new MaterialBackLambert(AttributeVec3f(diffuse_color_texture, diffuse_color)));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -114,9 +135,16 @@ public:
                     if((*it)["type"] == "ggx")
                     {
                         const Vec3f specular_color = get_vec3f(*it, "specular_color");
-                        const float roughness = get_float(*it, "roughness");
+                        std::shared_ptr<Texture> specular_color_texture = ((*it)["specular_color_texture"].is_string()) ? textures[(*it)["specular_color_texture"]] : nullptr;
 
-                        std::shared_ptr<Material> material(new MaterialGGXReflect(specular_color, roughness, nullptr));
+                        const float roughness = get_float(*it, "roughness");
+                        std::shared_ptr<Texture> roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
+
+                        std::shared_ptr<Material> material(new MaterialGGXReflect(
+                            AttributeVec3f(specular_color_texture, specular_color),
+                            AttributeFloat(roughness_texture, roughness),
+                            nullptr
+                        ));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -124,10 +152,18 @@ public:
                     if((*it)["type"] == "ggx_refract")
                     {
                         const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
-                        const float ior = get_float(*it, "ior", 1.f);
-                        const float roughness = get_float(*it, "roughness");
+                        std::shared_ptr<Texture> refractive_color_texture = ((*it)["refractive_color_texture"].is_string()) ? textures[(*it)["refractive_color_texture"]] : nullptr;
 
-                        std::shared_ptr<Material> material(new MaterialGGXRefract(refractive_color, roughness, ior, nullptr));
+                        const float roughness = get_float(*it, "roughness");
+                        std::shared_ptr<Texture> roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
+
+                        const float ior = get_float(*it, "ior", 1.f);
+
+                        std::shared_ptr<Material> material(new MaterialGGXRefract(
+                            AttributeVec3f(refractive_color_texture, refractive_color),
+                            AttributeFloat(roughness_texture, roughness),
+                            ior, nullptr
+                        ));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -135,11 +171,22 @@ public:
                     if((*it)["type"] == "dielectric")
                     {
                         const Vec3f reflective_color = get_vec3f(*it, "reflective_color");
+                        std::shared_ptr<Texture> reflective_color_texture = ((*it)["reflective_color_texture"].is_string()) ? textures[(*it)["reflective_color_texture"]] : nullptr;
+
                         const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
+                        std::shared_ptr<Texture> refractive_color_texture = ((*it)["refractive_color_texture"].is_string()) ? textures[(*it)["refractive_color_texture"]] : nullptr;
+
                         const float roughness = get_float(*it, "roughness");
+                        std::shared_ptr<Texture> roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
+
                         const float ior = get_float(*it, "ior", 1.f);
 
-                        std::shared_ptr<Material> material(new MaterialDielectric(reflective_color, refractive_color, roughness, ior));
+                        std::shared_ptr<Material> material(new MaterialDielectric(
+                            AttributeVec3f(reflective_color_texture, reflective_color),
+                            AttributeVec3f(refractive_color_texture, refractive_color),
+                            AttributeFloat(roughness_texture, roughness),
+                            ior
+                        ));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -149,13 +196,20 @@ public:
                         const float density = get_float(*it, "density");
                         const Vec3f subsurface_transparency = get_vec3f(*it, "subsurface_transparency");
                         const Vec3f subsurface_color = get_vec3f(*it, "subsurface_color");
-                        const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
-                        const float diffuse_weight = get_float(*it, "diffuse_weight");
+
+                        const Vec3f surface_color = get_vec3f(*it, "surface_color");
+                        std::shared_ptr<Texture> surface_color_texture = ((*it)["surface_color_texture"].is_string()) ? textures[(*it)["surface_color_texture"]] : nullptr;
+
+                        const float surface_weight = get_float(*it, "surface_weight");
+                        std::shared_ptr<Texture> surface_weight_texture = ((*it)["surface_weight_texture"].is_string()) ? textures[(*it)["surface_weight_texture"]] : nullptr;
 
                         std::shared_ptr<Volume> volume(new Volume(density, subsurface_color, 0.f, subsurface_transparency));
                         volumes[std::string("material_") + std::string((*it)["name"])] = volume;
 
-                        std::shared_ptr<Material> material(new MaterialSubsurface(diffuse_color, diffuse_weight));
+                        std::shared_ptr<Material> material(new MaterialSubsurface(
+                            AttributeVec3f(surface_color_texture, surface_color),
+                            AttributeFloat(surface_weight_texture, surface_weight)
+                        ));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }

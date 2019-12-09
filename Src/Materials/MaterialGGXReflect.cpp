@@ -6,8 +6,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialGGXReflect::MaterialGGXReflect(const Vec3f &specular_color, const float &roughness, std::shared_ptr<Fresnel> _fresnel)
-: specular_color(specular_color), roughness(clamp(roughness*roughness, 0.01f, 0.99f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)), fresnel(_fresnel)
+MaterialGGXReflect::MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute, std::shared_ptr<Fresnel> fresnel)
+: specular_color_attribute(specular_color_attribute), roughness_attribute(roughness_attribute), fresnel(fresnel)
 {
 }
 
@@ -15,8 +15,11 @@ std::shared_ptr<Material> MaterialGGXReflect::instance(const Surface * surface)
 {
     std::shared_ptr<MaterialGGXReflect> material(new MaterialGGXReflect(*this));
     material->surface = surface;
-    if(!fresnel)
-        material->fresnel = std::shared_ptr<Fresnel>(new FresnelMetalic(specular_color));
+    material->specular_color = specular_color_attribute.get_value(surface->u, surface->v, 0.f);
+    material->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f);
+    material->roughness = clamp(material->roughness * material->roughness, 0.01f, 0.99f);
+    material->roughness_sqr = material->roughness * material->roughness;
+    if(!fresnel) material->fresnel = std::shared_ptr<Fresnel>(new FresnelMetalic(material->specular_color));
     return material;
 }
 
@@ -26,8 +29,9 @@ bool MaterialGGXReflect::sample_material(std::vector<MaterialSample> &samples, c
         return false;
 
     // Estimate the number of samples
-    const uint num_samples = std::max(1.f, SAMPLES_PER_SA * roughness_sqrt * sample_reduction);
-    const float quality = 1.f / (SAMPLES_PER_SA * roughness_sqrt);
+    uint num_samples = SAMPLES_PER_SA * sqrtf(roughness);
+    const float quality = 1.f / num_samples;
+    num_samples = std::max(1.f, num_samples * sample_reduction);
 
     std::vector<Vec2f> rnd;
     RNG::Rand2d(num_samples, rnd);

@@ -1,10 +1,13 @@
 #include "ObjectMesh.h"
 
-ObjectMesh::ObjectMesh(uint _vertices_size, uint _triangles_size, uint _normals_size, VERT_DATA * _vertices, TRI_DATA * _tri_vindex, NORM_DATA * _normals, TRI_DATA * _tri_nindex,
+ObjectMesh::ObjectMesh(uint _vertices_size, uint _triangles_size, uint _normals_size, uint _uvs_size,
+                       VERT_DATA * _vertices, TRI_DATA * _tri_vert_index,
+                       NORM_DATA * _normals, TRI_DATA * _tri_norm_index,
+                       UV_DATA * _uvs, TRI_DATA * _tri_uvs_index,
                        const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<Volume> volume)
 : Object(obj_to_world, nullptr, material, volume),
-  vertices_size(_vertices_size), triangles_size(_triangles_size), normals_size(_normals_size),
-  vertices(_vertices), tri_vindex(_tri_vindex), normals(_normals), tri_nindex(_tri_nindex)
+  vertices_size(_vertices_size), triangles_size(_triangles_size), normals_size(_normals_size), uvs_size(_uvs_size),
+  vertices(_vertices), tri_vert_index(_tri_vert_index), normals(_normals), tri_norm_index(_tri_norm_index), uvs(_uvs), tri_uvs_index(_tri_uvs_index)
 {
     //Transform our vertices and update bbox;
     bbox = Box3f();
@@ -26,24 +29,33 @@ ObjectMesh::ObjectMesh(uint _vertices_size, uint _triangles_size, uint _normals_
     geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
     rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, vertices, 0, sizeof(VERT_DATA), vertices_size);
-    rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, tri_vindex, 0, sizeof(TRI_DATA), triangles_size);
+    rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, tri_vert_index, 0, sizeof(TRI_DATA), triangles_size);
 }
 
 Surface ObjectMesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
 {
     const Vec3f normal = (normals_size > 0)
-    ? (Vec3f(normals[tri_nindex[rtcRayHit.hit.primID].v0].x, normals[tri_nindex[rtcRayHit.hit.primID].v0].y, normals[tri_nindex[rtcRayHit.hit.primID].v0].z) * (1.f - (rtcRayHit.hit.u + rtcRayHit.hit.v))
-     + Vec3f(normals[tri_nindex[rtcRayHit.hit.primID].v1].x, normals[tri_nindex[rtcRayHit.hit.primID].v1].y, normals[tri_nindex[rtcRayHit.hit.primID].v1].z) * rtcRayHit.hit.u
-     + Vec3f(normals[tri_nindex[rtcRayHit.hit.primID].v2].x, normals[tri_nindex[rtcRayHit.hit.primID].v2].y, normals[tri_nindex[rtcRayHit.hit.primID].v2].z) * rtcRayHit.hit.v).normalized()
+    ? (Vec3f(normals[tri_norm_index[rtcRayHit.hit.primID].v0].x, normals[tri_norm_index[rtcRayHit.hit.primID].v0].y, normals[tri_norm_index[rtcRayHit.hit.primID].v0].z) * (1.f - (rtcRayHit.hit.u + rtcRayHit.hit.v))
+     + Vec3f(normals[tri_norm_index[rtcRayHit.hit.primID].v1].x, normals[tri_norm_index[rtcRayHit.hit.primID].v1].y, normals[tri_norm_index[rtcRayHit.hit.primID].v1].z) * rtcRayHit.hit.u
+     + Vec3f(normals[tri_norm_index[rtcRayHit.hit.primID].v2].x, normals[tri_norm_index[rtcRayHit.hit.primID].v2].y, normals[tri_norm_index[rtcRayHit.hit.primID].v2].z) * rtcRayHit.hit.v).normalized()
     : Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized();
+
+    float u = rtcRayHit.hit.u, v = rtcRayHit.hit.v;
+    if(uvs_size > 0)
+    {
+        const float v1_weight = rtcRayHit.hit.u;
+        const float v2_weight = rtcRayHit.hit.v;
+        const float v0_weight = 1.f - rtcRayHit.hit.u - rtcRayHit.hit.v;
+        u = v0_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v0].u + v1_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v1].u + v2_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v2].u;
+        v = v0_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v0].v + v1_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v1].v + v2_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v2].v;
+    }
 
     return Surface(
         ray.get_position(ray.t),
         normal,
         Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
         ray.dir,
-        rtcRayHit.hit.u,
-        rtcRayHit.hit.v,
+        u, v,
         ray.ior
     );
 }
@@ -51,7 +63,9 @@ Surface ObjectMesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &
 ObjectMesh::~ObjectMesh()
 {
     delete[] vertices;
-    delete[] tri_vindex;
+    delete[] tri_vert_index;
     delete[] normals;
-    delete[] tri_nindex;
+    delete[] tri_norm_index;
+    delete[] uvs;
+    delete[] tri_uvs_index;
 }

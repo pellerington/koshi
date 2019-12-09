@@ -46,13 +46,29 @@ public:
             }
         }
 
+        uint num_uvs = attrib.texcoords.size() / 2;
+        UV_DATA * uvs = nullptr;
+        if(num_uvs > 0)
+        {
+            uvs = new UV_DATA[num_uvs];
+            for(uint v = 0; v < num_uvs; v++)
+            {
+                uvs[v].u = attrib.texcoords[v*2+0];
+                uvs[v].v = attrib.texcoords[v*2+1];
+            }
+        }
+
         uint num_triangles = 0;
         for (size_t s = 0; s < shapes.size(); s++)
             num_triangles += shapes[s].mesh.num_face_vertices.size();
 
-        TRI_DATA * tri_vindex = new TRI_DATA[num_triangles];
-        TRI_DATA * tri_nindex = nullptr;
-        if(num_normals) tri_nindex = new TRI_DATA[num_triangles];
+        TRI_DATA * tri_vert_index = new TRI_DATA[num_triangles];
+
+        TRI_DATA * tri_norm_index = nullptr;
+        if(num_normals) tri_norm_index = new TRI_DATA[num_triangles];
+
+        TRI_DATA * tri_uvs_index = nullptr;
+        if(num_uvs) tri_uvs_index = new TRI_DATA[num_triangles];
 
         uint offset = 0;
         for (size_t s = 0; s < shapes.size(); s++)
@@ -61,22 +77,27 @@ public:
             {
                 // Allocate triangles, assuming triangulation.
                 tinyobj::index_t idx = shapes[s].mesh.indices[(f * 3) + 0];
-                tri_vindex[f + offset].v0 = idx.vertex_index;
-                if(num_normals) tri_nindex[f + offset].v0 = idx.normal_index;
+                tri_vert_index[f + offset].v0 = idx.vertex_index;
+                if(num_normals) tri_norm_index[f + offset].v0 = idx.normal_index;
+                if(num_uvs) tri_uvs_index[f + offset].v0 = idx.texcoord_index;
 
                 idx = shapes[s].mesh.indices[(f * 3) + 1];
-                tri_vindex[f + offset].v1 = idx.vertex_index;
-                if(num_normals) tri_nindex[f + offset].v1 = idx.normal_index;
+                tri_vert_index[f + offset].v1 = idx.vertex_index;
+                if(num_normals) tri_norm_index[f + offset].v1 = idx.normal_index;
+                if(num_uvs) tri_uvs_index[f + offset].v1 = idx.texcoord_index;
 
                 idx = shapes[s].mesh.indices[(f * 3) + 2];
-                tri_vindex[f + offset].v2 = idx.vertex_index;
-                if(num_normals) tri_nindex[f + offset].v2 = idx.normal_index;
+                tri_vert_index[f + offset].v2 = idx.vertex_index;
+                if(num_normals) tri_norm_index[f + offset].v2 = idx.normal_index;
+                if(num_uvs) tri_uvs_index[f + offset].v2 = idx.texcoord_index;
             }
             offset += shapes[s].mesh.num_face_vertices.size();
         }
 
-        return std::shared_ptr<ObjectMesh>(new ObjectMesh(num_vertices, num_triangles, num_normals,
-                                                          vertices, tri_vindex, normals, tri_nindex,
+        return std::shared_ptr<ObjectMesh>(new ObjectMesh(num_vertices, num_triangles, num_normals, num_uvs,
+                                                          vertices, tri_vert_index,
+                                                          normals, tri_norm_index,
+                                                          uvs, tri_uvs_index,
                                                           transform, material, volume));
     }
 };

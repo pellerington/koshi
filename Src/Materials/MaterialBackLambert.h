@@ -5,7 +5,7 @@
 class MaterialBackLambert : public Material
 {
 public:
-    MaterialBackLambert(const Vec3f &diffuse_color = VEC3F_ZERO);
+    MaterialBackLambert(const AttributeVec3f &diffuse_color_attr);
     std::shared_ptr<Material> instance(const Surface * surface);
 
     Type get_type() { return Material::BackLambert; }
@@ -14,5 +14,6 @@ public:
     bool evaluate_material(MaterialSample &sample);
 
 private:
-    const Vec3f diffuse_color;
+    const AttributeVec3f diffuse_color_attr;
+    Vec3f diffuse_color;
 };

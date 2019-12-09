@@ -6,11 +6,14 @@
 #include <cmath>
 #include <iostream>
 
-MaterialDielectric::MaterialDielectric(const Vec3f &reflective_color, const Vec3f &refractive_color, const float &roughness, const float &ior)
+MaterialDielectric::MaterialDielectric(const AttributeVec3f &reflective_color_attribute,
+                                       const AttributeVec3f &refractive_color_attribute,
+                                       const AttributeFloat &roughness_attribute,
+                                       const float &ior)
 : ior(ior)
 {
-    ggx_reflect = std::shared_ptr<MaterialGGXReflect>(new MaterialGGXReflect(reflective_color, roughness, fresnel));
-    ggx_refract = std::shared_ptr<MaterialGGXRefract>(new MaterialGGXRefract(refractive_color, roughness, ior, fresnel));
+    ggx_reflect = std::shared_ptr<MaterialGGXReflect>(new MaterialGGXReflect(reflective_color_attribute, roughness_attribute, fresnel));
+    ggx_refract = std::shared_ptr<MaterialGGXRefract>(new MaterialGGXRefract(refractive_color_attribute, roughness_attribute, ior, fresnel));
 }
 
 std::shared_ptr<Material> MaterialDielectric::instance(const Surface * surface)

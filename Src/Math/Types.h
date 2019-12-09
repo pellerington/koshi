@@ -28,5 +28,6 @@ typedef unsigned int uint;
 
 struct VERT_DATA { float x, y, z, r; };
 struct NORM_DATA { float x, y, z; };
+struct UV_DATA { float u, v; };
 struct TRI_DATA { uint v0, v1, v2; };
 struct QUAD_DATA { uint v0, v1, v2, v3; };

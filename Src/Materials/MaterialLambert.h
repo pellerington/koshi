@@ -5,7 +5,7 @@
 class MaterialLambert : public Material
 {
 public:
-    MaterialLambert(const Vec3f &diffuse_color = VEC3F_ZERO);
+    MaterialLambert(const AttributeVec3f &diffuse_color_attr);
     std::shared_ptr<Material> instance(const Surface * surface);
 
     Type get_type() { return Material::Lambert; }
@@ -14,5 +14,6 @@ public:
     bool evaluate_material(MaterialSample &sample);
 
 private:
-    const Vec3f diffuse_color;
+    const AttributeVec3f diffuse_color_attr;
+    Vec3f diffuse_color;
 };

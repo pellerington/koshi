@@ -5,6 +5,7 @@
 #include <memory>
 #include "../Math/Types.h"
 #include "../Util/Surface.h"
+#include "../Util/Attribute.h"
 class Surface;
 
 #define UNIFORM_SAMPLE false

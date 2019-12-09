@@ -28,7 +28,7 @@ bool LightEnvironment::evaluate_light(const Surface &intersect, const Vec3f * po
     const float v = phi * INV_TWO_PI;
 
     light_sample.intensity = 1.f;
-    if(texture) texture->get_vec3f(v, u, light_sample.intensity);
+    if(texture) texture->get_vec3f(v, u, 0.f, light_sample.intensity);
 
     light_sample.intensity *= light->get_emission();
 

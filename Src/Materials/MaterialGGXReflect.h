@@ -7,7 +7,7 @@
 class MaterialGGXReflect : public Material
 {
 public:
-    MaterialGGXReflect(const Vec3f &specular_color = VEC3F_ZERO, const float &roughness = 0.f, std::shared_ptr<Fresnel> fresnel = nullptr);
+    MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute, std::shared_ptr<Fresnel> fresnel);
     std::shared_ptr<Material> instance(const Surface * surface);
 
     Type get_type() { return Material::GGXReflect; }
@@ -17,9 +17,12 @@ public:
     void set_fresnel(std::shared_ptr<Fresnel> _fresnel) { fresnel = _fresnel; }
 
 private:
-    const Vec3f specular_color;
-    const float roughness;
-    const float roughness_sqr;
-    const float roughness_sqrt;
+    const AttributeVec3f specular_color_attribute;
+    Vec3f specular_color;
+
+    const AttributeFloat roughness_attribute;
+    float roughness;
+    float roughness_sqr;
+
     std::shared_ptr<Fresnel> fresnel;
 };

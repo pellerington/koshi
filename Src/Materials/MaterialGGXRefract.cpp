@@ -6,10 +6,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialGGXRefract::MaterialGGXRefract(const Vec3f &refractive_color, const float &roughness, const float &ior, std::shared_ptr<Fresnel> _fresnel)
-: refractive_color(refractive_color),
-  roughness(clamp(roughness*roughness, 0.01f, 0.99f)), roughness_sqr(this->roughness * this->roughness), roughness_sqrt(sqrtf(this->roughness)),
-  ior(ior), fresnel(_fresnel)
+MaterialGGXRefract::MaterialGGXRefract(const AttributeVec3f &refractive_color_attribute, const AttributeFloat &roughness_attribute, const float &ior, std::shared_ptr<Fresnel> fresnel)
+: refractive_color_attribute(refractive_color_attribute), roughness_attribute(roughness_attribute), ior(ior), fresnel(fresnel)
 {
 }
 
@@ -19,6 +17,10 @@ std::shared_ptr<Material> MaterialGGXRefract::instance(const Surface * surface)
     material->surface = surface;
     material->ior_in = surface->ior.curr_ior;
     material->ior_out = surface->front ? ior : ((surface->ior.prev) ? surface->ior.prev->curr_ior : 1.f);
+    material->refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f);
+    material->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f);
+    material->roughness = clamp(material->roughness * material->roughness, 0.01f, 0.99f);
+    material->roughness_sqr = material->roughness * material->roughness;
     if(!fresnel) material->fresnel = std::shared_ptr<Fresnel>(new FresnelDielectric(material->ior_in, material->ior_out));
     return material;
 }
@@ -29,8 +31,9 @@ bool MaterialGGXRefract::sample_material(std::vector<MaterialSample> &samples, c
         return false;
 
     // Estimate the number of samples
-    const uint num_samples = std::max(1.f, SAMPLES_PER_SA * roughness_sqrt * sample_reduction);
-    const float quality = 1.f / (SAMPLES_PER_SA * roughness_sqrt);
+    uint num_samples = SAMPLES_PER_SA * sqrtf(roughness);
+    const float quality = 1.f / num_samples;
+    num_samples = std::max(1.f, num_samples * sample_reduction);
 
     std::vector<Vec2f> rnd;
     RNG::Rand2d(num_samples, rnd);

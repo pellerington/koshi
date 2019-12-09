@@ -7,7 +7,7 @@
 class MaterialSubsurface : public Material
 {
 public:
-    MaterialSubsurface(const Vec3f &diffuse_color = VEC3F_ZERO, const float diffuse_weight = 0.5f);
+    MaterialSubsurface(const AttributeVec3f &surface_color_attr, const AttributeFloat &surface_weight);
     std::shared_ptr<Material> instance(const Surface * surface);
 
     Type get_type() { return Material::Subsurface; }
@@ -16,7 +16,8 @@ public:
     bool evaluate_material( MaterialSample &sample);
 
 private:
-    const float diffuse_weight;
+    const AttributeFloat surface_weight_attr;
+    float surface_weight;
     std::shared_ptr<MaterialLambert> lambert;
     std::shared_ptr<MaterialBackLambert> back_lambert;
 };
