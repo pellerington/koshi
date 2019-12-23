@@ -11,7 +11,22 @@ void VolumeStack::build(const float &tend)
 
         // If we have atleast one volume and things on the stack, add the tmax to the last
         if(volume_tracker.size() > 0 && volumes.size() > 0)
+        {
             volumes.back().tmax = hit->first;
+            volumes.back().tlen = volumes.back().tmax - volumes.back().tmin;
+            volumes.back().inv_tlen = 1.f / volumes.back().tlen;
+
+            const Vec3f pmin = ray.get_position(volumes.back().tmin);
+            const Vec3f pmax = ray.get_position(volumes.back().tmax);
+
+            volumes.back().uvw_min.resize(volumes.back().volumes.size());
+            volumes.back().uvw_len.resize(volumes.back().volumes.size());
+            for(uint i = 0; i < volumes.back().volumes.size(); i++)
+            {
+                volumes.back().uvw_min[i] = volumes.back().volumes[i]->world_to_obj->multiply(pmin);
+                volumes.back().uvw_len[i] = volumes.back().volumes[i]->world_to_obj->multiply(pmax) - volumes.back().uvw_min[i];
+            }
+        }
 
         // Update current volumes
         for(auto hit_volume = hit->second.begin(); hit_volume != hit->second.end(); hit_volume++)
@@ -40,8 +55,22 @@ void VolumeStack::build(const float &tend)
     if(volume_tracker.size() > 0)
     {
         volumes.back().tmax = tend;
-        exit_volumes.insert(exit_volumes.end(), volume_tracker.begin(), volume_tracker.end());
-        inside_object_volumes.insert(inside_object_volumes.end(), volume_tracker.begin(), volume_tracker.end());
+        volumes.back().tlen = volumes.back().tmax - volumes.back().tmin;
+        volumes.back().inv_tlen = 1.f / volumes.back().tlen;
+
+        const Vec3f pmin = ray.get_position(volumes.back().tmin);
+        const Vec3f pmax = ray.get_position(volumes.back().tmax);
+
+        volumes.back().uvw_min.resize(volumes.back().volumes.size());
+        volumes.back().uvw_len.resize(volumes.back().volumes.size());
+        for(uint i = 0; i < volumes.back().volumes.size(); i++)
+        {
+            volumes.back().uvw_min[i] = volumes.back().volumes[i]->world_to_obj->multiply(pmin);
+            volumes.back().uvw_len[i] = volumes.back().volumes[i]->world_to_obj->multiply(pmax) - volumes.back().uvw_min[i];
+        }
+
+        passthrough_volumes.insert(passthrough_volumes.end(), volume_tracker.begin(), volume_tracker.end());
+        passthrough_transmission_volumes.insert(passthrough_transmission_volumes.end(), volume_tracker.begin(), volume_tracker.end());
     }
 
     tmin = tmax = 0.f;

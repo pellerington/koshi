@@ -22,7 +22,7 @@ public:
            std::shared_ptr<Volume> volume = nullptr,
            const bool &hide_camera = false)
     : obj_to_world(obj_to_world), world_to_obj(Transform3f::inverse(obj_to_world)),
-      light(light), material(material), volume(volume ? std::shared_ptr<Volume>(new Volume(*volume)) : nullptr),
+      light(light), material(material), volume(volume ? std::shared_ptr<Volume>(new Volume(*volume, &world_to_obj)) : nullptr),
       hide_camera(hide_camera) {}
 
     enum Type
@@ -67,7 +67,7 @@ public:
     virtual bool variable_visibility() { return hide_camera; }
     virtual bool process_visibility_intersection(const bool camera) { return !(camera && hide_camera); }
 
-    virtual void process_volume_intersection(const float t, const bool front, VolumeStack * volumes) // GIVE THIS BETTER ARGUMENTS
+    virtual void process_volume_intersection(const Ray &ray, const float t, const bool front, VolumeStack * volumes) // GIVE THIS BETTER ARGUMENTS
     {
         if(front)
             volumes->add_intersect(t, volume, (material != nullptr));
@@ -90,5 +90,7 @@ protected:
     RTCGeometry geom;
     Box3f bbox;
     uint id = -1;
+
+    // This can be accessed via the embree api.
     void (*intersection_callback)(const RTCFilterFunctionNArguments *) = nullptr;
 };

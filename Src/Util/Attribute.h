@@ -14,11 +14,7 @@ public:
     inline Vec3f get_value(const float &u, const float &v, const float &w) const
     {
         if(texture)
-        {
-            Vec3f out;
-            texture->get_vec3f(u, v, w, out);
-            return value * out;
-        }
+            return value * texture->get_vec3f(u, v, w);
         return value;
     }
 
@@ -38,11 +34,7 @@ public:
     inline float get_value(const float &u, const float &v, const float &w) const
     {
         if(texture)
-        {
-            float out;
-            texture->get_float(u, v, w, out);
-            return value * out;
-        }
+            return value * texture->get_float(u, v, w);
         return value;
     }
 

@@ -10,12 +10,13 @@ void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
     if(!(*(args->valid) = obj->process_visibility_intersection(context->ray->camera) ? -1 : 0))
         return;
 
+    // Also include primID for volume objects
     const double t = RTCRayN_tfar(args->ray, args->N, 0);
     const Vec3f normal = Vec3f::normalize(Vec3f(RTCHitN_Ng_x(args->hit, args->N, 0), RTCHitN_Ng_y(args->hit, args->N, 0), RTCHitN_Ng_z(args->hit, args->N, 0)));
     const bool front = normal.dot(-context->ray->dir) > 0.f;
 
     if(obj->volume)
-        obj->process_volume_intersection(t, front, context->volume_stack);
+        obj->process_volume_intersection(*context->ray, t, front, context->volume_stack);
 
     *(args->valid) = (obj->material != nullptr || obj->light != nullptr) ? -1 : 0;
 }
@@ -42,7 +43,7 @@ void Scene::pre_render()
 
 Intersect Scene::intersect(Ray &ray)
 {
-    VolumeStack volume_stack(ray.in_volumes);
+    VolumeStack volume_stack(ray, ray.in_volumes);
 
     IntersectContext context;
     context.scene = this;

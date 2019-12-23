@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Volume.h"
+#include "../Util/Ray.h"
 
 #include <vector>
 #include <map>
@@ -12,26 +13,30 @@
 struct VolumeIntersect
 {
     float tmin, tmax;
+    float tlen, inv_tlen;
     Vec3f max_density, min_density;
     std::vector<Volume*> volumes;
-    //Vector<Vec3f> UVW_BEGIN, UVW_LEN
+
+    std::vector<Vec3f> uvw_min;
+    std::vector<Vec3f> uvw_len;
 };
 
 class VolumeStack
 {
 public:
-    VolumeStack(const std::vector<Volume*> * entry_volumes = nullptr)
+    VolumeStack(const Ray &ray, const std::vector<Volume*> * _passthrough_volumes = nullptr)
+    : ray(ray)
     {
-        if(entry_volumes)
-        for(auto it = entry_volumes->begin(); it != entry_volumes->end(); it++)
+        if(_passthrough_volumes)
+        for(auto it = _passthrough_volumes->begin(); it != _passthrough_volumes->end(); it++)
             hits[0.f].push_back(VolumeHit(true, *it));
     }
 
-    inline void add_intersect(const float &t, const std::shared_ptr<Volume> &volume, bool surface = false) {
-        if(!surface)
+    inline void add_intersect(const float &t, const std::shared_ptr<Volume> &volume, bool end = false) {
+        if(!end)
             hits[t].push_back(VolumeHit(true, volume.get()));
         else
-            inside_object_volumes.push_back(volume.get());
+            passthrough_transmission_volumes.push_back(volume.get());
     }
     inline void sub_intersect(const float &t, const std::shared_ptr<Volume> &volume) {
         hits[t].push_back(VolumeHit(false, volume.get()));
@@ -48,22 +53,23 @@ public:
 
     void build(const float &tend);
 
-    inline const std::vector<Volume*> * get_exit_volumes() const { return &exit_volumes; }
-    inline const std::vector<Volume*> * get_inside_object_volumes() const { return &inside_object_volumes; }
+    inline const std::vector<Volume*> * get_passthrough_volumes() const { return &passthrough_volumes; }
+    inline const std::vector<Volume*> * get_passthrough_transmission_volumes() const { return &passthrough_transmission_volumes; }
 
-    float tmin, tmax;
+    const Ray ray;
+    float tmin, tmax; // should be private with accessors?
 
 private:
     struct VolumeHit {
-        VolumeHit(const bool add, Volume * volume) : add(add), volume(volume) {}
+        VolumeHit(const bool add, Volume * volume)
+        : add(add), volume(volume) {}
         const bool add;
         Volume * volume;
     };
     std::map<float, std::vector<VolumeHit>> hits;
 
-    std::vector<Volume*> exit_volumes;
-    std::vector<Volume*> inside_object_volumes;
+    std::vector<Volume*> passthrough_volumes;
+    std::vector<Volume*> passthrough_transmission_volumes;
 
     std::vector<VolumeIntersect> volumes;
-
 };

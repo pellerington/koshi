@@ -72,7 +72,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
 
         Ray ray(volume_samples[i].pos, volume_samples[i].wo);
         ray.ior = intersect.surface.ior;
-        ray.in_volumes = volume_samples[i].exit_volumes;
+        ray.in_volumes = volume_samples[i].passthrough_volumes;
 
         color += sample.msample->weight * integrate(ray, sample);
     }
@@ -132,7 +132,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         Ray ray((!inside_object) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
         ray.ior = get_next_ior(material, intersect.surface, inside_object);
         // Need to test case when reflecting while already inside an object which has a volume.
-        ray.in_volumes = (!inside_object) ? intersect.volumes.get_exit_volumes() : intersect.volumes.get_inside_object_volumes();
+        ray.in_volumes = (!inside_object) ? intersect.volumes.get_passthrough_volumes() : intersect.volumes.get_passthrough_transmission_volumes();
 
         const Vec3f in_color = (is_black(sample.msample->weight)) ? 0.f : integrate(ray, sample);
 
@@ -159,7 +159,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
 
         const float wo_dot_n = sample.msample->wo.dot(intersect.surface.normal);
         Ray ray((wo_dot_n >= 0.f) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
-        ray.in_volumes = (wo_dot_n >= 0.f) ? intersect.volumes.get_exit_volumes() : intersect.volumes.get_inside_object_volumes();
+        ray.in_volumes = (wo_dot_n >= 0.f) ? intersect.volumes.get_passthrough_volumes() : intersect.volumes.get_passthrough_transmission_volumes();
         ray.tmax = (sample.lsample->position - ray.pos).length() - EPSILON_F; // Set our tmax so we can perform shadowing.
 
         const Vec3f in_color = integrate(ray, sample);

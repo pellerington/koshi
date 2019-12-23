@@ -34,7 +34,10 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             std::vector<Vec3f> scattering_cache(volume_isect->volumes.size());
             for(uint i = 0; i < volume_isect->volumes.size(); i++)
             {
-                Vec3f idensity = volume_isect->volumes[i]->get_density();
+                // Temp
+                const Vec3f uvw = volume_isect->uvw_min[i] + volume_isect->uvw_len[i] * ((t - volume_isect->tmin) * volume_isect->inv_tlen);
+
+                Vec3f idensity = volume_isect->volumes[i]->get_density(uvw);
                 density += idensity;
                 scattering_cache[i] = idensity * volume_isect->volumes[i]->get_scattering();
                 scattering += scattering_cache[i];
@@ -74,7 +77,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                 has_scatter = true;
                 sample.pos = ray.get_position(t);
                 sample.quality = 1.f;
-                sample.exit_volumes = &volume_isect->volumes;
+                sample.passthrough_volumes = &volume_isect->volumes;
 
                 if(volume_isect->volumes.size() > 1)
                 {

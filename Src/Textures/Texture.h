@@ -7,8 +7,8 @@
 class Texture
 {
 public:
-    virtual const bool get_vec3f(const float &u, const float &v, const float &w, Vec3f &out) { return false; }
-    virtual const bool get_float(const float &u, const float &v, const float &w, float &out) { return false; }
+    virtual const Vec3f get_vec3f(const float &u, const float &v, const float &w) { return false; }
+    virtual const float get_float(const float &u, const float &v, const float &w) { return false; }
 
     // const bool get_vec4f(const Surface &surface, Vec4f &out) { return false; }
     // virtual const bool get_float(const Surface &surface, float &out) { return false; }

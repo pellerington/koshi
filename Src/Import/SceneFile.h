@@ -97,7 +97,6 @@ public:
                         std::shared_ptr<Texture> texture(new Gradient(min, max, axis));
                         scene.add_texture(texture);
                         textures[(*it)["name"]] = texture;
-
                     }
                 }
             }
@@ -195,6 +194,7 @@ public:
                     {
                         const float density = get_float(*it, "density");
                         const Vec3f subsurface_transparency = get_vec3f(*it, "subsurface_transparency");
+                        const Vec3f subsurface_density = Vec3f::clamp(VEC3F_ONES-subsurface_transparency, 0.f, 1.f) * density;
                         const Vec3f subsurface_color = get_vec3f(*it, "subsurface_color");
 
                         const Vec3f surface_color = get_vec3f(*it, "surface_color");
@@ -203,7 +203,7 @@ public:
                         const float surface_weight = get_float(*it, "surface_weight");
                         std::shared_ptr<Texture> surface_weight_texture = ((*it)["surface_weight_texture"].is_string()) ? textures[(*it)["surface_weight_texture"]] : nullptr;
 
-                        std::shared_ptr<Volume> volume(new Volume(density, subsurface_color, 0.f, subsurface_transparency));
+                        std::shared_ptr<Volume> volume(new Volume(subsurface_density, nullptr, subsurface_color, 0.f));
                         volumes[std::string("material_") + std::string((*it)["name"])] = volume;
 
                         std::shared_ptr<Material> material(new MaterialSubsurface(
@@ -227,11 +227,14 @@ public:
                     {
                         const float density = get_float(*it, "density");
                         const Vec3f transparency = get_vec3f(*it, "transparency");
+                        const Vec3f density_gain = Vec3f::clamp(VEC3F_ONES-transparency, 0.f, 1.f)*density;
+                        std::shared_ptr<Texture> density_texture = ((*it)["density_texture"].is_string()) ? textures[(*it)["density_texture"]] : nullptr;
+
                         const float g = get_float(*it, "anistropy");
                         const Vec3f scattering = get_vec3f(*it, "scattering");
                         const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Volume> volume(new Volume(density, scattering, g, transparency, emission));
+                        std::shared_ptr<Volume> volume(new Volume(density_gain, density_texture, scattering, g, emission));
                         volumes[(*it)["name"]] = volume;
                     }
                 }
