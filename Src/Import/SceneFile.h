@@ -20,6 +20,7 @@
 #include "../Textures/Image.h"
 #include "../Textures/Checker.h"
 #include "../Textures/Gradient.h"
+#include "../Textures/OpenVDB.h"
 #include "MeshFile.h"
 #include "../Export/DebugObj.h"
 
@@ -82,6 +83,7 @@ public:
                             textures[(*it)["name"]] = texture;
                         }
                     }
+
                     if((*it)["type"] == "checker")
                     {
                         const Vec3f scale = get_vec3f(*it, "scale", 0.f);
@@ -89,6 +91,7 @@ public:
                         scene.add_texture(texture);
                         textures[(*it)["name"]] = texture;
                     }
+
                     if((*it)["type"] == "gradient")
                     {
                         const Vec3f min = get_vec3f(*it, "min", 0.f);
@@ -98,6 +101,17 @@ public:
                         scene.add_texture(texture);
                         textures[(*it)["name"]] = texture;
                     }
+
+                    if((*it)["type"] == "openvdb")
+                    {
+                        const std::string filename = (*it)["filename"];
+                        const std::string gridname = (*it)["gridname"];
+
+                        std::shared_ptr<Texture> texture(new OpenVDB(filename, gridname));
+                        scene.add_texture(texture);
+                        textures[(*it)["name"]] = texture;
+                    }
+
                 }
             }
         }
