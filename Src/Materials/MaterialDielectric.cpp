@@ -1,6 +1,5 @@
 #include "MaterialDielectric.h"
 
-#include "../Math/RNG.h"
 #include "../Math/Helpers.h"
 #include "../Util/Color.h"
 #include <cmath>
@@ -16,18 +15,19 @@ MaterialDielectric::MaterialDielectric(const AttributeVec3f &reflective_color_at
     ggx_refract = std::shared_ptr<MaterialGGXRefract>(new MaterialGGXRefract(refractive_color_attribute, roughness_attribute, ior, fresnel));
 }
 
-std::shared_ptr<Material> MaterialDielectric::instance(const Surface * surface)
+std::shared_ptr<Material> MaterialDielectric::instance(const Surface * surface, RNG &rng)
 {
     std::shared_ptr<MaterialDielectric> material(new MaterialDielectric(*this));
     material->surface = surface;
+    material->rng = &rng;
 
     const float ior_in = surface->ior.curr_ior;
     const float ior_out = surface->front ? ior : ((surface->ior.prev) ? surface->ior.prev->curr_ior : 1.f);
 
     material->fresnel = std::shared_ptr<Fresnel>(new FresnelDielectric(ior_in, ior_out));
-    material->ggx_reflect = std::dynamic_pointer_cast<MaterialGGXReflect>(material->ggx_reflect->instance(surface));
+    material->ggx_reflect = std::dynamic_pointer_cast<MaterialGGXReflect>(material->ggx_reflect->instance(surface, rng));
     material->ggx_reflect->set_fresnel(material->fresnel);
-    material->ggx_refract = std::dynamic_pointer_cast<MaterialGGXRefract>(material->ggx_refract->instance(surface));
+    material->ggx_refract = std::dynamic_pointer_cast<MaterialGGXRefract>(material->ggx_refract->instance(surface, rng));
     material->ggx_refract->set_fresnel(material->fresnel);
 
     return material;

@@ -8,7 +8,7 @@ class MaterialSubsurface : public Material
 {
 public:
     MaterialSubsurface(const AttributeVec3f &surface_color_attr, const AttributeFloat &surface_weight);
-    std::shared_ptr<Material> instance(const Surface * surface);
+    std::shared_ptr<Material> instance(const Surface * surface, RNG &rng);
 
     Type get_type() { return Material::Subsurface; }
 

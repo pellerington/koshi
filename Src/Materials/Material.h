@@ -4,6 +4,8 @@
 #include <queue>
 #include <memory>
 #include "../Math/Types.h"
+#include "../Math/RNG.h"
+
 #include "../Util/Surface.h"
 #include "../Util/Attribute.h"
 class Surface;
@@ -30,7 +32,7 @@ class Material
 {
 public:
     // Global variables should be set in the construtor. Instanced variables should be set in the instance method (ie texture evalutation).
-    virtual std::shared_ptr<Material> instance(const Surface * surface = nullptr) { return std::shared_ptr<Material>(new Material()); }
+    virtual std::shared_ptr<Material> instance(const Surface * surface, RNG &rng) { return std::shared_ptr<Material>(new Material()); }
 
     enum Type
     {
@@ -50,4 +52,5 @@ public:
 
 protected:
     const Surface * surface = nullptr;
+    RNG * rng = nullptr;
 };

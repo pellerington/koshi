@@ -28,16 +28,15 @@ LightArea::LightArea(const Transform3f &obj_to_world, std::shared_ptr<Light> lig
     area = obj_to_world.multiply(Vec3f(2.f, 0.f, 0.f), false).length() * obj_to_world.multiply(Vec3f(0.f, 2.f, 0.f), false).length();
 }
 
-bool LightArea::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples)
+bool LightArea::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, RNG &rng)
 {
     //CHECK IF WE ARE ABOVE THE LIGHT AND !DOUBLE SIDED THEN RETURN FALSE
-
-    std::vector<Vec2f> rnd;
-    RNG::Rand2d(num_samples, rnd);
-
-    for(uint i = 0; i < rnd.size(); i++)
+    rng.Reset2D();
+    for(uint i = 0; i < num_samples; i++)
     {
-        const Vec3f light_pos = obj_to_world * Vec3f(rnd[i][0]*2.f-1.f, rnd[i][1]*2.f-1.f, 0.f);
+        const Vec2f rnd = rng.Rand2D();
+
+        const Vec3f light_pos = obj_to_world * Vec3f(rnd[0]*2.f-1.f, rnd[1]*2.f-1.f, 0.f);
         const Vec3f dir = *pos - light_pos;
         const float sqr_len = dir.sqr_length();
         const float cos_theta = normal.dot(dir / sqrtf(sqr_len));
@@ -47,7 +46,7 @@ bool LightArea::sample_light(const uint num_samples, const Vec3f * pos, const Ve
         light_samples.emplace_back();
         LightSample &light_sample = light_samples.back();
 
-        light_sample.position = obj_to_world * Vec3f(rnd[i][0]*2.f-1.f, rnd[i][1]*2.f-1.f, 0.f);
+        light_sample.position = light_pos;
         light_sample.intensity = light->get_emission();
         light_sample.pdf = sqr_len / (area * (fabs(cos_theta) + EPSILON_F));
     }

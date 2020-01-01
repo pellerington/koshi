@@ -31,13 +31,9 @@ int main(int argc, char *argv[])
     }
 
     // std::vector<Vec3f> points;
-    // int num_samples = 256;
-    // std::vector<Vec2f> rnd;
-    // RNG::Rand2d(num_samples, rnd);
     // for(int i = 0; i < num_samples; i++)
     // {
-    //     points.push_back(wo);
-    //     points.push_back(h);
+    //     points.push_back(point);
     // }
     // DebugObj::Points(points);
 

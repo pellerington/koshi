@@ -1,6 +1,5 @@
 #include "MaterialSubsurface.h"
 
-#include "../Math/RNG.h"
 #include "../Math/Helpers.h"
 #include "../Util/Color.h"
 #include <cmath>
@@ -13,13 +12,14 @@ MaterialSubsurface::MaterialSubsurface(const AttributeVec3f &surface_color, cons
     back_lambert = std::shared_ptr<MaterialBackLambert>(new MaterialBackLambert(surface_color));
 }
 
-std::shared_ptr<Material> MaterialSubsurface::instance(const Surface * surface)
+std::shared_ptr<Material> MaterialSubsurface::instance(const Surface * surface, RNG &rng)
 {
     std::shared_ptr<MaterialSubsurface> material(new MaterialSubsurface(*this));
     material->surface = surface;
+    material->rng = &rng;
     material->surface_weight = surface_weight_attr.get_value(surface->u, surface->v, 0.f);
-    material->lambert = std::dynamic_pointer_cast<MaterialLambert>(material->lambert->instance(surface));
-    material->back_lambert = std::dynamic_pointer_cast<MaterialBackLambert>(material->back_lambert->instance(surface));
+    material->lambert = std::dynamic_pointer_cast<MaterialLambert>(material->lambert->instance(surface, rng));
+    material->back_lambert = std::dynamic_pointer_cast<MaterialBackLambert>(material->back_lambert->instance(surface, rng));
     return material;
 }
 

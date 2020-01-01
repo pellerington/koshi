@@ -9,11 +9,16 @@
 
 struct Pixel
 {
+    Pixel(uint x, uint y, uint required_samples, std::vector<uint> &seeds, const RNG &rng)
+    : pixel(x, y), color(VEC3F_ZERO), required_samples(required_samples), current_sample(0), seeds(std::move(seeds)), rng(std::move(rng))
+    {}
+        
     Vec2u pixel;
-    Vec3f color = VEC3F_ZERO;
-    uint required_samples = 0;
-    float current_sample = 0.f;
-    std::vector<Vec2f> rng;
+    Vec3f color;
+    uint required_samples;
+    uint current_sample;
+    std::vector<uint> seeds;
+    RNG rng;
 };
 
 class Render

@@ -17,13 +17,14 @@ public:
     Volume(const Vec3f &_density, const std::shared_ptr<Texture> _density_texture, const Vec3f &scattering = VEC3F_ZERO, const float &g = 0.f, const Vec3f &emission = VEC3F_ZERO);
     Volume(const Volume &volume, const Transform3f * _world_to_obj) : Volume(volume) { world_to_obj = _world_to_obj; }
 
+    // This shouldn't be public and changable.
     Vec3f max_density, min_density;
 
     virtual bool is_heterogeneous() { return false; }
     // is_multiscattering???
     // is_exclusive???
 
-    virtual bool sample_volume(const Vec3f &wi, VolumeSample &sample); // UVW as well?
+    virtual bool sample_volume(const Vec3f &wi, VolumeSample &sample, const Vec2f &rand); // UVW as well?
     virtual bool evaluate_volume(const Vec3f &wi, VolumeSample &sample); // Needs wo // UVW as well?
 
     virtual Vec3f get_density(const Vec3f &uvw = VEC3F_ZERO);

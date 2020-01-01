@@ -8,7 +8,7 @@ class MaterialGGXReflect : public Material
 {
 public:
     MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute, std::shared_ptr<Fresnel> fresnel);
-    std::shared_ptr<Material> instance(const Surface * surface);
+    std::shared_ptr<Material> instance(const Surface * surface, RNG &rng);
 
     Type get_type() { return Material::GGXReflect; }
 

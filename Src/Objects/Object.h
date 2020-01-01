@@ -75,7 +75,7 @@ public:
             volumes->sub_intersect(t, volume);
     }
 
-    virtual bool sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples) { return false; }
+    virtual bool sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, RNG &rng) { return false; }
     virtual bool evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample) { return false; }
 
     // These should be const

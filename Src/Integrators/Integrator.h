@@ -14,13 +14,13 @@ public:
     virtual void pre_render() = 0;
 
     // Perform the actual integration along a ray. Eg. Bidirectional would actually generate light path here.
-    virtual Vec3f integrate(Ray &ray) const = 0;
+    virtual Vec3f integrate(Ray &ray, RNG &rng) const = 0;
 
 protected:
     Scene * scene;
 };
 
-// Move to integrator helper functions header
+// Move to integrator helper functions header? or into some kind of medium stack?
 inline IorStack get_next_ior(const std::shared_ptr<Material> &material, const Surface &surface, const bool inside_object)
 {
     // If we are entering an object add the material ior.

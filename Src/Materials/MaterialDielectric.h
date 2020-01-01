@@ -12,7 +12,7 @@ public:
                        const AttributeVec3f &refractive_color_attribute,
                        const AttributeFloat &roughness_attribute,
                        const float &ior = 1.f);
-    std::shared_ptr<Material> instance(const Surface * surface);
+    std::shared_ptr<Material> instance(const Surface * surface, RNG &rng);
 
     Type get_type() { return Material::Dielectric; }
 

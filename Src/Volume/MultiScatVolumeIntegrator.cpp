@@ -1,7 +1,7 @@
 #include "MultiScatVolumeIntegrator.h"
 
-MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample)
-: VolumeIntegrator(scene, ray, volumes)
+MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample, RNG &rng)
+: VolumeIntegrator(scene, ray, volumes, rng)
 {
     weight = VEC3F_ONES;
     tmax = FLT_MAX;
@@ -15,6 +15,8 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
 
     float t = volumes.tmin;
 
+    rng.Reset();
+    rng.Reset2D();
     for(auto volume_isect = volumes.begin(); volume_isect != volumes.end(); volume_isect++)
     {
         t = volume_isect->tmin;
@@ -23,7 +25,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
         {
             //Sample a position
             float sampling_density = volume_isect->max_density.max();
-            t += -std::log(RNG::Rand()) / sampling_density;
+            t += -std::log(rng.Rand()) / sampling_density;
 
             // if we are outside the volume intersect we are done.
             if(t >= volume_isect->tmax) break;
@@ -56,7 +58,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
             n_prob *= inv_sum; s_prob *= inv_sum; a_prob *= inv_sum;
 
             // Generate a random number
-            const float r = RNG::Rand();
+            const float r = rng.Rand();
 
             // Absorbtion event
             if(r < a_prob)
@@ -82,7 +84,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                 if(volume_isect->volumes.size() > 1)
                 {
                     // Set up sample
-                    volume_isect->volumes[0]->sample_volume(ray.dir, sample);
+                    volume_isect->volumes[0]->sample_volume(ray.dir, sample, rng.Rand2D());
                     weight *= scattering / (sampling_density * s_prob);
                     sample.weight = weight;
                     data.weight_history = weight_history * weight;
@@ -96,7 +98,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                         inv_scattering_sum += scattering_cache[i].max();
                     inv_scattering_sum = 1.f / inv_scattering_sum;
 
-                    const float r = RNG::Rand();
+                    const float r = rng.Rand();
                     float culm_prob = 0.f;
                     for(uint i = 0; i < scattering_cache.size(); i++)
                     {
@@ -105,7 +107,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                         if(culm_prob > r)
                         {
                             // Sample this volume
-                            volume_isect->volumes[i]->sample_volume(ray.dir, sample);
+                            volume_isect->volumes[i]->sample_volume(ray.dir, sample, rng.Rand2D());
                             weight *= scattering_cache[i] / (sampling_density * s_prob * prob);
                             sample.weight = weight;
                             data.weight_history = weight_history * weight;

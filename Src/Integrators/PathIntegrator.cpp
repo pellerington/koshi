@@ -12,7 +12,7 @@ void PathIntegrator::pre_render()
     quality_threshold = std::pow(1.f / SAMPLES_PER_SA, scene->settings.depth);
 }
 
-Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
+Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, RNG &rng) const
 {
     // Initialize output
     Vec3f color = VEC3F_ZERO;
@@ -23,12 +23,12 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
     // If this is a light sample shadow and return the value
     if(in_sample.type == PathSample::Light)
     {
-        ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes);
+        ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, rng);
         return (ray.hit) ? Vec3f(0.f) : volume_integrator.shadow(ray.tmax) * in_sample.lsample->intensity;
     }
 
     // Create a volume integrator
-    MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, dynamic_cast<VolumeSample*>(in_sample.msample));
+    MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, dynamic_cast<VolumeSample*>(in_sample.msample), rng);
     // ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes /*Add volume insample here*/);
 
     // Add the emission from our volume
@@ -74,23 +74,23 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample) const
         ray.ior = intersect.surface.ior;
         ray.in_volumes = volume_samples[i].passthrough_volumes;
 
-        color += sample.msample->weight * integrate(ray, sample);
+        color += sample.msample->weight * integrate(ray, sample, rng);
     }
 
     // Scatter the surface
     if(!is_black(shadow_tmax) && ray.hit)
-        color +=  shadow_tmax * scatter_surface(intersect, in_sample);
+        color +=  shadow_tmax * scatter_surface(intersect, in_sample, rng);
 
     return color;
 }
 
-Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in_sample) const
+Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in_sample, RNG &rng) const
 {
     // Initialize output
     Vec3f color = VEC3F_ZERO;
 
     // Get our material instance
-    std::shared_ptr<Material> material = (intersect.object->material) ? intersect.object->material->instance(&intersect.surface)
+    std::shared_ptr<Material> material = (intersect.object->material) ? intersect.object->material->instance(&intersect.surface, rng)
                                                                       : std::shared_ptr<Material>(new Material());
 
     // Setup sampling variables
@@ -105,7 +105,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
     // Sample the lights
     std::vector<LightSample> light_samples;
     if(scene->settings.sample_lights)
-        scene->sample_lights(intersect.surface, light_samples, sample_multiplier);
+        scene->sample_lights(intersect.surface, light_samples, sample_multiplier, rng);
     const uint n_light_samples = light_samples.size();
 
     // Return if we have no samples
@@ -134,7 +134,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         // Need to test case when reflecting while already inside an object which has a volume.
         ray.in_volumes = (!inside_object) ? intersect.volumes.get_passthrough_volumes() : intersect.volumes.get_passthrough_transmission_volumes();
 
-        const Vec3f in_color = (is_black(sample.msample->weight)) ? 0.f : integrate(ray, sample);
+        const Vec3f in_color = (is_black(sample.msample->weight)) ? 0.f : integrate(ray, sample, rng);
 
         float weight = material_sample_weight;
         if(multiple_importance_sample)
@@ -162,7 +162,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         ray.in_volumes = (wo_dot_n >= 0.f) ? intersect.volumes.get_passthrough_volumes() : intersect.volumes.get_passthrough_transmission_volumes();
         ray.tmax = (sample.lsample->position - ray.pos).length() - EPSILON_F; // Set our tmax so we can perform shadowing.
 
-        const Vec3f in_color = integrate(ray, sample);
+        const Vec3f in_color = integrate(ray, sample, rng);
 
         float weight = light_sample_weight;
         if(multiple_importance_sample)

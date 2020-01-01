@@ -1,6 +1,5 @@
 #include "MaterialGGXRefract.h"
 
-#include "../Math/RNG.h"
 #include "../Math/Helpers.h"
 #include "../Util/Color.h"
 #include <cmath>
@@ -11,10 +10,11 @@ MaterialGGXRefract::MaterialGGXRefract(const AttributeVec3f &refractive_color_at
 {
 }
 
-std::shared_ptr<Material> MaterialGGXRefract::instance(const Surface * surface)
+std::shared_ptr<Material> MaterialGGXRefract::instance(const Surface * surface, RNG &rng)
 {
     std::shared_ptr<MaterialGGXRefract> material(new MaterialGGXRefract(*this));
     material->surface = surface;
+    material->rng = &rng;
     material->ior_in = surface->ior.curr_ior;
     material->ior_out = surface->front ? ior : ((surface->ior.prev) ? surface->ior.prev->curr_ior : 1.f);
     material->refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f);
@@ -34,14 +34,14 @@ bool MaterialGGXRefract::sample_material(std::vector<MaterialSample> &samples, c
     uint num_samples = SAMPLES_PER_SA * sqrtf(roughness);
     const float quality = 1.f / num_samples;
     num_samples = std::max(1.f, num_samples * sample_reduction);
-
-    std::vector<Vec2f> rnd;
-    RNG::Rand2d(num_samples, rnd);
-
-    for(uint i = 0; i < rnd.size(); i++)
+    rng->Reset2D();
+    
+    for(uint i = 0; i < num_samples; i++)
     {
-        const float theta = TWO_PI * rnd[i][0];
-        const float phi = atanf(roughness * sqrtf(rnd[i][1]) / sqrtf(1.f - rnd[i][1]));
+        const Vec2f rnd = rng->Rand2D();
+
+        const float theta = TWO_PI * rnd[0];
+        const float phi = atanf(roughness * sqrtf(rnd[1]) / sqrtf(1.f - rnd[1]));
         const Vec3f h = ((surface->front) ? 1.f : -1.f) * (surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
 
         const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);

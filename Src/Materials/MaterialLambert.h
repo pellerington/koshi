@@ -6,7 +6,7 @@ class MaterialLambert : public Material
 {
 public:
     MaterialLambert(const AttributeVec3f &diffuse_color_attr);
-    std::shared_ptr<Material> instance(const Surface * surface);
+    std::shared_ptr<Material> instance(const Surface * surface, RNG &rng);
 
     Type get_type() { return Material::Lambert; }
 
