@@ -9,27 +9,25 @@ MaterialBackLambert::MaterialBackLambert(const AttributeVec3f &diffuse_color_att
 {
 }
 
-std::shared_ptr<Material> MaterialBackLambert::instance(const Surface * surface, RNG &rng)
+std::shared_ptr<MaterialInstance> MaterialBackLambert::instance(const Surface * surface)
 {
-    std::shared_ptr<MaterialBackLambert> material(new MaterialBackLambert(*this));
-    material->surface = surface;
-    material->rng = &rng;
-    material->diffuse_color = diffuse_color_attr.get_value(surface->u, surface->v, 0.f);
-    return material;
+    std::shared_ptr<MaterialInstanceBackLambert> instance(new MaterialInstanceBackLambert);
+    instance->surface = surface;
+    instance->diffuse_color = diffuse_color_attr.get_value(surface->u, surface->v, 0.f);
+    return instance;
 }
 
-bool MaterialBackLambert::sample_material(std::vector<MaterialSample> &samples, const float sample_reduction)
+bool MaterialBackLambert::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction)
 {
-    if(!surface)
-        return false;
+    const MaterialInstanceBackLambert * instance = dynamic_cast<const MaterialInstanceBackLambert *>(material_instance);
 
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_reduction);
     const float quality = 1.f / SAMPLES_PER_SA;
-    rng->Reset2D();
-    
+    rng.Reset2D();
+
     for(uint i = 0; i < num_samples; i++)
     {
-        const Vec2f rnd = rng->Rand2D();
+        const Vec2f rnd = rng.Rand2D();
 
         samples.emplace_back();
         MaterialSample &sample = samples.back();
@@ -37,9 +35,9 @@ bool MaterialBackLambert::sample_material(std::vector<MaterialSample> &samples, 
 
         const float theta = TWO_PI * rnd[0];
         const float r = sqrtf(rnd[1]);
-        const float x = r * cosf(theta), z = r * sinf(theta), y = ((surface->front) ? -1.f : 1.f) * sqrtf(std::max(EPSILON_F, 1.f - rnd[1]));
-        sample.wo = surface->transform * Vec3f(x, y, z);
-        sample.weight = diffuse_color * INV_PI * fabs(sample.wo.dot(surface->normal));
+        const float x = r * cosf(theta), z = r * sinf(theta), y = ((instance->surface->front) ? -1.f : 1.f) * sqrtf(std::max(EPSILON_F, 1.f - rnd[1]));
+        sample.wo = instance->surface->transform * Vec3f(x, y, z);
+        sample.weight = instance->diffuse_color * INV_PI * fabs(sample.wo.dot(instance->surface->normal));
         sample.pdf = fabs(y) * INV_PI;
         sample.type = MaterialSample::Diffuse;
     }
@@ -47,13 +45,15 @@ bool MaterialBackLambert::sample_material(std::vector<MaterialSample> &samples, 
     return true;
 }
 
-bool MaterialBackLambert::evaluate_material(MaterialSample &sample)
+bool MaterialBackLambert::evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample)
 {
-    if(!surface || sample.wo.dot(surface->normal) * surface->n_dot_wi > 0.f)
+    const MaterialInstanceBackLambert * instance = dynamic_cast<const MaterialInstanceBackLambert *>(material_instance);
+
+    if(sample.wo.dot(instance->surface->normal) * instance->surface->n_dot_wi > 0.f)
         return false;
 
-    const float n_dot_wo = fabs(sample.wo.dot(surface->normal));
-    sample.weight = diffuse_color * INV_PI * n_dot_wo;
+    const float n_dot_wo = fabs(sample.wo.dot(instance->surface->normal));
+    sample.weight = instance->diffuse_color * INV_PI * n_dot_wo;
     sample.pdf = n_dot_wo * INV_PI;
 
     return true;

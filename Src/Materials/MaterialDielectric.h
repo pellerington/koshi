@@ -12,17 +12,26 @@ public:
                        const AttributeVec3f &refractive_color_attribute,
                        const AttributeFloat &roughness_attribute,
                        const float &ior = 1.f);
-    std::shared_ptr<Material> instance(const Surface * surface, RNG &rng);
-
     Type get_type() { return Material::Dielectric; }
 
-    bool sample_material(std::vector<MaterialSample> &samples, float sample_reduction = 1.f);
-    bool evaluate_material( MaterialSample &sample);
+    std::shared_ptr<MaterialInstance> instance(const Surface * surface);
+    struct MaterialInstanceDielectric : public MaterialInstance
+    {
+        MaterialGGXReflect::MaterialInstanceGGXReflect reflect_instance;
+        MaterialGGXRefract::MaterialInstanceGGXRefract refract_instance;
+    };
+
+    bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction);
+    bool evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample);
+
     const float get_ior() { return ior; }
 
 private:
-    std::shared_ptr<Fresnel> fresnel;
+    const AttributeVec3f reflective_color_attribute;
+    const AttributeVec3f refractive_color_attribute;
+    const AttributeFloat roughness_attribute;
     const float ior;
-    std::shared_ptr<MaterialGGXReflect> ggx_reflect;
-    std::shared_ptr<MaterialGGXRefract> ggx_refract;
+
+    MaterialGGXReflect ggx_reflect;
+    MaterialGGXRefract ggx_refract;
 };

@@ -6,14 +6,18 @@ class MaterialBackLambert : public Material
 {
 public:
     MaterialBackLambert(const AttributeVec3f &diffuse_color_attr);
-    std::shared_ptr<Material> instance(const Surface * surface, RNG &rng);
-
     Type get_type() { return Material::BackLambert; }
 
-    bool sample_material(std::vector<MaterialSample> &samples, float sample_reduction = 1.f);
-    bool evaluate_material(MaterialSample &sample);
+    std::shared_ptr<MaterialInstance> instance(const Surface * surface);
+    struct MaterialInstanceBackLambert : public MaterialInstance
+    {
+        Vec3f diffuse_color;
+    };
+
+    bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction);
+    bool evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample);
 
 private:
+
     const AttributeVec3f diffuse_color_attr;
-    Vec3f diffuse_color;
 };

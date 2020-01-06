@@ -85,7 +85,7 @@ Intersect Scene::intersect(Ray &ray)
     }
 }
 
-void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier, RNG &rng)
+void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, RNG &rng, const float sample_multiplier)
 {
     for(size_t i = 0; i < lights.size(); i++)
     {

@@ -89,23 +89,24 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
     // Initialize output
     Vec3f color = VEC3F_ZERO;
 
-    // Get our material instance
-    std::shared_ptr<Material> material = (intersect.object->material) ? intersect.object->material->instance(&intersect.surface, rng)
-                                                                      : std::shared_ptr<Material>(new Material());
+    // Terminate if we have no material.
+    std::shared_ptr<Material> material = intersect.object->material;
+    if(!material) return color;
 
-    // Setup sampling variables
+    // Get our material instance
+    std::shared_ptr<MaterialInstance> material_instance = material->instance(&intersect.surface);
     const float sample_multiplier = scene->settings.quality * in_sample.quality;
 
     // Sample the material
     std::vector<MaterialSample> material_samples;
     if(scene->settings.sample_material)
-        material->sample_material(material_samples, sample_multiplier);
+        material->sample_material(material_instance.get(), material_samples, rng, sample_multiplier);
     const uint n_material_samples = material_samples.size();
 
     // Sample the lights
     std::vector<LightSample> light_samples;
     if(scene->settings.sample_lights)
-        scene->sample_lights(intersect.surface, light_samples, sample_multiplier, rng);
+        scene->sample_lights(intersect.surface, light_samples, rng, sample_multiplier);
     const uint n_light_samples = light_samples.size();
 
     // Return if we have no samples
@@ -155,7 +156,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         sample.msample = &msample;
         msample.wo = (sample.lsample->position - intersect.surface.position).normalized();
 
-        if(!material->evaluate_material(msample)) continue;
+        if(!material->evaluate_material(material_instance.get(), msample)) continue;
 
         const float wo_dot_n = sample.msample->wo.dot(intersect.surface.normal);
         Ray ray((wo_dot_n >= 0.f) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);

@@ -13,7 +13,6 @@
 
 int main(int argc, char *argv[])
 {
-
     std::cout << "Started Render." << '\n';
 
     int threads = 1;

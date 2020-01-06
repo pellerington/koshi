@@ -155,8 +155,7 @@ public:
 
                         std::shared_ptr<Material> material(new MaterialGGXReflect(
                             AttributeVec3f(specular_color_texture, specular_color),
-                            AttributeFloat(roughness_texture, roughness),
-                            nullptr
+                            AttributeFloat(roughness_texture, roughness)
                         ));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
@@ -174,8 +173,7 @@ public:
 
                         std::shared_ptr<Material> material(new MaterialGGXRefract(
                             AttributeVec3f(refractive_color_texture, refractive_color),
-                            AttributeFloat(roughness_texture, roughness),
-                            ior, nullptr
+                            AttributeFloat(roughness_texture, roughness), ior
                         ));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);

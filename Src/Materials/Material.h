@@ -22,18 +22,21 @@ struct MaterialSample
     enum Type { None, Diffuse, Glossy, Specular };
     Type type = Type::None;
 
-    struct VoidData { virtual ~VoidData() = default; };
-    VoidData * data = nullptr;
+    struct Data { virtual ~Data() = default; };
+    Data * data = nullptr;
 
     virtual ~MaterialSample() = default;
+};
+
+struct MaterialInstance
+{
+    const Surface * surface;
+    virtual ~MaterialInstance() = default;
 };
 
 class Material
 {
 public:
-    // Global variables should be set in the construtor. Instanced variables should be set in the instance method (ie texture evalutation).
-    virtual std::shared_ptr<Material> instance(const Surface * surface, RNG &rng) { return std::shared_ptr<Material>(new Material()); }
-
     enum Type
     {
         None,
@@ -46,11 +49,10 @@ public:
     };
     virtual Type get_type() { return None; }
 
-    virtual bool sample_material(std::vector<MaterialSample> &samples, const float sample_reduction = 1.f) { return false; }
-    virtual bool evaluate_material(MaterialSample &sample) { return false; }
-    virtual const float get_ior() { return 1.f; }
+    virtual std::shared_ptr<MaterialInstance> instance(const Surface * surface) { return nullptr; }
 
-protected:
-    const Surface * surface = nullptr;
-    RNG * rng = nullptr;
+    virtual bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction) { return false; }
+    virtual bool evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample) { return false; }
+
+    virtual const float get_ior() { return 1.f; } // This should require the material_instance.
 };

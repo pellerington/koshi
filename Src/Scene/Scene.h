@@ -36,7 +36,7 @@ public:
     static void intersection_callback(const RTCFilterFunctionNArguments * args);
     Intersect intersect(Ray &ray);
 
-    void sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier, RNG &rng);
+    void sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, RNG &rng, const float sample_multiplier);
     void evaluate_distant_lights(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample);
 
     const Camera camera;

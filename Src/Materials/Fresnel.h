@@ -3,7 +3,7 @@
 class Fresnel
 {
 public:
-    enum Types { None, Metalic, Dielectric, Conductor };
+    enum Types { None, Metalic, Dielectric, Conductor, Diffuse };
     virtual Vec3f Fr(const float &cosi) = 0;
     virtual Vec3f Ft(const float &cosi) { return 1.f - Fr(cosi); }
 };
