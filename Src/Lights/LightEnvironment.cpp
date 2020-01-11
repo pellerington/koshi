@@ -15,9 +15,6 @@ bool LightEnvironment::sample_light(const uint num_samples, const Vec3f * pos, c
 
 bool LightEnvironment::evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample)
 {
-    if(!intersect.distant)
-        return false;
-
     float theta = acosf(intersect.wi.y);
     float phi = atanf((intersect.wi.z + EPSILON_F) / (intersect.wi.x + EPSILON_F));
     const bool zd = intersect.wi.z > 0, xd = intersect.wi.x > 0;

@@ -2,6 +2,7 @@
 
 #include "../Math/Types.h"
 #include "../Objects/Object.h"
+#include "../Lights/LightCombiner.h"
 #include "../Materials/Material.h"
 #include "../Textures/Texture.h"
 #include "../Util/Intersect.h"
@@ -31,13 +32,12 @@ public:
     struct IntersectContext : public RTCIntersectContext {
         Scene * scene; // Make this one const
         Ray * ray;
-        VolumeStack * volume_stack;
+        VolumeStack * volumes;
     };
     static void intersection_callback(const RTCFilterFunctionNArguments * args);
     Intersect intersect(Ray &ray);
 
     void sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, RNG &rng, const float sample_multiplier);
-    void evaluate_distant_lights(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample);
 
     const Camera camera;
     const Settings settings;
@@ -55,6 +55,6 @@ private:
     std::vector<std::shared_ptr<Object>> objects;
     std::vector<std::shared_ptr<Material>> materials;
     std::vector<std::shared_ptr<Object>> lights;
-    std::vector<std::shared_ptr<Object>> distant_lights;
+    std::shared_ptr<LightCombiner> distant_lights = std::shared_ptr<LightCombiner>(new LightCombiner);
     std::vector<std::shared_ptr<Texture>> textures;
 };

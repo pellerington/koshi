@@ -14,7 +14,7 @@ public:
                const Transform3f &obj_to_world, std::shared_ptr<Material> material = nullptr, std::shared_ptr<Volume> volume = nullptr);
 
     Type get_type() { return Object::Mesh; }
-    Surface process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray);
+    void process_intersection(Surface &surface, const RTCRayHit &rtcRayHit, const Ray &ray);
 
     ~ObjectMesh();
 

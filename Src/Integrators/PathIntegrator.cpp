@@ -18,7 +18,7 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, RNG &rng) const
     Vec3f color = VEC3F_ZERO;
 
     // Intersect with our scene
-    Intersect intersect = scene->intersect(ray);
+    const Intersect intersect = scene->intersect(ray);
 
     // If this is a light sample shadow and return the value
     if(in_sample.type == PathSample::Light)
@@ -36,21 +36,14 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, RNG &rng) const
 
     // Evaluate any light we hit.
     const Vec3f shadow_tmax = volume_integrator.shadow(ray.t);
-    if(!is_black(shadow_tmax))
+    if(!is_black(shadow_tmax) && intersect.object)
     {
-        if(ray.hit && intersect.object->evaluate_light(intersect.surface, &ray.pos, nullptr, *in_sample.lsample))
-        {
+        if(intersect.object->evaluate_light(intersect.surface, &ray.pos, nullptr, *in_sample.lsample))
             color += shadow_tmax * in_sample.lsample->intensity;
-        }
-        else if(!ray.hit && ray.tmax == FLT_MAX)
-        {
-            scene->evaluate_distant_lights(intersect.surface, &ray.pos, nullptr, *in_sample.lsample);
-            color += volume_integrator.shadow(ray.tmax) * in_sample.lsample->intensity;
-        }
     }
 
     // Check if we should terminate early.
-    if(is_saturated(color) || in_sample.depth > scene->settings.max_depth)
+    if(is_saturated(color) || in_sample.depth > scene->settings.max_depth || (!ray.hit && !intersect.volumes.num_volumes()))
         return color;
 
     //Kill our ray if we are below the threshold.

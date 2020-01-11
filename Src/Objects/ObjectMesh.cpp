@@ -32,7 +32,7 @@ ObjectMesh::ObjectMesh(uint _vertices_size, uint _triangles_size, uint _normals_
     rtcSetSharedGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, tri_vert_index, 0, sizeof(TRI_DATA), triangles_size);
 }
 
-Surface ObjectMesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
+void ObjectMesh::process_intersection(Surface &surface, const RTCRayHit &rtcRayHit, const Ray &ray)
 {
     const Vec3f normal = (normals_size > 0)
     ? (Vec3f(normals[tri_norm_index[rtcRayHit.hit.primID].v0].x, normals[tri_norm_index[rtcRayHit.hit.primID].v0].y, normals[tri_norm_index[rtcRayHit.hit.primID].v0].z) * (1.f - (rtcRayHit.hit.u + rtcRayHit.hit.v))
@@ -50,11 +50,10 @@ Surface ObjectMesh::process_intersection(const RTCRayHit &rtcRayHit, const Ray &
         v = v0_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v0].v + v1_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v1].v + v2_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v2].v;
     }
 
-    return Surface(
+    surface.set_hit(
         ray.get_position(ray.t),
         normal,
         Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
-        ray.dir,
         u, v,
         ray.ior
     );

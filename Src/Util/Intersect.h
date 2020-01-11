@@ -1,11 +1,18 @@
 #pragma once
 
+#include "Ray.h"
+
 struct Intersect
 {
-    Intersect(const std::shared_ptr<Object> &object, const Surface &surface, const VolumeStack &volumes)
-    : object(object), surface(surface), volumes(volumes) {}
-    const std::shared_ptr<Object> object;
-    const Surface surface;
-    const VolumeStack volumes;
-    // Also incoming ray?
+    Intersect(Ray &ray)
+    : ray(ray), object(nullptr), surface(ray.dir), volumes(ray, ray.in_volumes)
+    {}
+
+    Ray &ray;
+
+    // Replace this with material_ptr, emission_ptr and object_id???
+    std::shared_ptr<Object> object;
+
+    Surface surface;
+    VolumeStack volumes;
 };

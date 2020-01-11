@@ -16,7 +16,7 @@ void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
     const bool front = normal.dot(-context->ray->dir) > 0.f;
 
     if(obj->volume)
-        obj->process_volume_intersection(*context->ray, t, front, context->volume_stack);
+        obj->process_volume_intersection(*context->ray, t, front, context->volumes);
 
     *(args->valid) = (obj->material != nullptr || obj->light != nullptr) ? -1 : 0;
 }
@@ -43,13 +43,12 @@ void Scene::pre_render()
 
 Intersect Scene::intersect(Ray &ray)
 {
-    VolumeStack volume_stack(ray, ray.in_volumes);
+    Intersect intersect(ray);
 
     IntersectContext context;
     context.scene = this;
     context.ray = &ray;
-    context.volume_stack = &volume_stack;
-
+    context.volumes = &intersect.volumes;
     RTCIntersectContext * rtc_context = &context;
     rtcInitIntersectContext(rtc_context);
 
@@ -67,22 +66,24 @@ Intersect Scene::intersect(Ray &ray)
     // Intersect ray with scene
     rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
 
-    volume_stack.build(rtcRayHit.ray.tfar);
+    intersect.volumes.build(rtcRayHit.ray.tfar);
 
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
         ray.hit = false;
-        Surface surface = (ray.tmax == FLT_MAX) ? Surface(ray.dir) : Surface();
-        return Intersect(nullptr, std::move(surface), std::move(volume_stack));
+        intersect.object = (ray.tmax == FLT_MAX) ? distant_lights : nullptr;
     }
     else
     {
         ray.t = rtcRayHit.ray.tfar;
         ray.tmax = rtcRayHit.ray.tfar;
         ray.hit = true;
-        Surface surface = rtc_to_obj[rtcRayHit.hit.geomID]->process_intersection(rtcRayHit, ray);
-        return Intersect(rtc_to_obj[rtcRayHit.hit.geomID], std::move(surface), std::move(volume_stack));
+
+        intersect.object = rtc_to_obj[rtcRayHit.hit.geomID];
+        intersect.object->process_intersection(intersect.surface, rtcRayHit, ray);
     }
+
+    return intersect;
 }
 
 void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, RNG &rng, const float sample_multiplier)
@@ -92,19 +93,6 @@ void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &ligh
         // Make a better num_samples estimator using bbox.
         const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_multiplier);
         lights[i]->sample_light(num_samples, &surface.position, nullptr, light_samples, rng);
-    }
-}
-
-void Scene::evaluate_distant_lights(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample)
-{
-    for(size_t i = 0; i < distant_lights.size(); i++)
-    {
-        LightSample isample;
-        if(distant_lights[i]->evaluate_light(intersect, pos, pfar, isample))
-        {
-            light_sample.intensity += isample.intensity;
-            light_sample.pdf += isample.pdf;
-        }
     }
 }
 
@@ -129,9 +117,8 @@ bool Scene::add_light(std::shared_ptr<Object> light)
 
 bool Scene::add_distant_light(std::shared_ptr<Object> light)
 {
-    distant_lights.push_back(light);
-    lights.push_back(light);
-    add_object(light);
+    distant_lights->add_light(light);
+    add_light(light);
     return true;
 }
 

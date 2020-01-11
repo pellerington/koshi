@@ -12,24 +12,41 @@ struct Surface
 {
     Surface() {}
 
-    Surface(const Vec3f &position, const Vec3f &normal, const Vec3f &geometric_normal, const Vec3f &wi, const float u, const float v, const IorStack ior = IorStack())
-    : position(position), normal(normal), geometric_normal(normal), wi(wi), u(u), v(v), ior(ior),
-      n_dot_wi(normal.dot(-wi)), front(n_dot_wi >= 0.f), transform(Transform3f::basis_transform(normal)),
-      front_position(position + geometric_normal * EPSILON_F), back_position(position + geometric_normal * -EPSILON_F) {}
+    Surface(const Vec3f &wi) : wi(wi) {}
 
-    Surface(const Vec3f &wi) : wi(wi), distant(true) {}
+    void set_hit(const Vec3f &_position, const Vec3f &_normal, const Vec3f &_geometric_normal,
+                 const float _u, const float _v, const IorStack _ior = IorStack())
+    {
+        hit = true;
 
-    const Vec3f position;
-    const Vec3f normal;
-    const Vec3f geometric_normal;
-    const Vec3f wi;
-    const float u = 0.f, v = 0.f;
-    const IorStack ior;
-    const float n_dot_wi = 0.f;
-    const bool front = true;
-    const Transform3f transform;
-    const Vec3f front_position;
-    const Vec3f back_position;
-    const bool distant = false;
+        position = _position;
+        normal = _normal;
+        geometric_normal = _geometric_normal;
+        u = _u; v = _v; ior = _ior;
 
+        n_dot_wi = normal.dot(-wi);
+        front = (n_dot_wi >= 0.f);
+
+        transform = Transform3f::basis_transform(normal);
+
+        front_position = position + geometric_normal *  EPSILON_F;
+        back_position  = position + geometric_normal * -EPSILON_F;
+    }
+
+    bool hit = false;
+
+    Vec3f position;
+    Vec3f normal;
+    Vec3f geometric_normal;
+    Vec3f wi;
+    float u, v;
+
+    IorStack ior; // Put ior stack into VolumeStack Which is Becoming Medium?
+
+    float n_dot_wi;
+    bool front;
+    Transform3f transform;
+
+    Vec3f front_position;
+    Vec3f back_position;
 };

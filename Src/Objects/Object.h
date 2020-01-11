@@ -15,7 +15,6 @@ class Material;
 class Object
 {
 public:
-    Object() : obj_to_world(Transform3f()), world_to_obj(Transform3f()), light(nullptr), material(nullptr), volume(nullptr), hide_camera(false) {}
     Object(const Transform3f &obj_to_world = Transform3f(),
            std::shared_ptr<Light> light = nullptr,
            std::shared_ptr<Material> material = nullptr,
@@ -32,7 +31,8 @@ public:
         Box,
         LightArea,
         LightSphere,
-        LightEnvironment
+        LightEnvironment,
+        LightCombiner
     };
     virtual Type get_type() = 0;
 
@@ -41,18 +41,13 @@ public:
     const Transform3f world_to_obj;
 
     const RTCGeometry& get_rtc_geometry() { return geom; }
-    void set_null_rtc_geometry() {
-        geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
-        rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT4, sizeof(VERT_DATA), 0);
-    }
 
-    virtual Surface process_intersection(const RTCRayHit &rtcRayHit, const Ray &ray)
+    virtual void process_intersection(Surface &surface, const RTCRayHit &rtcRayHit, const Ray &ray)
     {
-        return Surface(
+        surface.set_hit(
             ray.get_position(ray.t),
             Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
             Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
-            ray.dir,
             rtcRayHit.hit.u,
             rtcRayHit.hit.v,
             ray.ior
@@ -67,7 +62,7 @@ public:
     virtual bool variable_visibility() { return hide_camera; }
     virtual bool process_visibility_intersection(const bool camera) { return !(camera && hide_camera); }
 
-    virtual void process_volume_intersection(const Ray &ray, const float t, const bool front, VolumeStack * volumes) // GIVE THIS BETTER ARGUMENTS
+    virtual void process_volume_intersection(const Ray &ray, const float t, const bool front, VolumeStack * volumes) // GIVE THIS BETTER ARGUMENTS!
     {
         if(front)
             volumes->add_intersect(t, volume, (material != nullptr));
@@ -86,6 +81,13 @@ public:
     void set_id(const uint _id) { id = _id; }
 
 protected:
+
+    void set_null_rtc_geometry()
+    {
+        geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
+        rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT4, sizeof(VERT_DATA), 0);
+    }
+
     const bool hide_camera;
     RTCGeometry geom;
     Box3f bbox;
