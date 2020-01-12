@@ -8,8 +8,8 @@
 
 struct Ray
 {
-    Ray(const Vec3f &pos, const Vec3f &dir, const bool &camera = false)
-    : pos(pos), dir(dir), inv_dir(1.f / dir), camera(camera) {}
+    Ray(const Vec3f &pos, const Vec3f &dir, const bool &camera = false, const IorStack * ior = nullptr)
+    : pos(pos), dir(dir), inv_dir(1.f / dir), camera(camera), ior(ior) {}
 
     // Gets the position at t along the ray.
     inline Vec3f get_position(const float &_t) const { return pos + _t * dir; }
@@ -27,7 +27,7 @@ struct Ray
 
     // Optional info about our ray.
     const bool camera;
-    IorStack ior;
+    const IorStack * ior;
     const std::vector<Volume*> * in_volumes;
 };
 

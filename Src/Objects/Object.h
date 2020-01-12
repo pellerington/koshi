@@ -49,8 +49,7 @@ public:
             Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
             Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
             rtcRayHit.hit.u,
-            rtcRayHit.hit.v,
-            ray.ior
+            rtcRayHit.hit.v
         );
     }
 

@@ -50,12 +50,12 @@ void ObjectMesh::process_intersection(Surface &surface, const RTCRayHit &rtcRayH
         v = v0_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v0].v + v1_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v1].v + v2_weight * uvs[tri_uvs_index[rtcRayHit.hit.primID].v2].v;
     }
 
-    surface.set_hit(
+    surface.set_hit
+    (
         ray.get_position(ray.t),
         normal,
         Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
-        u, v,
-        ray.ior
+        u, v
     );
 }
 

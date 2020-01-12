@@ -12,17 +12,17 @@ struct Surface
 {
     Surface() {}
 
-    Surface(const Vec3f &wi) : wi(wi) {}
+    Surface(const Vec3f &wi, const float &curr_ior = 1.f, const float &prev_ior = 1.f)
+    : wi(wi), curr_ior(curr_ior), prev_ior(prev_ior) {}
 
-    void set_hit(const Vec3f &_position, const Vec3f &_normal, const Vec3f &_geometric_normal,
-                 const float _u, const float _v, const IorStack _ior = IorStack())
+    void set_hit(const Vec3f &_position, const Vec3f &_normal, const Vec3f &_geometric_normal, const float _u, const float _v)
     {
         hit = true;
 
         position = _position;
         normal = _normal;
         geometric_normal = _geometric_normal;
-        u = _u; v = _v; ior = _ior;
+        u = _u; v = _v;
 
         n_dot_wi = normal.dot(-wi);
         front = (n_dot_wi >= 0.f);
@@ -41,7 +41,8 @@ struct Surface
     Vec3f wi;
     float u, v;
 
-    IorStack ior; // Put ior stack into VolumeStack Which is Becoming Medium?
+    float curr_ior;
+    float prev_ior;
 
     float n_dot_wi;
     bool front;

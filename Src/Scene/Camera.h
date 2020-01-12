@@ -20,4 +20,7 @@ private:
     const float aspect_ratio;
     const float focal_length;
     const Vec3f pixel_delta;
+
+    // If we let users set this, then we should add a prev stack which is 1.0 ior;
+    const IorStack initial_ior;
 };

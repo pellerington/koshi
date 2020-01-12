@@ -23,8 +23,8 @@ std::shared_ptr<MaterialInstance> MaterialDielectric::instance(const Surface * s
     instance->reflect_instance.surface = surface;
     instance->refract_instance.surface = surface;
 
-    instance->refract_instance.ior_in = surface->ior.curr_ior;
-    instance->refract_instance.ior_out = surface->front ? ior : ((surface->ior.prev) ? surface->ior.prev->curr_ior : 1.f);
+    instance->refract_instance.ior_in = surface->curr_ior;
+    instance->refract_instance.ior_out = surface->front ? ior : surface->prev_ior;
     instance->refract_instance.refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f);
     instance->refract_instance.roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f);
     instance->refract_instance.roughness = clamp(instance->refract_instance.roughness * instance->refract_instance.roughness, 0.01f, 0.99f);

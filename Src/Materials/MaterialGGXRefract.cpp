@@ -14,8 +14,8 @@ std::shared_ptr<MaterialInstance> MaterialGGXRefract::instance(const Surface * s
 {
     std::shared_ptr<MaterialInstanceGGXRefract> instance(new MaterialInstanceGGXRefract);
     instance->surface = surface;
-    instance->ior_in = surface->ior.curr_ior;
-    instance->ior_out = surface->front ? ior : ((surface->ior.prev) ? surface->ior.prev->curr_ior : 1.f);
+    instance->ior_in = surface->curr_ior;
+    instance->ior_out = surface->front ? ior : surface->prev_ior;
     instance->refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f);
     instance->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f);
     instance->roughness = clamp(instance->roughness * instance->roughness, 0.01f, 0.99f);
