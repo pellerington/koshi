@@ -1,7 +1,7 @@
 #include "VolumeStack.h"
 
 void VolumeStack::build(const float &tend)
-{
+{    
     std::unordered_set<Volume*> volume_tracker;
 
     for(auto hit = hits.begin(); hit != hits.end(); hit++)

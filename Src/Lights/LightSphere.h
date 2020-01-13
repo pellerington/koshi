@@ -20,6 +20,4 @@ public:
 
 private:
     float area;
-    float radius;
-    bool elliptoid;
 };

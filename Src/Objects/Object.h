@@ -53,11 +53,6 @@ public:
         );
     }
 
-    void set_filter_function(void (*_intersection_callback)(const RTCFilterFunctionNArguments *))
-    {
-        intersection_callback = _intersection_callback;
-    }
-
     virtual bool variable_visibility() { return hide_camera; }
     virtual bool process_visibility_intersection(const bool camera) { return !(camera && hide_camera); }
 
@@ -91,7 +86,4 @@ protected:
     RTCGeometry geom;
     Box3f bbox;
     uint id = -1;
-
-    // This can be accessed via the embree api.
-    void (*intersection_callback)(const RTCFilterFunctionNArguments *) = nullptr;
 };

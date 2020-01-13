@@ -1,5 +1,7 @@
 #include "Scene.h"
 
+#include "../Objects/ObjectSphere.h"
+
 void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
 {
     IntersectContext * context = (IntersectContext*) args->context;
@@ -28,10 +30,7 @@ void Scene::pre_render()
     {
         const RTCGeometry& geom = objects[i]->get_rtc_geometry();
         if(objects[i]->volume || objects[i]->variable_visibility())
-        {
-            objects[i]->set_filter_function(&Scene::intersection_callback);
             rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
-        }
         rtcCommitGeometry(geom);
         const uint rtcid = rtcAttachGeometry(rtc_scene, geom);
         rtc_to_obj[rtcid] = objects[i];
@@ -63,9 +62,10 @@ Intersect Scene::intersect(Ray &ray)
     rtcRayHit.hit.primID = RTC_INVALID_GEOMETRY_ID;
     rtcRayHit.hit.instID[0] = RTC_INVALID_GEOMETRY_ID;
 
-    // Intersect ray with scene
+    // Perform intersection
     rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
 
+    // Build our final volumes.
     intersect.volumes.build(rtcRayHit.ray.tfar);
 
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)

@@ -28,8 +28,8 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, RNG &rng) const
     }
 
     // Create a volume integrator
-    MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, dynamic_cast<VolumeSample*>(in_sample.msample), rng);
-    // ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes /*Add volume insample here*/);
+    // MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, dynamic_cast<VolumeSample*>(in_sample.msample), rng);
+    ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, rng);
 
     // Add the emission from our volume
     color += volume_integrator.emission();
