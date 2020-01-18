@@ -1,27 +1,5 @@
 #include "Scene.h"
 
-#include "../Objects/ObjectSphere.h"
-
-void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
-{
-    IntersectContext * context = (IntersectContext*) args->context;
-    Object * obj = (Object*)args->geometryUserPtr;
-
-    // If we are invisible don't do anything else
-    if(!(*(args->valid) = obj->process_visibility_intersection(context->ray->camera) ? -1 : 0))
-        return;
-
-    // Also include primID for volume objects
-    const double t = RTCRayN_tfar(args->ray, args->N, 0);
-    const Vec3f normal = Vec3f::normalize(Vec3f(RTCHitN_Ng_x(args->hit, args->N, 0), RTCHitN_Ng_y(args->hit, args->N, 0), RTCHitN_Ng_z(args->hit, args->N, 0)));
-    const bool front = normal.dot(-context->ray->dir) > 0.f;
-
-    if(obj->volume)
-        obj->process_volume_intersection(*context->ray, t, front, context->volumes);
-
-    *(args->valid) = (obj->material != nullptr || obj->light != nullptr) ? -1 : 0;
-}
-
 void Scene::pre_render()
 {
     rtc_scene = rtcNewScene(Embree::rtc_device);
@@ -29,7 +7,7 @@ void Scene::pre_render()
     {
         objects[i]->set_id(i);
         const RTCGeometry& geom = objects[i]->get_rtc_geometry();
-        if(objects[i]->volume || objects[i]->variable_visibility())
+        if(objects[i]->use_intersection_filter())
             rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
         rtcCommitGeometry(geom);
         rtcAttachGeometryByID(rtc_scene, geom, i);
@@ -39,12 +17,19 @@ void Scene::pre_render()
     rtcCommitScene(rtc_scene);
 }
 
+void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
+{
+    Object * obj = (Object*)args->geometryUserPtr;
+    obj->process_intersection_visibility(args);
+    if(obj->volume)
+        obj->process_intersection_volume(args);
+}
+
 Intersect Scene::intersect(Ray &ray)
 {
     Intersect intersect(ray);
 
     IntersectContext context;
-    context.scene = this;
     context.ray = &ray;
     context.volumes = &intersect.volumes;
     RTCIntersectContext * rtc_context = &context;
@@ -64,9 +49,10 @@ Intersect Scene::intersect(Ray &ray)
     // Perform intersection
     rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
 
-    // Build our final volumes.
+    // Build our final volumes
     intersect.volumes.build(rtcRayHit.ray.tfar);
 
+    // Setup the intersection
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
         ray.hit = false;
@@ -89,7 +75,7 @@ void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &ligh
 {
     for(size_t i = 0; i < lights.size(); i++)
     {
-        // Make a better num_samples estimator using bbox.
+        // Make a better num_samples estimator
         const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_multiplier);
         lights[i]->sample_light(num_samples, &surface.position, nullptr, light_samples, rng);
     }

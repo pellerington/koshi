@@ -32,7 +32,6 @@ void ObjectSphere::intersect_callback(const RTCIntersectFunctionNArguments* args
     ObjectSphere * sphere = (ObjectSphere*)args->geometryUserPtr;
 
     // Move proper scene intersect context. Need to fix cyclc dependcies.
-    struct IntersectContext : public RTCIntersectContext { Ray * ray; };
     IntersectContext * context = (IntersectContext*) args->context;
     if(sphere->hide_camera && context->ray->camera) return;
 

@@ -54,21 +54,36 @@ public:
         );
     }
 
-    virtual bool variable_visibility() { return hide_camera; }
-    virtual bool process_visibility_intersection(const bool camera) { return !(camera && hide_camera); }
-
-    virtual void process_volume_intersection(const Ray &ray, const float t, const bool front, VolumeStack * volumes) // GIVE THIS BETTER ARGUMENTS!
+    virtual bool use_intersection_filter()
     {
+        return hide_camera || volume;
+    }
+
+    virtual void process_intersection_visibility(const RTCFilterFunctionNArguments * args)
+    {
+        IntersectContext * context = (IntersectContext*) args->context;
+        bool visible = !(context->ray->camera && hide_camera);
+        visible = visible && (material || light); // These should be textured
+        *args->valid = visible ? -1 : 0;
+    }
+
+    virtual void process_intersection_volume(const RTCFilterFunctionNArguments * args)
+    {
+        IntersectContext * context = (IntersectContext*) args->context;
+        const double t = RTCRayN_tfar(args->ray, args->N, 0);
+        const Vec3f normal = Vec3f(RTCHitN_Ng_x(args->hit, args->N, 0), RTCHitN_Ng_y(args->hit, args->N, 0), RTCHitN_Ng_z(args->hit, args->N, 0));
+        const bool front = normal.dot(-context->ray->dir) > 0.f;
+
         if(front)
-            volumes->add_intersect(t, volume, (material != nullptr));
+            context->volumes->add_intersect(t, volume, (material != nullptr));
         else
-            volumes->sub_intersect(t, volume);
+            context->volumes->sub_intersect(t, volume);
     }
 
     virtual bool sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, RNG &rng) { return false; }
     virtual bool evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample) { return false; }
 
-    // These should be const!
+    // These should be const
     std::shared_ptr<Light> light;
     std::shared_ptr<Material> material;
     std::shared_ptr<Volume> volume;

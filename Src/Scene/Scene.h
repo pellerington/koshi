@@ -29,11 +29,6 @@ public:
 
     void pre_render();
 
-    struct IntersectContext : public RTCIntersectContext {
-        Ray * ray;
-        VolumeStack * volumes;
-        Scene * scene; // Make this one const!
-    };
     static void intersection_callback(const RTCFilterFunctionNArguments * args);
     Intersect intersect(Ray &ray);
 
