@@ -24,15 +24,15 @@ public:
         bool sample_material = true;
     };
 
-    Scene() {}
-    Scene(const Camera &camera, const Settings &settings) : camera(camera), settings(settings) {}
+    Scene() : distant_lights(new LightCombiner)  {}
+    Scene(const Camera &camera, const Settings &settings) : camera(camera), settings(settings), distant_lights(new LightCombiner) {}
 
     void pre_render();
 
     struct IntersectContext : public RTCIntersectContext {
         Ray * ray;
         VolumeStack * volumes;
-        Scene * scene; // Make this one const
+        Scene * scene; // Make this one const!
     };
     static void intersection_callback(const RTCFilterFunctionNArguments * args);
     Intersect intersect(Ray &ray);
@@ -49,12 +49,10 @@ public:
     bool add_texture(std::shared_ptr<Texture> texture);
 
 private:
-    std::map<uint, std::shared_ptr<Object>> rtc_to_obj;
     RTCScene rtc_scene;
-
     std::vector<std::shared_ptr<Object>> objects;
     std::vector<std::shared_ptr<Material>> materials;
     std::vector<std::shared_ptr<Object>> lights;
-    std::shared_ptr<LightCombiner> distant_lights = std::shared_ptr<LightCombiner>(new LightCombiner);
+    std::shared_ptr<LightCombiner> distant_lights;
     std::vector<std::shared_ptr<Texture>> textures;
 };

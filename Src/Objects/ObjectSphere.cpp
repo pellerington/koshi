@@ -15,7 +15,6 @@ ObjectSphere::ObjectSphere(const Transform3f &obj_to_world, std::shared_ptr<Mate
 
     geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_USER);
     rtcSetGeometryUserPrimitiveCount(geom, 1);
-    rtcSetGeometryUserData(geom, this);
 
     auto bbox_callback = [](const RTCBoundsFunctionArguments * args)
     {

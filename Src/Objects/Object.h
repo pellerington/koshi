@@ -36,11 +36,12 @@ public:
     };
     virtual Type get_type() = 0;
 
+    void set_id(const uint id) { this->id = id; }
+    const RTCGeometry& get_rtc_geometry() { return geom; }
+
     const Box3f get_bbox() { return bbox; };
     const Transform3f obj_to_world;
     const Transform3f world_to_obj;
-
-    const RTCGeometry& get_rtc_geometry() { return geom; }
 
     virtual void process_intersection(Surface &surface, const RTCRayHit &rtcRayHit, const Ray &ray)
     {
@@ -67,12 +68,10 @@ public:
     virtual bool sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, RNG &rng) { return false; }
     virtual bool evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample) { return false; }
 
-    // These should be const
+    // These should be const!
     std::shared_ptr<Light> light;
     std::shared_ptr<Material> material;
     std::shared_ptr<Volume> volume;
-
-    void set_id(const uint _id) { id = _id; }
 
 protected:
 
@@ -82,7 +81,7 @@ protected:
         rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT4, sizeof(VERT_DATA), 0);
     }
 
-    const bool hide_camera;
+    bool hide_camera;
     RTCGeometry geom;
     Box3f bbox;
     uint id = -1;

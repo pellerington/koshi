@@ -5,8 +5,7 @@
 void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
 {
     IntersectContext * context = (IntersectContext*) args->context;
-    const uint geomID = RTCHitN_geomID(args->hit, args->N, 0);
-    std::shared_ptr<Object> obj = context->scene->rtc_to_obj[geomID];
+    Object * obj = (Object*)args->geometryUserPtr;
 
     // If we are invisible don't do anything else
     if(!(*(args->valid) = obj->process_visibility_intersection(context->ray->camera) ? -1 : 0))
@@ -28,13 +27,13 @@ void Scene::pre_render()
     rtc_scene = rtcNewScene(Embree::rtc_device);
     for(size_t i = 0; i < objects.size(); i++)
     {
+        objects[i]->set_id(i);
         const RTCGeometry& geom = objects[i]->get_rtc_geometry();
         if(objects[i]->volume || objects[i]->variable_visibility())
             rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
         rtcCommitGeometry(geom);
-        const uint rtcid = rtcAttachGeometry(rtc_scene, geom);
-        rtc_to_obj[rtcid] = objects[i];
-        objects[i]->set_id(rtcid);
+        rtcAttachGeometryByID(rtc_scene, geom, i);
+        rtcSetGeometryUserData(geom, objects[i].get());
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
     rtcCommitScene(rtc_scene);
@@ -79,7 +78,7 @@ Intersect Scene::intersect(Ray &ray)
         ray.tmax = rtcRayHit.ray.tfar;
         ray.hit = true;
 
-        intersect.object = rtc_to_obj[rtcRayHit.hit.geomID];
+        intersect.object = objects[rtcRayHit.hit.geomID];
         intersect.object->process_intersection(intersect.surface, rtcRayHit, ray);
     }
 
