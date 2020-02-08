@@ -10,7 +10,7 @@ public:
     MaterialSubsurface(const AttributeVec3f &surface_color_attr, const AttributeFloat &surface_weight);
     Type get_type() { return Material::Subsurface; }
 
-    std::shared_ptr<MaterialInstance> instance(const Surface * surface);
+    MaterialInstance * instance(const Surface * surface, Resources &resources);
     struct MaterialInstanceSubsurface : public MaterialInstance
     {
         float surface_weight;
@@ -18,7 +18,7 @@ public:
         MaterialBackLambert::MaterialInstanceBackLambert back_lambert_instance;
     };
 
-    bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction);
+    bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources);
     bool evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample);
 
 private:

@@ -10,9 +10,9 @@ MaterialGGXReflect::MaterialGGXReflect(const AttributeVec3f &specular_color_attr
 {
 }
 
-std::shared_ptr<MaterialInstance> MaterialGGXReflect::instance(const Surface * surface)
+MaterialInstance * MaterialGGXReflect::instance(const Surface * surface, Resources &resources)
 {
-    std::shared_ptr<MaterialInstanceGGXReflect> instance(new MaterialInstanceGGXReflect);
+    MaterialInstanceGGXReflect * instance = resources.memory.create<MaterialInstanceGGXReflect>();
     instance->surface = surface;
 
     instance->specular_color = specular_color_attribute.get_value(surface->u, surface->v, 0.f);
@@ -21,20 +21,20 @@ std::shared_ptr<MaterialInstance> MaterialGGXReflect::instance(const Surface * s
     instance->roughness = clamp(instance->roughness * instance->roughness, 0.01f, 0.99f);
     instance->roughness_sqr = instance->roughness * instance->roughness;
 
-    instance->fresnel = std::shared_ptr<Fresnel>(new FresnelMetalic(instance->specular_color));
+    instance->fresnel = resources.memory.create<FresnelMetalic>(instance->specular_color);
 
     return instance;
 }
 
-bool MaterialGGXReflect::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction)
+bool MaterialGGXReflect::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources)
 {
-    const MaterialInstanceGGXReflect * instance = dynamic_cast<const MaterialInstanceGGXReflect *>(material_instance);
+    const MaterialInstanceGGXReflect * instance = (const MaterialInstanceGGXReflect *)material_instance;
 
     // Estimate the number of samples
     uint num_samples = SAMPLES_PER_SA * sqrtf(instance->roughness);
     const float quality = 1.f / num_samples;
     num_samples = std::max(1.f, num_samples * sample_reduction);
-    rng.Reset2D();
+    RNG &rng = resources.rng; rng.Reset2D();
 
     for(uint i = 0; i < num_samples; i++)
     {
@@ -77,7 +77,7 @@ bool MaterialGGXReflect::sample_material(const MaterialInstance * material_insta
 
 bool MaterialGGXReflect::evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample)
 {
-    const MaterialInstanceGGXReflect * instance = dynamic_cast<const MaterialInstanceGGXReflect *>(material_instance);
+    const MaterialInstanceGGXReflect * instance = (const MaterialInstanceGGXReflect *)material_instance;
 
     if(sample.wo.dot(instance->surface->normal) < 0)
         return false;

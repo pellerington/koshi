@@ -22,7 +22,7 @@ private:
 class RANDOM
 {
 public:
-    RANDOM(const uint seed) : generator(seed)
+    RANDOM(const uint seed = 0) : generator(seed)
     {
     }
 
@@ -46,7 +46,7 @@ private:
 class RSEQ
 {
 public:
-    RSEQ(const uint seed)
+    RSEQ(const uint seed = 0)
     : n_1D(seed), n_2D(seed)
     {
     }
@@ -83,7 +83,7 @@ class BLUE_NOISE
 {
 public:
 
-    BLUE_NOISE(const uint seed)
+    BLUE_NOISE(const uint seed = 0)
     : n_1D(0), map_1D(seed%num_maps), n_2D(0), map_2D(map_1D)
     {
     }

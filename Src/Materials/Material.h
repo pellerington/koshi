@@ -8,6 +8,7 @@
 
 #include "../Util/Surface.h"
 #include "../Util/Attribute.h"
+#include "../Util/Resources.h"
 class Surface;
 
 #define UNIFORM_SAMPLE false
@@ -49,9 +50,9 @@ public:
     };
     virtual Type get_type() { return None; }
 
-    virtual std::shared_ptr<MaterialInstance> instance(const Surface * surface) { return nullptr; }
+    virtual MaterialInstance * instance(const Surface * surface, Resources &resources) { return nullptr; }
 
-    virtual bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction) { return false; }
+    virtual bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources) { return false; }
     virtual bool evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample) { return false; }
 
     virtual const float get_ior() { return 1.f; } // This should require the material_instance.

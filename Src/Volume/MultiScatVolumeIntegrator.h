@@ -10,7 +10,7 @@ struct MultiScatData : public MaterialSample::Data {
 class MultiScatVolumeIntegrator : public VolumeIntegrator
 {
 public:
-    MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample, RNG &rng);
+    MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample, Resources &resources);
 
     Vec3f shadow(const float &t);
 

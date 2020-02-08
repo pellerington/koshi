@@ -36,6 +36,21 @@ int main(int argc, char *argv[])
     // }
     // DebugObj::Points(points);
 
+    // Memory memory;
+    // for(uint i = 0; i < 200; i++)
+    // {
+    //     Ray * ray = resources.memory.create<Ray>(Vec3f(0,i,0), Vec3f(0,0,i));
+    //     std::cout << ray->dir << '\n';
+    // }
+    // memory.clear();
+    // std::cout << "Cleared!" << '\n';
+    // for(uint i = 0; i < 200; i++)
+    // {
+    //     Ray * ray = resources.memory.create<Ray>(Vec3f(0,i,0), Vec3f(0,0,i));
+    //     std::cout << ray->dir << '\n';
+    // }
+
+
     std::cout << "Threads: " << threads << '\n';
     std::cout << "File: " << filename << '\n';
 

@@ -9,15 +9,16 @@
 
 struct Pixel
 {
-    Pixel(uint x, uint y, uint required_samples, std::vector<uint> &seeds, const RNG &rng)
-    : pixel(x, y), color(VEC3F_ZERO), required_samples(required_samples), current_sample(0), seeds(std::move(seeds)), rng(std::move(rng))
-    {}
-        
+    Pixel(const uint x, const uint y, const uint required_samples, const uint seedseed, const RNG &rng)
+    : pixel(x, y), color(VEC3F_ZERO), required_samples(required_samples), current_sample(0), seed(seedseed), rng(std::move(rng))
+    {
+    }
+
     Vec2u pixel;
     Vec3f color;
     uint required_samples;
     uint current_sample;
-    std::vector<uint> seeds;
+    std::mt19937 seed;
     RNG rng;
 };
 
@@ -27,7 +28,7 @@ public:
     Render(Scene * scene, const uint &num_workers);
     void start_render();
     void render_worker(const uint id, const std::vector<Vec2i> &work);
-    Vec3f get_pixel_color(uint x, uint y) const;
+    Vec3f get_pixel_color(const uint& x, const uint& y) const;
     inline Vec2u get_image_resolution() const { return scene->camera.get_image_resolution(); }
     void kill_render() { kill_signal = true; }
 private:
@@ -35,6 +36,6 @@ private:
     const Scene * scene;
     const uint num_workers;
     const Vec2u resolution;
-    std::vector<std::vector<Pixel>> pixels;
+    Pixel *** pixels; // <- Needs to be freed when renderer is killed.
     bool kill_signal = false;
 };

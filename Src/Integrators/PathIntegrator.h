@@ -20,7 +20,7 @@ class PathIntegrator : public Integrator
 public:
     PathIntegrator(Scene * scene) : Integrator(scene) {}
     void pre_render();
-    Vec3f integrate(Ray &ray, RNG &rng) const
+    Vec3f integrate(Ray &ray, Resources &resources) const
     {
         PathSample sample;
         sample.type = PathSample::Camera;
@@ -28,10 +28,11 @@ public:
         sample.quality = 1.f;
         LightSample lsample;
         sample.lsample = &lsample;
-        return integrate(ray, sample, rng);
+        return integrate(ray, sample, resources);
     }
-    Vec3f integrate(Ray &ray, PathSample &in_sample, RNG &rng) const;
+    Vec3f integrate(Ray &ray, PathSample &in_sample, Resources &resources) const;
 private:
-    Vec3f scatter_surface(const Intersect &intersect, PathSample &in_sample, RNG &rng) const;
+    Vec3f scatter_surface(const Intersect &intersect, PathSample &in_sample, Resources &resources) const;
+    // Scatter volume?
     double quality_threshold = 1.f;
 };

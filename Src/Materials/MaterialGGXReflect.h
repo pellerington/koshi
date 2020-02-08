@@ -10,16 +10,16 @@ public:
     MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute);
     Type get_type() { return Material::GGXReflect; }
 
-    std::shared_ptr<MaterialInstance> instance(const Surface * surface);
+    MaterialInstance * instance(const Surface * surface, Resources &resources);
     struct MaterialInstanceGGXReflect : public MaterialInstance
     {
         Vec3f specular_color;
-        std::shared_ptr<Fresnel> fresnel;
+        Fresnel * fresnel;
         float roughness;
         float roughness_sqr;
     };
 
-    bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction);
+    bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources);
     bool evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample);
 
 private:

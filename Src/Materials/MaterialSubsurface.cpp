@@ -11,9 +11,9 @@ MaterialSubsurface::MaterialSubsurface(const AttributeVec3f &surface_color_attr,
 {
 }
 
-std::shared_ptr<MaterialInstance> MaterialSubsurface::instance(const Surface * surface)
+MaterialInstance * MaterialSubsurface::instance(const Surface * surface, Resources &resources)
 {
-    std::shared_ptr<MaterialInstanceSubsurface> instance(new MaterialInstanceSubsurface);
+    MaterialInstanceSubsurface * instance = resources.memory.create<MaterialInstanceSubsurface>();
     instance->surface = surface;
     instance->surface_weight = surface_weight_attr.get_value(surface->u, surface->v, 0.f);
     instance->lambert_instance.surface = surface;
@@ -23,14 +23,14 @@ std::shared_ptr<MaterialInstance> MaterialSubsurface::instance(const Surface * s
     return instance;
 }
 
-bool MaterialSubsurface::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction)
+bool MaterialSubsurface::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources)
 {
-    const MaterialInstanceSubsurface * instance = dynamic_cast<const MaterialInstanceSubsurface *>(material_instance);
+    const MaterialInstanceSubsurface * instance = (const MaterialInstanceSubsurface *)material_instance;
 
     if(instance->surface->front)
-        lambert.sample_material(&instance->lambert_instance, samples, rng, sample_reduction*instance->surface_weight);
+        lambert.sample_material(&instance->lambert_instance, samples, sample_reduction*instance->surface_weight, resources);
     const float front_samples = samples.size();
-    back_lambert.sample_material(&instance->back_lambert_instance, samples, rng, sample_reduction*(instance->surface->front ? 1.f-instance->surface_weight : 1.f));
+    back_lambert.sample_material(&instance->back_lambert_instance, samples, sample_reduction*(instance->surface->front ? 1.f-instance->surface_weight : 1.f), resources);
     const float back_samples = samples.size() - front_samples;
     const float total_samples = front_samples + back_samples;
 
@@ -46,7 +46,7 @@ bool MaterialSubsurface::sample_material(const MaterialInstance * material_insta
 
 bool MaterialSubsurface::evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample)
 {
-    const MaterialInstanceSubsurface * instance = dynamic_cast<const MaterialInstanceSubsurface *>(material_instance);
+    const MaterialInstanceSubsurface * instance = (const MaterialInstanceSubsurface *)material_instance;
 
     if(instance->surface->front)
         lambert.evaluate_material(&instance->lambert_instance, sample);

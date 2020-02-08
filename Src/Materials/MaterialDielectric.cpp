@@ -16,9 +16,10 @@ MaterialDielectric::MaterialDielectric(const AttributeVec3f &reflective_color_at
 {
 }
 
-std::shared_ptr<MaterialInstance> MaterialDielectric::instance(const Surface * surface)
+MaterialInstance * MaterialDielectric::instance(const Surface * surface, Resources &resources)
 {
-    std::shared_ptr<MaterialInstanceDielectric> instance(new MaterialInstanceDielectric);
+    MaterialInstanceDielectric * instance = resources.memory.create<MaterialInstanceDielectric>();
+
     instance->surface = surface;
     instance->reflect_instance.surface = surface;
     instance->refract_instance.surface = surface;
@@ -29,7 +30,7 @@ std::shared_ptr<MaterialInstance> MaterialDielectric::instance(const Surface * s
     instance->refract_instance.roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f);
     instance->refract_instance.roughness = clamp(instance->refract_instance.roughness * instance->refract_instance.roughness, 0.01f, 0.99f);
     instance->refract_instance.roughness_sqr = instance->refract_instance.roughness * instance->refract_instance.roughness;
-    instance->refract_instance.fresnel = std::shared_ptr<Fresnel>(new FresnelDielectric(instance->refract_instance.ior_in, instance->refract_instance.ior_out));
+    instance->refract_instance.fresnel = resources.memory.create<FresnelDielectric>(instance->refract_instance.ior_in, instance->refract_instance.ior_out);
 
     instance->reflect_instance.specular_color = reflective_color_attribute.get_value(surface->u, surface->v, 0.f);
     instance->reflect_instance.roughness = instance->refract_instance.roughness;
@@ -39,13 +40,13 @@ std::shared_ptr<MaterialInstance> MaterialDielectric::instance(const Surface * s
     return instance;
 }
 
-bool MaterialDielectric::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction)
+bool MaterialDielectric::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources)
 {
-    const MaterialInstanceDielectric * instance = dynamic_cast<const MaterialInstanceDielectric *>(material_instance);
+    const MaterialInstanceDielectric * instance = (const MaterialInstanceDielectric *)material_instance;
 
-    ggx_reflect.sample_material(&instance->reflect_instance, samples, rng, sample_reduction);
+    ggx_reflect.sample_material(&instance->reflect_instance, samples, sample_reduction, resources);
     const float reflective_samples = samples.size();
-    ggx_refract.sample_material(&instance->refract_instance, samples, rng, sample_reduction);
+    ggx_refract.sample_material(&instance->refract_instance, samples, sample_reduction, resources);
     const float refractive_samples = samples.size() - reflective_samples;
     const float total_samples = reflective_samples + refractive_samples;
 
@@ -61,7 +62,7 @@ bool MaterialDielectric::sample_material(const MaterialInstance * material_insta
 
 bool MaterialDielectric::evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample)
 {
-    const MaterialInstanceDielectric * instance = dynamic_cast<const MaterialInstanceDielectric *>(material_instance);
+    const MaterialInstanceDielectric * instance = (const MaterialInstanceDielectric *)material_instance;
 
     sample.weight = 0.f;
     sample.pdf = 0.f;

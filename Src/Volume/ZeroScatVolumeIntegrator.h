@@ -5,7 +5,7 @@
 class ZeroScatVolumeIntegrator : public VolumeIntegrator
 {
 public:
-    ZeroScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, RNG &rng) : VolumeIntegrator(scene, ray, volumes, rng) {}
+    ZeroScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, Resources &resources) : VolumeIntegrator(scene, ray, volumes, resources) {}
 
     Vec3f shadow(const float &t)
     {

@@ -10,24 +10,24 @@ MaterialLambert::MaterialLambert(const AttributeVec3f &diffuse_color_attr)
 {
 }
 
-std::shared_ptr<MaterialInstance> MaterialLambert::instance(const Surface * surface)
+MaterialInstance * MaterialLambert::instance(const Surface * surface, Resources &resources)
 {
-    std::shared_ptr<MaterialInstanceLambert> instance(new MaterialInstanceLambert);
+    MaterialInstanceLambert * instance = resources.memory.create<MaterialInstanceLambert>();
     instance->surface = surface;
     instance->diffuse_color = diffuse_color_attr.get_value(surface->u, surface->v, 0.f);
     return instance;
 }
 
-bool MaterialLambert::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction)
+bool MaterialLambert::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources)
 {
-    const MaterialInstanceLambert * instance = dynamic_cast<const MaterialInstanceLambert *>(material_instance);
+    const MaterialInstanceLambert * instance = (const MaterialInstanceLambert *)material_instance;
 
     if(!instance->surface->front)
         return false;
 
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_reduction);
     const float quality = 1.f / SAMPLES_PER_SA;
-    rng.Reset2D();
+    RNG &rng = resources.rng; rng.Reset2D();
 
     for(uint i = 0; i < num_samples; i++)
     {
@@ -60,7 +60,7 @@ bool MaterialLambert::sample_material(const MaterialInstance * material_instance
 
 bool MaterialLambert::evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample)
 {
-    const MaterialInstanceLambert * instance = dynamic_cast<const MaterialInstanceLambert *>(material_instance);
+    const MaterialInstanceLambert * instance = (const MaterialInstanceLambert *)material_instance;
 
     if(!instance->surface->front)
         return false;

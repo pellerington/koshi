@@ -71,13 +71,13 @@ Intersect Scene::intersect(Ray &ray)
     return intersect;
 }
 
-void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, RNG &rng, const float sample_multiplier)
+void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier, Resources &resources)
 {
     for(size_t i = 0; i < lights.size(); i++)
     {
         // Make a better num_samples estimator
         const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_multiplier);
-        lights[i]->sample_light(num_samples, &surface.position, nullptr, light_samples, rng);
+        lights[i]->sample_light(num_samples, &surface.position, nullptr, light_samples, resources.rng);
     }
 }
 

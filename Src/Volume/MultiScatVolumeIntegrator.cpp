@@ -1,7 +1,7 @@
 #include "MultiScatVolumeIntegrator.h"
 
-MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample, RNG &rng)
-: VolumeIntegrator(scene, ray, volumes, rng)
+MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample, Resources &resources)
+: VolumeIntegrator(scene, ray, volumes, resources)
 {
     weight = VEC3F_ONES;
     tmax = FLT_MAX;
@@ -15,8 +15,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
 
     float t = volumes.tmin;
 
-    rng.Reset();
-    rng.Reset2D();
+    RNG &rng = resources.rng; rng.Reset(); rng.Reset2D();
     for(auto volume_isect = volumes.begin(); volume_isect != volumes.end(); volume_isect++)
     {
         t = volume_isect->tmin;

@@ -12,7 +12,7 @@ void PathIntegrator::pre_render()
     quality_threshold = std::pow(1.f / SAMPLES_PER_SA, scene->settings.depth);
 }
 
-Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, RNG &rng) const
+Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, Resources &resources) const
 {
     // Initialize output
     Vec3f color = VEC3F_ZERO;
@@ -23,13 +23,13 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, RNG &rng) const
     // If this is a light sample shadow and return the value
     if(in_sample.type == PathSample::Light)
     {
-        ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, rng);
+        ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, resources);
         return (ray.hit) ? Vec3f(0.f) : volume_integrator.shadow(ray.tmax) * in_sample.lsample->intensity;
     }
 
     // Create a volume integrator
-    // MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, dynamic_cast<VolumeSample*>(in_sample.msample), rng);
-    ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, rng);
+    // MultiScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, dynamic_cast<VolumeSample*>(in_sample.msample), resources);
+    ZeroScatVolumeIntegrator volume_integrator(scene, ray, intersect.volumes, resources);
 
     // Add the emission from our volume
     color += volume_integrator.emission();
@@ -67,17 +67,17 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, RNG &rng) const
         ray.ior = intersect.ior;
         ray.in_volumes = volume_samples[i].passthrough_volumes;
 
-        color += sample.msample->weight * integrate(ray, sample, rng);
+        color += sample.msample->weight * integrate(ray, sample, resources);
     }
 
     // Scatter the surface
     if(!is_black(shadow_tmax) && ray.hit)
-        color +=  shadow_tmax * scatter_surface(intersect, in_sample, rng);
+        color +=  shadow_tmax * scatter_surface(intersect, in_sample, resources);
 
     return color;
 }
 
-Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in_sample, RNG &rng) const
+Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in_sample, Resources &resources) const
 {
     // Initialize output
     Vec3f color = VEC3F_ZERO;
@@ -87,20 +87,20 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
     if(!material) return color;
 
     // Get our material instance
-    std::shared_ptr<MaterialInstance> material_instance = material->instance(&intersect.surface);
+    MaterialInstance * material_instance = material->instance(&intersect.surface, resources);
     const float sample_multiplier = scene->settings.quality * in_sample.quality;
     IorStack transmission_ior = intersect.surface.front ? IorStack(material->get_ior(/* materialinstance */), intersect.ior) : *intersect.ior->get_prev_stack();
 
     // Sample the material
     std::vector<MaterialSample> material_samples;
     if(scene->settings.sample_material)
-        material->sample_material(material_instance.get(), material_samples, rng, sample_multiplier);
+        material->sample_material(material_instance, material_samples, sample_multiplier, resources);
     const uint n_material_samples = material_samples.size();
 
     // Sample the lights
     std::vector<LightSample> light_samples;
     if(scene->settings.sample_lights)
-        scene->sample_lights(intersect.surface, light_samples, rng, sample_multiplier);
+        scene->sample_lights(intersect.surface, light_samples, sample_multiplier, resources);
     const uint n_light_samples = light_samples.size();
 
     // Return if we have no samples
@@ -128,7 +128,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         ray.ior = reflect ? intersect.ior : &transmission_ior;
         ray.in_volumes = reflect ? intersect.volumes.get_passthrough_volumes() : intersect.volumes.get_passthrough_transmission_volumes();
 
-        const Vec3f in_color = (is_black(sample.msample->weight)) ? 0.f : integrate(ray, sample, rng);
+        const Vec3f in_color = (is_black(sample.msample->weight)) ? 0.f : integrate(ray, sample, resources);
 
         float weight = material_sample_weight;
         if(multiple_importance_sample)
@@ -149,7 +149,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         sample.msample = &msample;
         msample.wo = (sample.lsample->position - intersect.surface.position).normalized();
 
-        if(!material->evaluate_material(material_instance.get(), msample)) continue;
+        if(!material->evaluate_material(material_instance, msample)) continue;
 
         const float wo_dot_n = sample.msample->wo.dot(intersect.surface.normal);
         Ray ray((wo_dot_n >= 0.f) ? intersect.surface.front_position : intersect.surface.back_position, sample.msample->wo);
@@ -157,7 +157,7 @@ Vec3f PathIntegrator::scatter_surface(const Intersect &intersect, PathSample &in
         ray.in_volumes = (wo_dot_n >= 0.f) ? intersect.volumes.get_passthrough_volumes() : intersect.volumes.get_passthrough_transmission_volumes();
         ray.tmax = (sample.lsample->position - ray.pos).length() - EPSILON_F; // Set our tmax so we can perform shadowing.
 
-        const Vec3f in_color = integrate(ray, sample, rng);
+        const Vec3f in_color = integrate(ray, sample, resources);
 
         float weight = light_sample_weight;
         if(multiple_importance_sample)

@@ -10,9 +10,9 @@ MaterialGGXRefract::MaterialGGXRefract(const AttributeVec3f &refractive_color_at
 {
 }
 
-std::shared_ptr<MaterialInstance> MaterialGGXRefract::instance(const Surface * surface)
+MaterialInstance * MaterialGGXRefract::instance(const Surface * surface, Resources &resources)
 {
-    std::shared_ptr<MaterialInstanceGGXRefract> instance(new MaterialInstanceGGXRefract);
+    MaterialInstanceGGXRefract * instance = resources.memory.create<MaterialInstanceGGXRefract>();
     instance->surface = surface;
     instance->ior_in = surface->curr_ior;
     instance->ior_out = surface->front ? ior : surface->prev_ior;
@@ -20,19 +20,19 @@ std::shared_ptr<MaterialInstance> MaterialGGXRefract::instance(const Surface * s
     instance->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f);
     instance->roughness = clamp(instance->roughness * instance->roughness, 0.01f, 0.99f);
     instance->roughness_sqr = instance->roughness * instance->roughness;
-    instance->fresnel = std::shared_ptr<Fresnel>(new FresnelDielectric(instance->ior_in, instance->ior_out));
+    instance->fresnel = resources.memory.create<FresnelDielectric>(instance->ior_in, instance->ior_out);
     return instance;
 }
 
-bool MaterialGGXRefract::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, RNG &rng, const float sample_reduction)
+bool MaterialGGXRefract::sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources)
 {
-    const MaterialInstanceGGXRefract * instance = dynamic_cast<const MaterialInstanceGGXRefract *>(material_instance);
+    const MaterialInstanceGGXRefract * instance = (const MaterialInstanceGGXRefract *)material_instance;
 
     // Estimate the number of samples
     uint num_samples = SAMPLES_PER_SA * sqrtf(instance->roughness);
     const float quality = 1.f / num_samples;
     num_samples = std::max(1.f, num_samples * sample_reduction);
-    rng.Reset2D();
+    RNG &rng = resources.rng; rng.Reset2D();
 
     for(uint i = 0; i < num_samples; i++)
     {
@@ -83,7 +83,7 @@ bool MaterialGGXRefract::evaluate_material(const MaterialInstance * material_ins
     // Currently see little reason to evalualte this. Prehaps on the condition that we are exiting the object.
     return false;
 
-    const MaterialInstanceGGXRefract * instance = dynamic_cast<const MaterialInstanceGGXRefract *>(material_instance);
+    const MaterialInstanceGGXRefract * instance = (const MaterialInstanceGGXRefract *)material_instance;
 
     if(sample.wo.dot(instance->surface->wi) > 0.f)
         return false;
