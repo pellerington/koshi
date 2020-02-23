@@ -17,7 +17,7 @@ public:
         options.interpmode = smooth ? OIIO::TextureOpt::InterpSmartBicubic : OIIO::TextureOpt::InterpClosest;
     }
 
-    const Vec3f get_vec3f(const float &u, const float &v, const float &w)
+    const Vec3f get_vec3f(const float &u, const float &v, const float &w, Resources &resources)
     {
         float result[3];
         if(!texture_system->texture(filename, options, u, v, 0.f, 0.f, 0.f, 0.f, 3, result))

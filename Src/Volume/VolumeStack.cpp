@@ -1,7 +1,7 @@
 #include "VolumeStack.h"
 
 void VolumeStack::build(const float &tend)
-{    
+{
     std::unordered_set<Volume*> volume_tracker;
 
     for(auto hit = hits.begin(); hit != hits.end(); hit++)
@@ -9,7 +9,7 @@ void VolumeStack::build(const float &tend)
         if(hit->first > tend)
             break;
 
-        // If we have atleast one volume and things on the stack, add the tmax to the last
+        // If we have atleast one volume and things on the stack, complete the previous volume_tracker
         if(volume_tracker.size() > 0 && volumes.size() > 0)
         {
             volumes.back().tmax = hit->first;
@@ -28,7 +28,7 @@ void VolumeStack::build(const float &tend)
             }
         }
 
-        // Update current volumes
+        // Add or remove volumes we are tracking
         for(auto hit_volume = hit->second.begin(); hit_volume != hit->second.end(); hit_volume++)
         {
             auto cv = std::find(volume_tracker.begin(), volume_tracker.end(), hit_volume->volume);
@@ -38,7 +38,7 @@ void VolumeStack::build(const float &tend)
                 volume_tracker.insert(hit_volume->volume);
         }
 
-        // If we have volumes on the stack start a new volume
+        // If we have volumes to track, add a new volume
         if(volume_tracker.size() > 0)
         {
             volumes.emplace_back();
@@ -52,6 +52,7 @@ void VolumeStack::build(const float &tend)
         }
     }
 
+    // Finish the final volumes off if we have any left on the stack.
     if(volume_tracker.size() > 0)
     {
         volumes.back().tmax = tend;

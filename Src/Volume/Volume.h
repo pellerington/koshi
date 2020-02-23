@@ -27,9 +27,9 @@ public:
     virtual bool sample_volume(const Vec3f &wi, VolumeSample &sample, const Vec2f &rand); // UVW as well?
     virtual bool evaluate_volume(const Vec3f &wi, VolumeSample &sample); // Needs wo // UVW as well?
 
-    virtual Vec3f get_density(const Vec3f &uvw = VEC3F_ZERO);
-    virtual Vec3f get_scattering(const Vec3f &uvw = VEC3F_ZERO);
-    virtual Vec3f get_emission(const Vec3f &uvw = VEC3F_ZERO);
+    virtual Vec3f get_density(const Vec3f &uvw, Resources &resources);
+    virtual Vec3f get_scattering(const Vec3f &uvw, Resources &resources);
+    virtual Vec3f get_emission(const Vec3f &uvw, Resources &resources);
 
     const Transform3f * world_to_obj;
 

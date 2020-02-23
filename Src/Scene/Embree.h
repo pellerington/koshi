@@ -7,8 +7,8 @@
 
 struct IntersectContext : public RTCIntersectContext
 {
-    Ray * ray;
-    VolumeStack * volumes;
+    Ray * ray = nullptr;
+    VolumeStack * volumes = nullptr;
 };
 
 class Embree

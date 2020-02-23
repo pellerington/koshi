@@ -29,18 +29,18 @@ bool Volume::evaluate_volume(const Vec3f &wi, VolumeSample &sample)
     return false;
 }
 
-Vec3f Volume::get_density(const Vec3f &uvw)
+Vec3f Volume::get_density(const Vec3f &uvw, Resources &resources)
 {
     if(density_texture)
-        return density * density_texture->get_float(uvw.u, uvw.v, uvw.w);
+        return density * density_texture->get_float(uvw.u, uvw.v, uvw.w, resources);
     else
         return density;
 }
-Vec3f Volume::get_scattering(const Vec3f &uvw)
+Vec3f Volume::get_scattering(const Vec3f &uvw, Resources &resources)
 {
     return scattering;
 }
-Vec3f Volume::get_emission(const Vec3f &uvw)
+Vec3f Volume::get_emission(const Vec3f &uvw, Resources &resources)
 {
     return emission;
 }

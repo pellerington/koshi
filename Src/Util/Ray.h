@@ -28,7 +28,7 @@ struct Ray
     // Optional info about our ray.
     const bool camera;
     const IorStack * ior;
-    const std::vector<Volume*> * in_volumes;
+    const std::vector<Volume*> * in_volumes = nullptr;
 };
 
 inline bool intersect_bbox(const Ray &ray, const Box3f &box)

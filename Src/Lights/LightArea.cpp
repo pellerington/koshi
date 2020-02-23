@@ -28,10 +28,10 @@ LightArea::LightArea(const Transform3f &obj_to_world, std::shared_ptr<Light> lig
     area = obj_to_world.multiply(Vec3f(2.f, 0.f, 0.f), false).length() * obj_to_world.multiply(Vec3f(0.f, 2.f, 0.f), false).length();
 }
 
-bool LightArea::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, RNG &rng)
+bool LightArea::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)
 {
     //CHECK IF WE ARE ABOVE THE LIGHT AND !DOUBLE SIDED THEN RETURN FALSE
-    rng.Reset2D();
+    RNG &rng = resources.rng; rng.Reset2D();
     for(uint i = 0; i < num_samples; i++)
     {
         const Vec2f rnd = rng.Rand2D();
@@ -54,7 +54,7 @@ bool LightArea::sample_light(const uint num_samples, const Vec3f * pos, const Ve
     return true;
 }
 
-bool LightArea::evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample)
+bool LightArea::evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
 {
     if(!intersect.front && !double_sided)
         return false;

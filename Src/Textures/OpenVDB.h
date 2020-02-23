@@ -6,7 +6,7 @@
 class OpenVDB : public Texture
 {
 public:
-    OpenVDB(const std::string filename, const std::string gridname)
+    OpenVDB(const std::string filename, const std::string gridname, const uint num_threads) : num_threads(num_threads)
     {
         openvdb::initialize(); // call this static somehow?
 
@@ -34,13 +34,14 @@ public:
 
     }
 
-    const float get_float(const float &u, const float &v, const float &w)
+    const float get_float(const float &u, const float &v, const float &w, Resources &resources)
     {
         openvdb::tools::GridSampler<openvdb::FloatGrid, openvdb::tools::BoxSampler> sampler(*grid_ptr);
         return sampler.isSample(openvdb::Vec3f(u * len[0] + min[0], v * len[1] + min[1], w * len[2] + min[2]));
     }
 
 private:
+    const uint num_threads;
     openvdb::FloatGrid::Ptr grid_ptr;
     float min[3];
     float len[3];

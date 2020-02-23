@@ -15,6 +15,7 @@ public:
     {
         const uint obj_memory = curr_memory;
         curr_memory += sizeof(T);
+
         if(curr_memory > max_memory)
         {
             max_memory = curr_memory * 2;

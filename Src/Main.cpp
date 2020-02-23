@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
     std::cout << "Started Render." << '\n';
 
     int threads = 1;
+    bool sfml_window = false;
     std::string filename;
     for(int i = 1; i < argc-1; i++)
     {
@@ -26,6 +27,10 @@ int main(int argc, char *argv[])
         if(std::string(argv[i]) == "-file")
         {
             filename = std::string(argv[i+1]);
+        }
+        if(std::string(argv[i]) == "-sfml")
+        {
+            sfml_window = true;
         }
     }
 
@@ -54,19 +59,23 @@ int main(int argc, char *argv[])
     std::cout << "Threads: " << threads << '\n';
     std::cout << "File: " << filename << '\n';
 
-    Scene scene = SceneFile::Import(filename);
+    Scene scene = SceneFile::Import(filename, threads);
     Render render(&scene, threads);
 
     std::cout << "Imported Scene" << '\n';
 
+    // TODO: Create and return threads, so we dont need to do thread -> thread
     std::thread render_thread(&Render::start_render, &render);
 
     std::cout << "Render Thread Started." << '\n';
 
-    std::thread view_thread(SFMLViewer::RenderWindow, 1024, &render);
+    if(sfml_window)
+    {
+        std::thread view_thread(SFMLViewer::RenderWindow, 1024, &render);
+        view_thread.join();
+        render.kill_render();
+    }
 
-    view_thread.join();
-    render.kill_render();
     render_thread.join();
 
     OIIOViewer::FileOut(render, "output.png");

@@ -17,6 +17,7 @@ class Scene
 public:
     struct Settings
     {
+        uint num_threads = 1;
         uint max_depth = 2;
         uint depth = 32;
         float quality = 1;

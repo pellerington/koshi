@@ -27,7 +27,7 @@
 class SceneFile
 {
 public:
-    static Scene Import(const std::string filename)
+    static Scene Import(const std::string filename, const uint num_threads)
     {
         std::ifstream input_file(filename);
         nlohmann::json scene_file;
@@ -36,6 +36,7 @@ public:
         Scene::Settings settings;
         if(!scene_file["settings"].is_null())
         {
+            settings.num_threads = num_threads;
             settings.quality = get_float(scene_file["settings"], "quality");
             settings.depth = get_uint(scene_file["settings"], "depth", 2);
             settings.max_depth = get_uint(scene_file["settings"], "max_depth", 32);
@@ -107,7 +108,7 @@ public:
                         const std::string filename = (*it)["filename"];
                         const std::string gridname = (*it)["gridname"];
 
-                        std::shared_ptr<Texture> texture(new OpenVDB(filename, gridname));
+                        std::shared_ptr<Texture> texture(new OpenVDB(filename, gridname, num_threads));
                         scene.add_texture(texture);
                         textures[(*it)["name"]] = texture;
                     }

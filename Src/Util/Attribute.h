@@ -11,10 +11,10 @@ public:
     AttributeVec3f(const std::shared_ptr<Texture> &texture, const Vec3f &gain = VEC3F_ONES)
     : value(gain), texture(texture) {}
 
-    inline Vec3f get_value(const float &u, const float &v, const float &w) const
+    inline Vec3f get_value(const float &u, const float &v, const float &w, Resources &resources) const
     {
         if(texture)
-            return value * texture->get_vec3f(u, v, w);
+            return value * texture->get_vec3f(u, v, w, resources);
         return value;
     }
 
@@ -31,10 +31,10 @@ public:
     AttributeFloat(const std::shared_ptr<Texture> &texture, const float &gain = 1.f)
     : value(gain), texture(texture) {}
 
-    inline float get_value(const float &u, const float &v, const float &w) const
+    inline float get_value(const float &u, const float &v, const float &w, Resources &resources) const
     {
         if(texture)
-            return value * texture->get_float(u, v, w);
+            return value * texture->get_float(u, v, w, resources);
         return value;
     }
 

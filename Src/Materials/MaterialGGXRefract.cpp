@@ -16,8 +16,8 @@ MaterialInstance * MaterialGGXRefract::instance(const Surface * surface, Resourc
     instance->surface = surface;
     instance->ior_in = surface->curr_ior;
     instance->ior_out = surface->front ? ior : surface->prev_ior;
-    instance->refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f);
-    instance->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f);
+    instance->refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
+    instance->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
     instance->roughness = clamp(instance->roughness * instance->roughness, 0.01f, 0.99f);
     instance->roughness_sqr = instance->roughness * instance->roughness;
     instance->fresnel = resources.memory.create<FresnelDielectric>(instance->ior_in, instance->ior_out);

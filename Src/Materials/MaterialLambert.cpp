@@ -14,7 +14,7 @@ MaterialInstance * MaterialLambert::instance(const Surface * surface, Resources 
 {
     MaterialInstanceLambert * instance = resources.memory.create<MaterialInstanceLambert>();
     instance->surface = surface;
-    instance->diffuse_color = diffuse_color_attr.get_value(surface->u, surface->v, 0.f);
+    instance->diffuse_color = diffuse_color_attr.get_value(surface->u, surface->v, 0.f, resources);
     return instance;
 }
 

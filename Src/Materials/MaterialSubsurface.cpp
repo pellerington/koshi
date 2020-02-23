@@ -15,9 +15,9 @@ MaterialInstance * MaterialSubsurface::instance(const Surface * surface, Resourc
 {
     MaterialInstanceSubsurface * instance = resources.memory.create<MaterialInstanceSubsurface>();
     instance->surface = surface;
-    instance->surface_weight = surface_weight_attr.get_value(surface->u, surface->v, 0.f);
+    instance->surface_weight = surface_weight_attr.get_value(surface->u, surface->v, 0.f, resources);
     instance->lambert_instance.surface = surface;
-    instance->lambert_instance.diffuse_color = surface_color_attr.get_value(surface->u, surface->v, 0.f);
+    instance->lambert_instance.diffuse_color = surface_color_attr.get_value(surface->u, surface->v, 0.f, resources);
     instance->back_lambert_instance.surface = surface;
     instance->back_lambert_instance.diffuse_color = instance->lambert_instance.diffuse_color;
     return instance;

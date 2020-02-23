@@ -38,9 +38,9 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                 // Temp
                 const Vec3f uvw = volume_isect->uvw_min[i] + volume_isect->uvw_len[i] * ((t - volume_isect->tmin) * volume_isect->inv_tlen);
 
-                Vec3f idensity = volume_isect->volumes[i]->get_density(uvw);
+                Vec3f idensity = volume_isect->volumes[i]->get_density(uvw, resources);
                 density += idensity;
-                scattering_cache[i] = idensity * volume_isect->volumes[i]->get_scattering();
+                scattering_cache[i] = idensity * volume_isect->volumes[i]->get_scattering(0.f, resources);
                 scattering += scattering_cache[i];
             }
             Vec3f absorbtion = density - scattering;
@@ -65,7 +65,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                 ray.tmax = tmax = t;
                 weight *= (absorbtion / (sampling_density * a_prob));
                 for(uint i = 0; i < volume_isect->volumes.size(); i++)
-                    weighted_emission += volume_isect->volumes[i]->get_emission();
+                    weighted_emission += volume_isect->volumes[i]->get_emission(0.f, resources);
                 weighted_emission *= weight;
                 return;
             }
@@ -80,7 +80,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                 sample.quality = 1.f;
                 sample.passthrough_volumes = &volume_isect->volumes;
 
-                if(volume_isect->volumes.size() > 1)
+                if(volume_isect->volumes.size() == 1)
                 {
                     // Set up sample
                     volume_isect->volumes[0]->sample_volume(ray.dir, sample, rng.Rand2D());
@@ -90,7 +90,7 @@ MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, co
                     sample.data = &data;
                     return;
                 }
-                else
+                else if(volume_isect->volumes.size() > 1)
                 {
                     float inv_scattering_sum = 0.f;
                     for(uint i = 0; i < scattering_cache.size(); i++)

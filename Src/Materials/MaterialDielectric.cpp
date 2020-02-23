@@ -26,13 +26,13 @@ MaterialInstance * MaterialDielectric::instance(const Surface * surface, Resourc
 
     instance->refract_instance.ior_in = surface->curr_ior;
     instance->refract_instance.ior_out = surface->front ? ior : surface->prev_ior;
-    instance->refract_instance.refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f);
-    instance->refract_instance.roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f);
+    instance->refract_instance.refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
+    instance->refract_instance.roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
     instance->refract_instance.roughness = clamp(instance->refract_instance.roughness * instance->refract_instance.roughness, 0.01f, 0.99f);
     instance->refract_instance.roughness_sqr = instance->refract_instance.roughness * instance->refract_instance.roughness;
     instance->refract_instance.fresnel = resources.memory.create<FresnelDielectric>(instance->refract_instance.ior_in, instance->refract_instance.ior_out);
 
-    instance->reflect_instance.specular_color = reflective_color_attribute.get_value(surface->u, surface->v, 0.f);
+    instance->reflect_instance.specular_color = reflective_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
     instance->reflect_instance.roughness = instance->refract_instance.roughness;
     instance->reflect_instance.roughness_sqr = instance->refract_instance.roughness_sqr;
     instance->reflect_instance.fresnel = instance->refract_instance.fresnel;
