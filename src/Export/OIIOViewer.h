@@ -17,7 +17,7 @@ public:
             pixels[(x + y*xres)*3 + 2] = color.b;
         }
 
-        OIIO::ImageOutput * out = OIIO::ImageOutput::create(filename);
+        OIIO::ImageOutput::unique_ptr out = OIIO::ImageOutput::create(filename);
         OIIO::ImageSpec spec (xres, yres, channels, OIIO::TypeDesc::FLOAT);
         out->open(filename, spec);
         out->write_image(OIIO::TypeDesc::FLOAT, pixels);

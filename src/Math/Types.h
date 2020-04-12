@@ -1,8 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include <Eigen/Core>
-#include <Eigen/Geometry>
 #include "Vec3f.h"
 #include "Vec2.h"
 #include "Box3f.h"

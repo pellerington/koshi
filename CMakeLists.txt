@@ -1,38 +1,34 @@
 cmake_minimum_required(VERSION 3.12)
 project (Koshi)
 
-#Add find_library / find_header for all libraries
+list(APPEND CMAKE_MODULE_PATH /usr/local/lib/cmake/OpenVDB/)
+
 find_library(OPENIMAGEIO_LIBRARY NAMES openimageio OpenImageIO)
 message(STATUS "OpenImageIO: ${OPENIMAGEIO_LIBRARY}")
 
-find_package(Eigen3 REQUIRED)
-message(STATUS "Eigen: ${EIGEN3_INCLUDE_DIR}")
-
-find_package(embree 3.0 REQUIRED)
+find_package(embree 3.0 REQUIRED HINTS ~/embree-3.9.0.x86_64.linux/)
 message(STATUS "embree include: ${EMBREE_INCLUDE_DIRS}")
-message(STATUS "embree library: ${EMBREE_LIBRARY}")
+message(STATUS "embree library: ${EMBREE_LIBRARIES}")
 
-#TODO FIX ME!
-#find_package(OpenVDB REQUIRED)
-#message(STATUS "openvdb include: ${OPENVDB_INCLUDE_DIRS}")
-#message(STATUS "openvdb library: ${OPENVDB_LIBRARY}")
+find_package(OpenVDB QUIET REQUIRED)
+message(STATUS "openvdb include: ${OpenVDB_INCLUDE_DIRS}")
+message(STATUS "openvdb library: ${OpenVDB_LIBRARIES}")
 
 find_package(SFML 2 COMPONENTS graphics window system)
 
-file(GLOB_RECURSE SOURCES "Src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(koshi ${SOURCES})
 
 set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -O3")
 #set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -g")
 
-include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${EMBREE_INCLUDE_DIRS})
-# For vdb headers
-include_directories(${/usr/local/include/})
+include_directories(${OpenVDB_INCLUDE_DIRS})
+include_directories(dependencies)	
 
-target_link_libraries(koshi ${EMBREE3_LIBRARY})
-target_link_libraries(koshi /usr/lib64/libembree3.so.3)
-target_link_libraries(koshi /usr/local/lib/libopenvdb.so)
+#target_link_libraries(koshi /usr/lib64/libembree3.so.3)
+target_link_libraries(koshi ${EMBREE_LIBRARY})
+target_link_libraries(koshi ${OpenVDB_LIBRARIES})
 target_link_libraries(koshi ${OPENIMAGEIO_LIBRARY})
 target_link_libraries(koshi sfml-graphics sfml-window sfml-system)
 target_link_libraries(koshi -pthread)

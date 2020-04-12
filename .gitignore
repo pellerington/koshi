@@ -1,10 +1,7 @@
-CMakeCache.txt
-cmake_install.cmake
-koshi
-Makefile
 *.obj
 *.png
 *.out
-TODO
-CMakeFiles
-Scenes
+Todo
+build
+scenes
+blue_noise_cache

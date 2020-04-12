@@ -2,9 +2,9 @@
 
 #include <string>
 #include <fstream>
+#include <json.hpp>
 
 #include "../Math/Types.h"
-#include "../Dependency/json.hpp"
 #include "../Scene/Scene.h"
 #include "../Objects/ObjectSphere.h"
 #include "../Objects/ObjectBox.h"
@@ -21,8 +21,8 @@
 #include "../Textures/Checker.h"
 #include "../Textures/Gradient.h"
 #include "../Textures/OpenVDB.h"
-#include "MeshFile.h"
 #include "../Export/DebugObj.h"
+#include "MeshFile.h"
 
 class SceneFile
 {
