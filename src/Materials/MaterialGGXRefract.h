@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Material.h"
-#include "Fresnel.h"
-#include "GGX.h"
+#include <Materials/Material.h>
+#include <Materials/Fresnel.h>
+#include <Materials/GGX.h>
 
 class MaterialGGXRefract : public Material
 {

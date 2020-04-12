@@ -1,15 +1,13 @@
 #include <iostream>
 #include <thread>
 
-#include "Math/Types.h"
-#include "Import/SceneFile.h"
-#include "Export/SFMLViewer.h"
-#include "Export/OIIOViewer.h"
-#include "Export/DebugObj.h"
+#include <Math/Types.h>
+#include <Import/SceneFile.h>
+#include <Export/SFMLViewer.h>
+#include <Export/OIIOViewer.h>
+#include <Export/DebugObj.h>
 
 #include <cmath>
-
-#include "Math/Transform3f.h"
 
 int main(int argc, char *argv[])
 {

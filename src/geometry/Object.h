@@ -4,11 +4,11 @@
 #include <iostream>
 #include <vector>
 
-#include "../Scene/Embree.h"
-#include "../Util/Surface.h"
-#include "../Util/Ray.h"
-#include "../Volume/VolumeStack.h"
-#include "../Lights/Light.h"
+#include <Scene/Embree.h>
+#include <Util/Surface.h>
+#include <Util/Ray.h>
+#include <Volume/VolumeStack.h>
+#include <Lights/Light.h>
 class Surface;
 class Material;
 

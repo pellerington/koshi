@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Objects/ObjectMesh.h"
+#include <geometry/ObjectMesh.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>

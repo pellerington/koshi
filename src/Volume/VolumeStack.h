@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Volume.h"
-#include "../Util/Ray.h"
+#include <Volume/Volume.h>
+#include <Util/Ray.h>
 
 #include <vector>
 #include <map>

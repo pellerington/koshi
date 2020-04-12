@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../Math/Types.h"
-#include "../Objects/Object.h"
-#include "../Lights/LightCombiner.h"
-#include "../Materials/Material.h"
-#include "../Textures/Texture.h"
-#include "../Util/Intersect.h"
-#include "Camera.h"
+#include <Math/Types.h>
+#include <geometry/Object.h>
+#include <Lights/LightCombiner.h>
+#include <Materials/Material.h>
+#include <Textures/Texture.h>
+#include <Util/Intersect.h>
+#include <Scene/Camera.h>
 
 #include <vector>
 #include <memory>

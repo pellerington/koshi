@@ -1,6 +1,6 @@
-#include "MaterialBackLambert.h"
+#include <Materials/MaterialBackLambert.h>
 
-#include "../Math/Helpers.h"
+#include <Math/Helpers.h>
 #include <cmath>
 #include <iostream>
 

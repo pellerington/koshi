@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Object.h"
+#include <geometry/Object.h>
 
 class ObjectSphere : public Object
 {

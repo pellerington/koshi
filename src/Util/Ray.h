@@ -2,9 +2,9 @@
 
 #include <cfloat>
 #include <unordered_set>
-#include "../Math/Types.h"
-#include "IorStack.h"
-#include "../Volume/Volume.h"
+#include <Math/Types.h>
+#include <Util/IorStack.h>
+#include <Volume/Volume.h>
 
 struct Ray
 {

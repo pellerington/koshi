@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Scene/Scene.h"
-#include "VolumeStack.h"
+#include <Scene/Scene.h>
+#include <Volume/VolumeStack.h>
 
 class VolumeIntegrator
 {

@@ -1,6 +1,6 @@
-#include "ObjectBox.h"
+#include <geometry/ObjectBox.h>
 
-#include "../Math/RNG.h"
+#include <Math/RNG.h>
 
 static Vec3f box_vertices[8] = {
     Vec3f(0.f, 0.f, 0.f),

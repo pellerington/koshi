@@ -1,4 +1,4 @@
-#include "MultiScatVolumeIntegrator.h"
+#include <Volume/MultiScatVolumeIntegrator.h>
 
 MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample, Resources &resources)
 : VolumeIntegrator(scene, ray, volumes, resources)

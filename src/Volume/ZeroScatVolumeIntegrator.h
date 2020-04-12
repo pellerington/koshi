@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VolumeIntegrator.h"
+#include <Volume/VolumeIntegrator.h>
 
 class ZeroScatVolumeIntegrator : public VolumeIntegrator
 {

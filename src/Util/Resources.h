@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Memory.h"
-#include "../Math/RNG.h"
+#include <Util/Memory.h>
+#include <Math/RNG.h>
 
 struct Resources
 {

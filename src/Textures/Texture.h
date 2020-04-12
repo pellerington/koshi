@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Util/Surface.h"
-#include "../Util/Resources.h"
+#include <Util/Surface.h>
+#include <Util/Resources.h>
 
 #include <iostream>
 

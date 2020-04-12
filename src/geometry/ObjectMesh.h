@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Object.h"
-#include "../Math/Types.h"
+#include <geometry/Object.h>
+#include <Math/Types.h>
 #include <vector>
 
 class ObjectMesh : public Object

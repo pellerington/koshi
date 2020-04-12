@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../Math/Types.h"
-#include "../Scene/Scene.h"
-#include "../Util/Surface.h"
-#include "../Util/Ray.h"
-#include "../Util/Resources.h"
+#include <Math/Types.h>
+#include <Scene/Scene.h>
+#include <Util/Surface.h>
+#include <Util/Ray.h>
+#include <Util/Resources.h>
 
 class Integrator
 {

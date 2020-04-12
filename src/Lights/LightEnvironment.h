@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Textures/Texture.h"
-#include "../Objects/Object.h"
-#include "Light.h"
+#include <Textures/Texture.h>
+#include <geometry/Object.h>
+#include <Lights/Light.h>
 
 class LightEnvironment : public Object
 {

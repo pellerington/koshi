@@ -1,4 +1,4 @@
-#include "ObjectSphere.h"
+#include <geometry/ObjectSphere.h>
 
 ObjectSphere::ObjectSphere(const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<Volume> volume, std::shared_ptr<Light> light, const bool hide_camera)
 : Object(obj_to_world, light, material, volume, hide_camera)

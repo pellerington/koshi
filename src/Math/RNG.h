@@ -5,7 +5,7 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
-#include "../Math/Types.h"
+#include <Math/Types.h>
 
 class RNG_UTIL
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Material.h"
+#include <Materials/Material.h>
 
 class MaterialBackLambert : public Material
 {

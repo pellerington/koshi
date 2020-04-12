@@ -1,4 +1,4 @@
-#include "ObjectMesh.h"
+#include <geometry/ObjectMesh.h>
 
 ObjectMesh::ObjectMesh(uint _vertices_size, uint _triangles_size, uint _normals_size, uint _uvs_size,
                        VERT_DATA * _vertices, TRI_DATA * _tri_vert_index,

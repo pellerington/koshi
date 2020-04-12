@@ -1,7 +1,7 @@
-#include "MaterialSubsurface.h"
+#include <Materials/MaterialSubsurface.h>
 
-#include "../Math/Helpers.h"
-#include "../Util/Color.h"
+#include <Math/Helpers.h>
+#include <Util/Color.h>
 #include <cmath>
 #include <iostream>
 

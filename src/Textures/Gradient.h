@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Texture.h"
+#include <Textures/Texture.h>
 
 class Gradient : public Texture
 {

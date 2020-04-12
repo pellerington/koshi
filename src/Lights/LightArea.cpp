@@ -1,4 +1,4 @@
-#include "LightArea.h"
+#include <Lights/LightArea.h>
 
 static Vec3f quad_vertices[8] = {
     Vec3f( 1.f,  1.f, 0.f),

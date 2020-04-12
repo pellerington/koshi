@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Math/Vec3f.h"
-#include "../Materials/Material.h"
-#include "../Math/RNG.h"
+#include <Math/Vec3f.h>
+#include <Materials/Material.h>
+#include <Math/RNG.h>
 class Volume;
 
 struct VolumeSample : MaterialSample

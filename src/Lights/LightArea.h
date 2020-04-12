@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Objects/Object.h"
+#include  <geometry/Object.h>
 
 class LightArea : public Object
 {

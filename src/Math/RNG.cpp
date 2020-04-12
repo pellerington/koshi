@@ -1,4 +1,4 @@
-#include "RNG.h"
+#include <Math/RNG.h>
 
 std::uniform_real_distribution<float> RNG_UTIL::distribution = std::uniform_real_distribution<float>(0.f, 1.f);
 std::mt19937 RNG_UTIL::random_generator = std::mt19937();

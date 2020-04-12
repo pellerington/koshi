@@ -1,4 +1,4 @@
-#include "LightEnvironment.h"
+#include <Lights/LightEnvironment.h>
 
 #include <iostream>
 

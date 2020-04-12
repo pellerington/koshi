@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Material.h"
-#include "MaterialBackLambert.h"
-#include "MaterialLambert.h"
+#include <Materials/Material.h>
+#include <Materials/MaterialBackLambert.h>
+#include <Materials/MaterialLambert.h>
 
 class MaterialSubsurface : public Material
 {

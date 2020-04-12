@@ -1,10 +1,12 @@
 #pragma once
 
+// TODO MOVE THIS INTO AN INTERSECT FOLDER
+
 #include <cfloat>
 #include <unordered_set>
-#include "../Math/Types.h"
-#include "../Math/Transform3f.h"
-#include "IorStack.h"
+#include <Math/Types.h>
+#include <Math/Transform3f.h>
+#include <Util/IorStack.h>
 
 #define SAMPLES_PER_SA 64
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Textures/Texture.h"
-#include "../Math/Types.h"
+#include <Textures/Texture.h>
+#include <Math/Types.h>
 
 class AttributeVec3f
 {

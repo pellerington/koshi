@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VolumeIntegrator.h"
+#include <Volume/VolumeIntegrator.h>
 
 // Find a way to make ptrs so we don't need this.
 struct MultiScatData : public MaterialSample::Data {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Objects/ObjectSphere.h"
+#include <geometry/ObjectSphere.h>
 
 class LightSphere : public ObjectSphere
 {

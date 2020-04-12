@@ -1,4 +1,4 @@
-#include "Volume.h"
+#include <Volume/Volume.h>
 
 Volume::Volume(const Vec3f &_density, const std::shared_ptr<Texture> _density_texture, const Vec3f &_scattering, const float &g, const Vec3f &_emission)
 : density(_density), density_texture(_density_texture), scattering(_scattering), emission(_emission), g(g), g_sqr(g*g), g_inv(1.f/g), g_abs(fabs(g))

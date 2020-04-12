@@ -3,9 +3,9 @@
 #include <vector>
 #include <iostream>
 
-#include "../Math/Types.h"
-#include "../Scene/Scene.h"
-#include "../Integrators/PathIntegrator.h"
+#include <Math/Types.h>
+#include <Scene/Scene.h>
+#include <Integrators/PathIntegrator.h>
 
 struct Pixel
 {

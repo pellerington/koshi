@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ray.h"
+#include <Util/Ray.h>
 
 struct Intersect
 {

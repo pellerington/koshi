@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Integrator.h"
+#include <Integrators/Integrator.h>
 
 struct PathSample
 {

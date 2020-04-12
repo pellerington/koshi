@@ -3,12 +3,12 @@
 #include <vector>
 #include <queue>
 #include <memory>
-#include "../Math/Types.h"
-#include "../Math/RNG.h"
+#include <Math/Types.h>
+#include <Math/RNG.h>
 
-#include "../Util/Surface.h"
-#include "../Util/Attribute.h"
-#include "../Util/Resources.h"
+#include <Util/Surface.h>
+#include <Util/Attribute.h>
+#include <Util/Resources.h>
 class Surface;
 
 #define UNIFORM_SAMPLE false

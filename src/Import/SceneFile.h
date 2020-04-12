@@ -4,25 +4,25 @@
 #include <fstream>
 #include <json.hpp>
 
-#include "../Math/Types.h"
-#include "../Scene/Scene.h"
-#include "../Objects/ObjectSphere.h"
-#include "../Objects/ObjectBox.h"
-#include "../Materials/MaterialLambert.h"
-#include "../Materials/MaterialBackLambert.h"
-#include "../Materials/MaterialGGXReflect.h"
-#include "../Materials/MaterialGGXRefract.h"
-#include "../Materials/MaterialDielectric.h"
-#include "../Materials/MaterialSubsurface.h"
-#include "../Lights/LightArea.h"
-#include "../Lights/LightSphere.h"
-#include "../Lights/LightEnvironment.h"
-#include "../Textures/Image.h"
-#include "../Textures/Checker.h"
-#include "../Textures/Gradient.h"
-#include "../Textures/OpenVDB.h"
-#include "../Export/DebugObj.h"
-#include "MeshFile.h"
+#include <Math/Types.h>
+#include <Scene/Scene.h>
+#include <geometry/ObjectSphere.h>
+#include <geometry/ObjectBox.h>
+#include <Materials/MaterialLambert.h>
+#include <Materials/MaterialBackLambert.h>
+#include <Materials/MaterialGGXReflect.h>
+#include <Materials/MaterialGGXRefract.h>
+#include <Materials/MaterialDielectric.h>
+#include <Materials/MaterialSubsurface.h>
+#include <Lights/LightArea.h>
+#include <Lights/LightSphere.h>
+#include <Lights/LightEnvironment.h>
+#include <Textures/Image.h>
+#include <Textures/Checker.h>
+#include <Textures/Gradient.h>
+#include <Textures/OpenVDB.h>
+#include <Export/DebugObj.h>
+#include <Import/MeshFile.h>
 
 class SceneFile
 {

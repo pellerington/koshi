@@ -25,6 +25,7 @@ set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -O3")
 include_directories(${EMBREE_INCLUDE_DIRS})
 include_directories(${OpenVDB_INCLUDE_DIRS})
 include_directories(dependencies)	
+include_directories(src)
 
 #target_link_libraries(koshi /usr/lib64/libembree3.so.3)
 target_link_libraries(koshi ${EMBREE_LIBRARY})

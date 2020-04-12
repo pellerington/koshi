@@ -1,11 +1,11 @@
-#include "PathIntegrator.h"
+#include <Integrators/PathIntegrator.h>
 
 #include <cmath>
-#include "../Util/Color.h"
-#include "../Volume/ZeroScatVolumeIntegrator.h"
-#include "../Volume/MultiScatVolumeIntegrator.h"
+#include <Util/Color.h>
+#include <Volume/ZeroScatVolumeIntegrator.h>
+#include <Volume/MultiScatVolumeIntegrator.h>
 
-#include "../Util/Intersect.h"
+#include <Util/Intersect.h>
 
 void PathIntegrator::pre_render()
 {

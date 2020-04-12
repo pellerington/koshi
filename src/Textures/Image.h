@@ -3,7 +3,7 @@
 #include <string>
 #include <OpenImageIO/texture.h>
 
-#include "Texture.h"
+#include <Textures/Texture.h>
 
 class Image : public Texture
 {

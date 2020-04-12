@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../Math/RNG.h"
-#include "../Util/Surface.h"
-#include "../Util/Ray.h"
+#include <Math/RNG.h>
+#include <Util/Surface.h>
+#include <Util/Ray.h>
 
 class Camera
 {

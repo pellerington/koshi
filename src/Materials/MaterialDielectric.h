@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Material.h"
-#include "Fresnel.h"
-#include "MaterialGGXReflect.h"
-#include "MaterialGGXRefract.h"
+#include <Materials/Material.h>
+#include <Materials/Fresnel.h>
+#include <Materials/MaterialGGXReflect.h>
+#include <Materials/MaterialGGXRefract.h>
 
 class MaterialDielectric : public Material
 {

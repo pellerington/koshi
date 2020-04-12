@@ -1,7 +1,7 @@
-#include "MaterialLambert.h"
+#include <Materials/MaterialLambert.h>
 
-#include "../Math/Helpers.h"
-#include "../Util/Color.h"
+#include <Math/Helpers.h>
+#include <Util/Color.h>
 #include <cmath>
 #include <iostream>
 

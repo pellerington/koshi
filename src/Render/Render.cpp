@@ -1,13 +1,13 @@
-#include "Render.h"
+#include <Render/Render.h>
 
 #include <iostream>
 #include <cfloat>
 #include <chrono>
 #include <thread>
 
-#include "../Textures/Image.h"
-#include "../Util/Color.h"
-#include "../Util/Memory.h"
+#include <Textures/Image.h>
+#include <Util/Color.h>
+#include <Util/Memory.h>
 
 #define NEAREST_NEIGHBOUR
 

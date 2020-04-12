@@ -1,6 +1,6 @@
-#include "LightSphere.h"
+#include <Lights/LightSphere.h>
 
-#include "../Export/DebugObj.h"
+#include <Export/DebugObj.h>
 
 LightSphere::LightSphere(const Transform3f &obj_to_world, std::shared_ptr<Light> light, const bool hide_camera)
 : ObjectSphere(obj_to_world, nullptr, nullptr, light, hide_camera)
