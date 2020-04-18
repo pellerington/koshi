@@ -9,12 +9,18 @@
 #include <Util/Color.h>
 #include <Util/Memory.h>
 
+#include <embree/EmbreeIntersector.h>
+
 #define NEAREST_NEIGHBOUR
 
 Render::Render(Scene * scene, const uint &num_workers)
 : scene(scene), num_workers(num_workers), resolution(scene->camera.get_image_resolution())
 {
     scene->pre_render();
+
+    // TODO: this should be passed in as an argument to the Render
+    intersector = new EmbreeIntersector(scene);
+    intersector->pre_render();
 
     // This should be passed in or selected using a type (when we have multiple pixels)
     integrator = std::unique_ptr<Integrator>(new PathIntegrator(scene));
@@ -57,6 +63,7 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
 {
     Resources resources;
     resources.thread_id = id;
+    resources.intersector = intersector;
 
     bool completed = false;
     while(!completed && !kill_signal)

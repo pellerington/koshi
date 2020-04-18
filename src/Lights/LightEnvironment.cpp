@@ -1,11 +1,9 @@
 #include <Lights/LightEnvironment.h>
 
-#include <iostream>
-
 LightEnvironment::LightEnvironment(std::shared_ptr<Light> light, std::shared_ptr<Texture> texture)
-: Object(Transform3f(), light ? light : std::shared_ptr<Light>(new Light(VEC3F_ZERO))), texture(texture)
+: Geometry(Transform3f(), light ? light : std::shared_ptr<Light>(new Light(VEC3F_ZERO))), texture(texture)
 {
-    set_null_rtc_geometry();
+    // set_null_rtc_geometry();
 }
 
 bool LightEnvironment::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)

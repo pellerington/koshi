@@ -4,7 +4,7 @@
 #include <unordered_set>
 #include <Math/Types.h>
 #include <Util/IorStack.h>
-#include <Volume/Volume.h>
+class Volume;
 
 struct Ray
 {
@@ -28,9 +28,10 @@ struct Ray
     // Optional info about our ray.
     const bool camera;
     const IorStack * ior;
-    const std::vector<Volume*> * in_volumes = nullptr;
+    // const std::vector<Volume*> * in_volumes = nullptr;
 };
 
+// DEFINATLY MOVE THEsE SOMEWHERE ELSE!
 inline bool intersect_bbox(const Ray &ray, const Box3f &box)
 {
     const Vec3f t1 = (box.min() - ray.pos) * ray.inv_dir;

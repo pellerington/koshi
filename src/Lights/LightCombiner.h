@@ -1,15 +1,13 @@
 #pragma once
 
-#include  <geometry/Object.h>
+#include  <geometry/Geometry.h>
 
-class LightCombiner : public Object
+class LightCombiner : public Geometry
 {
 public:
-    LightCombiner() : Object() { set_null_rtc_geometry(); }
+    LightCombiner() : Geometry() {}
 
-    Type get_type() { return Object::LightCombiner; }
-
-    void add_light(std::shared_ptr<Object> light)
+    void add_light(std::shared_ptr<Geometry> light)
     {
         lights.push_back(light);
     }
@@ -32,5 +30,5 @@ public:
     }
 
 private:
-    std::vector<std::shared_ptr<Object>> lights;
+    std::vector<std::shared_ptr<Geometry>> lights;
 };

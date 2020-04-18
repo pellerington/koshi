@@ -1,11 +1,12 @@
 #pragma once
 
 #include <Math/Types.h>
-#include <geometry/Object.h>
+// Scene should only relly know Object.h class
+#include <geometry/Geometry.h>
 #include <Lights/LightCombiner.h>
 #include <Materials/Material.h>
 #include <Textures/Texture.h>
-#include <Util/Intersect.h>
+#include <intersection/Intersect.h>
 #include <Scene/Camera.h>
 
 #include <vector>
@@ -30,25 +31,27 @@ public:
 
     void pre_render();
 
-    static void intersection_callback(const RTCFilterFunctionNArguments * args);
-    Intersect intersect(Ray &ray);
+    // static void intersection_callback(const RTCFilterFunctionNArguments * args);
+    // Intersect intersect(Ray &ray);
 
     void sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier, Resources &resources);
 
     const Camera camera;
     const Settings settings;
 
-    bool add_object(std::shared_ptr<Object> object);
+    bool add_object(std::shared_ptr<Geometry> object);
     bool add_material(std::shared_ptr<Material> material);
-    bool add_distant_light(std::shared_ptr<Object> light);
-    bool add_light(std::shared_ptr<Object> light);
+    bool add_distant_light(std::shared_ptr<Geometry> light);
+    bool add_light(std::shared_ptr<Geometry> light);
     bool add_texture(std::shared_ptr<Texture> texture);
 
+    std::vector<std::shared_ptr<Geometry>>& get_objects() { return objects; }
+    std::shared_ptr<LightCombiner> get_distant_lights() { return distant_lights; }
+
 private:
-    RTCScene rtc_scene;
-    std::vector<std::shared_ptr<Object>> objects;
+    std::vector<std::shared_ptr<Geometry>> objects;
     std::vector<std::shared_ptr<Material>> materials;
-    std::vector<std::shared_ptr<Object>> lights;
+    std::vector<std::shared_ptr<Geometry>> lights;
     std::shared_ptr<LightCombiner> distant_lights;
     std::vector<std::shared_ptr<Texture>> textures;
 };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Volume/Volume.h>
-#include <Util/Ray.h>
+#include <intersection/Ray.h>
 
 #include <vector>
 #include <map>

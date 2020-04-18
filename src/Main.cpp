@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     int threads = 1;
     bool sfml_window = false;
     std::string filename;
-    for(int i = 1; i < argc-1; i++)
+    for(int i = 0; i < argc; i++)
     {
         if(std::string(argv[i]) == "-threads")
         {

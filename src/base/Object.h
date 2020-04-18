@@ -1,15 +1,28 @@
 #pragma once
 
 #include <string>
-#include <map>
+#include <unordered_map>
 
 class Object
 {
-// public:
-//     T * get_attributes<T*>()
-//     {
-//         // blah blah blah
-//     }
-// private:
-//     std::unorded_map<std::string, Object *> attributes;
+public:
+    void add_attribute(const std::string &attribute_name, Object * object)
+    {
+        attributes[attribute_name] = object;
+    }
+
+    template<class T>
+    T * get_attribute(const std::string &attribute_name)
+    {
+        auto attribute = attributes.find(attribute_name);
+        if(attribute == attributes.end())
+            return nullptr;
+        // Maybe use static cast?
+        return dynamic_cast<T*>(attribute->second);
+    }
+
+    virtual ~Object() = default;
+    
+private:
+    std::unordered_map<std::string, Object *> attributes;
 };

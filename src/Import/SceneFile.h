@@ -6,21 +6,30 @@
 
 #include <Math/Types.h>
 #include <Scene/Scene.h>
-#include <geometry/ObjectSphere.h>
-#include <geometry/ObjectBox.h>
+
+#include <geometry/GeometrySphere.h>
+#include <geometry/GeometryBox.h>
+
 #include <Materials/MaterialLambert.h>
 #include <Materials/MaterialBackLambert.h>
 #include <Materials/MaterialGGXReflect.h>
 #include <Materials/MaterialGGXRefract.h>
 #include <Materials/MaterialDielectric.h>
 #include <Materials/MaterialSubsurface.h>
+
 #include <Lights/LightArea.h>
 #include <Lights/LightSphere.h>
 #include <Lights/LightEnvironment.h>
+
 #include <Textures/Image.h>
 #include <Textures/Checker.h>
 #include <Textures/Gradient.h>
 #include <Textures/OpenVDB.h>
+
+#include <embree/EmbreeGeometryMesh.h>
+#include <embree/EmbreeGeometrySphere.h>
+#include <embree/EmbreeGeometryBox.h>
+
 #include <Export/DebugObj.h>
 #include <Import/MeshFile.h>
 
@@ -118,7 +127,7 @@ public:
         }
 
         std::map<std::string, std::shared_ptr<Material>> materials;
-        std::map<std::string, std::shared_ptr<Volume>> volumes;
+        // std::map<std::string, std::shared_ptr<Volume>> volumes;
 
         if(scene_file["materials"].is_array())
         {
@@ -203,56 +212,56 @@ public:
                         scene.add_material(material);
                     }
 
-                    if((*it)["type"] == "subsurface")
-                    {
-                        const float density = get_float(*it, "density");
-                        const Vec3f subsurface_transparency = get_vec3f(*it, "subsurface_transparency");
-                        const Vec3f subsurface_density = Vec3f::clamp(VEC3F_ONES-subsurface_transparency, 0.f, 1.f) * density;
-                        const Vec3f subsurface_color = get_vec3f(*it, "subsurface_color");
+                    // if((*it)["type"] == "subsurface")
+                    // {
+                    //     const float density = get_float(*it, "density");
+                    //     const Vec3f subsurface_transparency = get_vec3f(*it, "subsurface_transparency");
+                    //     const Vec3f subsurface_density = Vec3f::clamp(VEC3F_ONES-subsurface_transparency, 0.f, 1.f) * density;
+                    //     const Vec3f subsurface_color = get_vec3f(*it, "subsurface_color");
 
-                        const Vec3f surface_color = get_vec3f(*it, "surface_color");
-                        std::shared_ptr<Texture> surface_color_texture = ((*it)["surface_color_texture"].is_string()) ? textures[(*it)["surface_color_texture"]] : nullptr;
+                    //     const Vec3f surface_color = get_vec3f(*it, "surface_color");
+                    //     std::shared_ptr<Texture> surface_color_texture = ((*it)["surface_color_texture"].is_string()) ? textures[(*it)["surface_color_texture"]] : nullptr;
 
-                        const float surface_weight = get_float(*it, "surface_weight");
-                        std::shared_ptr<Texture> surface_weight_texture = ((*it)["surface_weight_texture"].is_string()) ? textures[(*it)["surface_weight_texture"]] : nullptr;
+                    //     const float surface_weight = get_float(*it, "surface_weight");
+                    //     std::shared_ptr<Texture> surface_weight_texture = ((*it)["surface_weight_texture"].is_string()) ? textures[(*it)["surface_weight_texture"]] : nullptr;
 
-                        std::shared_ptr<Volume> volume(new Volume(subsurface_density, nullptr, subsurface_color, 0.f));
-                        volumes[std::string("material_") + std::string((*it)["name"])] = volume;
+                    //     std::shared_ptr<Volume> volume(new Volume(subsurface_density, nullptr, subsurface_color, 0.f));
+                    //     volumes[std::string("material_") + std::string((*it)["name"])] = volume;
 
-                        std::shared_ptr<Material> material(new MaterialSubsurface(
-                            AttributeVec3f(surface_color_texture, surface_color),
-                            AttributeFloat(surface_weight_texture, surface_weight)
-                        ));
-                        materials[(*it)["name"]] = material;
-                        scene.add_material(material);
-                    }
+                    //     std::shared_ptr<Material> material(new MaterialSubsurface(
+                    //         AttributeVec3f(surface_color_texture, surface_color),
+                    //         AttributeFloat(surface_weight_texture, surface_weight)
+                    //     ));
+                    //     materials[(*it)["name"]] = material;
+                    //     scene.add_material(material);
+                    // }
                 }
             }
         }
 
-        if(scene_file["volumes"].is_array())
-        {
-            for (auto it = scene_file["volumes"].begin(); it != scene_file["volumes"].end(); ++it)
-            {
-                if((*it)["type"].is_string() && (*it)["name"].is_string())
-                {
-                    if((*it)["type"] == "volume")
-                    {
-                        const float density = get_float(*it, "density");
-                        const Vec3f transparency = get_vec3f(*it, "transparency");
-                        const Vec3f density_gain = Vec3f::clamp(VEC3F_ONES-transparency, 0.f, 1.f)*density;
-                        std::shared_ptr<Texture> density_texture = ((*it)["density_texture"].is_string()) ? textures[(*it)["density_texture"]] : nullptr;
+        // if(scene_file["volumes"].is_array())
+        // {
+        //     for (auto it = scene_file["volumes"].begin(); it != scene_file["volumes"].end(); ++it)
+        //     {
+        //         if((*it)["type"].is_string() && (*it)["name"].is_string())
+        //         {
+        //             if((*it)["type"] == "volume")
+        //             {
+        //                 const float density = get_float(*it, "density");
+        //                 const Vec3f transparency = get_vec3f(*it, "transparency");
+        //                 const Vec3f density_gain = Vec3f::clamp(VEC3F_ONES-transparency, 0.f, 1.f)*density;
+        //                 std::shared_ptr<Texture> density_texture = ((*it)["density_texture"].is_string()) ? textures[(*it)["density_texture"]] : nullptr;
 
-                        const float g = get_float(*it, "anistropy");
-                        const Vec3f scattering = get_vec3f(*it, "scattering");
-                        const Vec3f emission = get_vec3f(*it, "emission");
+        //                 const float g = get_float(*it, "anistropy");
+        //                 const Vec3f scattering = get_vec3f(*it, "scattering");
+        //                 const Vec3f emission = get_vec3f(*it, "emission");
 
-                        std::shared_ptr<Volume> volume(new Volume(density_gain, density_texture, scattering, g, emission));
-                        volumes[(*it)["name"]] = volume;
-                    }
-                }
-            }
-        }
+        //                 std::shared_ptr<Volume> volume(new Volume(density_gain, density_texture, scattering, g, emission));
+        //                 volumes[(*it)["name"]] = volume;
+        //             }
+        //         }
+        //     }
+        // }
 
         if(scene_file["objects"].is_array())
         {
@@ -276,15 +285,18 @@ public:
                         transform = transform * Transform3f::x_rotation(rotation.x);
                         transform = transform * Transform3f::scale(scale);
 
-                        std::shared_ptr<Volume> volume = nullptr;
-                        if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
-                            volume = volumes[std::string("material_") + std::string((*it)["material"])];
-                        else if((*it)["volume"].is_string())
-                            volume = volumes[(*it)["volume"]];
+                        // std::shared_ptr<Volume> volume = nullptr;
+                        // if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
+                        //     volume = volumes[std::string("material_") + std::string((*it)["material"])];
+                        // else if((*it)["volume"].is_string())
+                        //     volume = volumes[(*it)["volume"]];
 
-                        std::shared_ptr<ObjectMesh> mesh;
+                        std::shared_ptr<GeometryMesh> mesh;
                         if ((*it)["file"]["type"] == "obj")
-                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], transform, material, volume);
+                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], transform, material);
+
+                        EmbreeGeometryMesh * embree_geometry = new EmbreeGeometryMesh(mesh.get());
+                        mesh->add_attribute("embree_geometry", embree_geometry);
 
                         if(mesh)
                             scene.add_object(mesh);
@@ -308,13 +320,17 @@ public:
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<Volume> volume = nullptr;
-                    if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
-                        volume = volumes[std::string("material_") + std::string((*it)["material"])];
-                    else if((*it)["volume"].is_string())
-                        volume = volumes[(*it)["volume"]];
+                    // std::shared_ptr<Volume> volume = nullptr;
+                    // if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
+                    //     volume = volumes[std::string("material_") + std::string((*it)["material"])];
+                    // else if((*it)["volume"].is_string())
+                    //     volume = volumes[(*it)["volume"]];
 
-                    std::shared_ptr<ObjectSphere> sphere(new ObjectSphere(transform, material, volume));
+                    std::shared_ptr<GeometrySphere> sphere(new GeometrySphere(transform, material));
+
+                    EmbreeGeometrySphere * embree_geometry = new EmbreeGeometrySphere(sphere.get());
+                    sphere->add_attribute("embree_geometry", embree_geometry);
+
                     scene.add_object(sphere);
                 }
 
@@ -330,19 +346,22 @@ public:
                     transform = transform * Transform3f::y_rotation(rotation.y);
                     transform = transform * Transform3f::x_rotation(rotation.x);
                     transform = transform * Transform3f::scale(scale);
-                    transform = transform * Transform3f::translation(Vec3f(-0.5));
 
                     std::shared_ptr<Material> material;
                     if((*it)["material"].is_string())
                         material = materials[(*it)["material"]];
 
-                    std::shared_ptr<Volume> volume = nullptr;
-                    if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
-                        volume = volumes[std::string("material_") + std::string((*it)["material"])];
-                    else if((*it)["volume"].is_string())
-                        volume = volumes[(*it)["volume"]];
+                    // std::shared_ptr<Volume> volume = nullptr;
+                    // if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
+                    //     volume = volumes[std::string("material_") + std::string((*it)["material"])];
+                    // else if((*it)["volume"].is_string())
+                    //     volume = volumes[(*it)["volume"]];
 
-                    std::shared_ptr<ObjectBox> box(new ObjectBox(transform, material, volume));
+                    std::shared_ptr<GeometryBox> box(new GeometryBox(transform, material));
+
+                    EmbreeGeometryBox * embree_geometry = new EmbreeGeometryBox(box.get());
+                    box->add_attribute("embree_geometry", embree_geometry);
+
                     scene.add_object(box);
                 }
             }

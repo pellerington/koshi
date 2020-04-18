@@ -6,6 +6,7 @@
 #include <Math/Types.h>
 #include <Scene/Scene.h>
 #include <Integrators/PathIntegrator.h>
+#include <intersection/Intersector.h>
 
 struct Pixel
 {
@@ -33,6 +34,7 @@ public:
     void kill_render() { kill_signal = true; }
 private:
     std::unique_ptr<Integrator> integrator;
+    Intersector * intersector;
     const Scene * scene;
     const uint num_workers;
     const Vec2u resolution;

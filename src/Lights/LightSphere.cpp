@@ -3,11 +3,8 @@
 #include <Export/DebugObj.h>
 
 LightSphere::LightSphere(const Transform3f &obj_to_world, std::shared_ptr<Light> light, const bool hide_camera)
-: ObjectSphere(obj_to_world, nullptr, nullptr, light, hide_camera)
+: GeometrySphere(obj_to_world, nullptr, light, hide_camera)
 {
-    // Approximate area
-    const float p = 8.f / 5.f;
-    area = FOUR_PI * pow((pow(x_len*y_len, p) + pow(x_len*z_len, p) + pow(y_len*z_len, p)) / 3.f, 1.f / p);
 }
 
 bool LightSphere::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)

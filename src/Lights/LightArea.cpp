@@ -8,20 +8,20 @@ static Vec3f quad_vertices[8] = {
 };
 
 LightArea::LightArea(const Transform3f &obj_to_world, std::shared_ptr<Light> light, const bool double_sided, const bool hide_camera)
-: Object(obj_to_world, light ? light : std::shared_ptr<Light>(new Light(VEC3F_ZERO)), nullptr, nullptr, hide_camera), double_sided(double_sided)
+: Geometry(obj_to_world, light ? light : std::shared_ptr<Light>(new Light(VEC3F_ZERO)), nullptr, hide_camera), double_sided(double_sided)
 {
-    geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_QUAD);
+    // geom = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_QUAD);
 
-    VERT_DATA * vertices = (VERT_DATA*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(VERT_DATA), 4);
-    for(uint i = 0; i < 4; i++)
-    {
-        const Vec3f v = obj_to_world * quad_vertices[i];
-        vertices[i].x = v.x; vertices[i].y = v.y; vertices[i].z = v.z;
-        bbox.extend(v);
-    }
+    // VERT_DATA * vertices = (VERT_DATA*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_VERTEX, 0, RTC_FORMAT_FLOAT3, sizeof(VERT_DATA), 4);
+    // for(uint i = 0; i < 4; i++)
+    // {
+    //     const Vec3f v = obj_to_world * quad_vertices[i];
+    //     vertices[i].x = v.x; vertices[i].y = v.y; vertices[i].z = v.z;
+    //     bbox.extend(v);
+    // }
 
-    QUAD_DATA * quad = (QUAD_DATA*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT4, sizeof(QUAD_DATA), 1);
-    quad[0].v0 = 0; quad[0].v1 = 1; quad[0].v2 = 2; quad[0].v3 = 3;
+    // QUAD_DATA * quad = (QUAD_DATA*) rtcSetNewGeometryBuffer(geom, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT4, sizeof(QUAD_DATA), 1);
+    // quad[0].v0 = 0; quad[0].v1 = 1; quad[0].v2 = 2; quad[0].v3 = 3;
 
     normal = obj_to_world.multiply(Vec3f(0.f, 0.f, -1.f), false);
     normal.normalize();
