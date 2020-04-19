@@ -27,20 +27,11 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, Resources &reso
         return (ray.hit) ? Vec3f(0.f) : /*volume_integrator.shadow(ray.tmax) * */ in_sample.lsample->intensity;
     }
 
-    // Create a volume integrator (This should use scratchpad memory)
-    // std::unique_ptr<VolumeIntegrator> volume_integrator = (in_sample.quality == 1.f)
-    //     ? std::unique_ptr<VolumeIntegrator>( new MultiScatVolumeIntegrator(scene, ray, intersect.volumes, dynamic_cast<VolumeSample*>(in_sample.msample), resources))
-    //     : std::unique_ptr<VolumeIntegrator>( new ZeroScatVolumeIntegrator(scene, ray, intersect.volumes, resources));
-
-    // Add the emission from our volume
-    // color += volume_integrator->emission();
-
-    // Evaluate any light we hit.
-    // const Vec3f shadow_tmax = volume_integrator->shadow(ray.t);
-    if(/*!is_black(shadow_tmax) &&*/ intersect.geometry)
+    LightSampler * light_sampler = (intersect.geometry) ? intersect.geometry->get_attribute<LightSampler>("light_sampler") : nullptr;
+    if(light_sampler)
     {
-        if(intersect.geometry->evaluate_light(intersect.surface, &ray.pos, nullptr, *in_sample.lsample, resources))
-            color += /*shadow_tmax * */ in_sample.lsample->intensity;
+        light_sampler->evaluate_light(intersect.surface, &ray.pos, nullptr, *in_sample.lsample, resources);
+        color += /*shadow_tmax * */ in_sample.lsample->intensity;
     }
 
     // Check if we should terminate early.

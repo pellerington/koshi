@@ -1,37 +1,44 @@
-#include <Lights/LightSphere.h>
+#include <lights/LightSamplerSphere.h>
 
-#include <Export/DebugObj.h>
-
-LightSphere::LightSphere(const Transform3f &obj_to_world, std::shared_ptr<Light> light, const bool hide_camera)
-: GeometrySphere(obj_to_world, nullptr, light, hide_camera)
+LightSamplerSphere::LightSamplerSphere(GeometrySphere * geometry)
+: geometry(geometry)
 {
+    light = geometry->light.get();
+
+    // Approximate area
+    const Transform3f& obj_to_world = geometry->get_obj_to_world();
+    const float x_len = obj_to_world.multiply(Vec3f(1.f, 0.f, 0.f), false).length();
+    const float y_len = obj_to_world.multiply(Vec3f(0.f, 1.f, 0.f), false).length();
+    const float z_len = obj_to_world.multiply(Vec3f(0.f, 0.f, 1.f), false).length();
+    const float p = 8.f / 5.f;
+    area = FOUR_PI * pow((pow(x_len*y_len, p) + pow(x_len*z_len, p) + pow(y_len*z_len, p)) / 3.f, 1.f / p);
 }
 
-bool LightSphere::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)
+bool LightSamplerSphere::sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)
 {
-    if(elliptoid /* or inside sphere */)
+    if(geometry->is_elliptoid() /* or inside sphere */)
         return sample_area(num_samples, pos, pfar, light_samples, resources);
     return sample_sa(num_samples, pos, pfar, light_samples, resources);
 }
 
-bool LightSphere::evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
+bool LightSamplerSphere::evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
 {
-    if(elliptoid /* or inside sphere */)
+    if(geometry->is_elliptoid() /* or inside sphere */)
         return evaluate_area(intersect, pos, pfar, light_sample, resources);
     return evaluate_sa(intersect, pos, pfar, light_sample, resources);
 }
 
-bool LightSphere::sample_sa(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)
+bool LightSamplerSphere::sample_sa(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)
 {
-    const Vec3f center_dir_t = center - *pos;
+    const Vec3f center_dir_t = geometry->get_world_center() - *pos;
     const float center_t_sqr = center_dir_t.sqr_length();
     const float center_t = sqrtf(center_t_sqr);
     const Vec3f center_dir = center_dir_t / center_t;
-    const float max_angle = atan2f(radius, center_t);
-    const float c = center_dir_t.dot(center_dir_t) - radius*radius;
+    const float max_angle = atan2f(geometry->get_world_radius(), center_t);
+    const float c = center_dir_t.dot(center_dir_t) - geometry->get_world_radius_sqr();
 
     Transform3f basis = Transform3f::basis_transform(center_dir);
-    const float sample_pdf = center_t_sqr / (TWO_PI * radius * radius);
+    const float sample_pdf = center_t_sqr / (TWO_PI * geometry->get_world_radius_sqr());
     RNG &rng = resources.rng; rng.Reset2D();
 
     for(uint i = 0; i < num_samples; i++)
@@ -58,20 +65,20 @@ bool LightSphere::sample_sa(const uint num_samples, const Vec3f * pos, const Vec
     return true;
 }
 
-bool LightSphere::evaluate_sa(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
+bool LightSamplerSphere::evaluate_sa(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
 {
     light_sample.position = intersect.position;
     light_sample.intensity = light->get_emission();
-    light_sample.pdf = (center - *pos).sqr_length() / (TWO_PI * radius * radius);
+    light_sample.pdf = (geometry->get_world_center() - *pos).sqr_length() / (TWO_PI * geometry->get_world_radius_sqr());
 
     return true;
 }
 
-bool LightSphere::sample_area(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)
+bool LightSamplerSphere::sample_area(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources)
 {
     // TODO: This doesnt work for ellipses at the moment
 
-    const Vec3f obj_pos = world_to_obj * *pos;
+    const Vec3f obj_pos = geometry->get_world_to_obj() * *pos;
     RNG &rng = resources.rng; rng.Reset2D();
 
     for(uint i = 0; i < num_samples; i++)
@@ -97,12 +104,12 @@ bool LightSphere::sample_area(const uint num_samples, const Vec3f * pos, const V
 
         light_samples.emplace_back();
         LightSample &light_sample = light_samples.back();
-        light_sample.position = obj_to_world * (obj_pos + obj_sampled_dir * t);
+        light_sample.position = geometry->get_obj_to_world() * (obj_pos + obj_sampled_dir * t);
         light_sample.intensity = light->get_emission();
 
         const Vec3f light_to_pos = light_sample.position - *pos;
         const float sqr_len = light_to_pos.sqr_length();
-        const float cos_theta = fabs((light_to_pos / sqrtf(sqr_len)).dot((light_sample.position - center).normalized()));
+        const float cos_theta = fabs((light_to_pos / sqrtf(sqr_len)).dot((light_sample.position - geometry->get_world_center()).normalized()));
 
         light_sample.pdf = sqr_len / (area * cos_theta);
     }
@@ -110,14 +117,14 @@ bool LightSphere::sample_area(const uint num_samples, const Vec3f * pos, const V
     return true;
 }
 
-bool LightSphere::evaluate_area(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
+bool LightSamplerSphere::evaluate_area(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
 {
     light_sample.position = intersect.position;
     light_sample.intensity = light->get_emission();
 
     const Vec3f light_to_pos = light_sample.position - *pos;
     const float sqr_len = light_to_pos.sqr_length();
-    const float cos_theta = fabs((light_to_pos / sqrtf(sqr_len)).dot((light_sample.position - center).normalized()));
+    const float cos_theta = fabs((light_to_pos / sqrtf(sqr_len)).dot((light_sample.position - geometry->get_world_center()).normalized()));
 
     light_sample.pdf = sqr_len / (area * cos_theta);
 

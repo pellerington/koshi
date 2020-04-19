@@ -9,6 +9,7 @@
 
 #include <geometry/GeometrySphere.h>
 #include <geometry/GeometryBox.h>
+#include <geometry/GeometryArea.h>
 
 #include <Materials/MaterialLambert.h>
 #include <Materials/MaterialBackLambert.h>
@@ -17,9 +18,9 @@
 #include <Materials/MaterialDielectric.h>
 #include <Materials/MaterialSubsurface.h>
 
-#include <Lights/LightArea.h>
-#include <Lights/LightSphere.h>
-#include <Lights/LightEnvironment.h>
+#include <lights/LightSamplerArea.h>
+#include <lights/LightSamplerSphere.h>
+// #include <lights/LightEnvironment.h>
 
 #include <Textures/Image.h>
 #include <Textures/Checker.h>
@@ -27,6 +28,7 @@
 #include <Textures/OpenVDB.h>
 
 #include <embree/EmbreeGeometryMesh.h>
+#include <embree/EmbreeGeometryArea.h>
 #include <embree/EmbreeGeometrySphere.h>
 #include <embree/EmbreeGeometryBox.h>
 
@@ -374,15 +376,15 @@ public:
 
                 if((*it)["type"] == "environment")
                 {
-                    const Vec3f intensity = get_vec3f(*it, "intensity");
-                    std::shared_ptr<Light> light(new Light(intensity));
+                    // const Vec3f intensity = get_vec3f(*it, "intensity");
+                    // std::shared_ptr<Light> light(new Light(intensity));
 
-                    std::shared_ptr<Texture> texture;
-                    if((*it)["texture"].is_string())
-                        texture = textures[(*it)["texture"]];
+                    // std::shared_ptr<Texture> texture;
+                    // if((*it)["texture"].is_string())
+                    //     texture = textures[(*it)["texture"]];
 
-                    std::shared_ptr<LightEnvironment> environment_light(new LightEnvironment(light, texture));
-                    scene.add_distant_light(environment_light);
+                    // std::shared_ptr<LightEnvironment> environment_light(new LightEnvironment(light, texture));
+                    // scene.add_distant_light(environment_light);
                 }
 
                 if((*it)["type"] == "area")
@@ -404,8 +406,15 @@ public:
                     const bool double_sided = get_bool(*it, "double_sided");
                     const bool hide_camera = get_bool(*it, "hide_camera", true);
 
-                    std::shared_ptr<LightArea> area_light(new LightArea(transform, light, double_sided, hide_camera));
-                    scene.add_light(area_light);
+                    std::shared_ptr<GeometryArea> area(new GeometryArea(transform, nullptr, light));
+
+                    EmbreeGeometryArea * embree_geometry = new EmbreeGeometryArea(area.get());
+                    area->add_attribute("embree_geometry", embree_geometry);
+
+                    LightSamplerArea * light_sampler = new LightSamplerArea(area.get());
+                    area->add_attribute("light_sampler", light_sampler);
+
+                    scene.add_light(area);
                 }
 
                 if((*it)["type"] == "sphere")
@@ -426,8 +435,15 @@ public:
 
                     const bool hide_camera = get_bool(*it, "hide_camera", true);
 
-                    std::shared_ptr<LightSphere> sphere_light(new LightSphere(transform, light, hide_camera));
-                    scene.add_light(sphere_light);
+                    std::shared_ptr<GeometrySphere> sphere(new GeometrySphere(transform, nullptr, light));
+
+                    EmbreeGeometrySphere * embree_geometry = new EmbreeGeometrySphere(sphere.get());
+                    sphere->add_attribute("embree_geometry", embree_geometry);
+
+                    LightSamplerSphere * light_sampler = new LightSamplerSphere(sphere.get());
+                    sphere->add_attribute("light_sampler", light_sampler);
+
+                    scene.add_light(sphere);
                 }
             }
         }

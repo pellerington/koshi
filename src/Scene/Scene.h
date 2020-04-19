@@ -3,7 +3,7 @@
 #include <Math/Types.h>
 // Scene should only relly know Object.h class
 #include <geometry/Geometry.h>
-#include <Lights/LightCombiner.h>
+#include <lights/LightSampler.h>
 #include <Materials/Material.h>
 #include <Textures/Texture.h>
 #include <intersection/Intersect.h>
@@ -26,8 +26,8 @@ public:
         bool sample_material = true;
     };
 
-    Scene() : distant_lights(new LightCombiner)  {}
-    Scene(const Camera &camera, const Settings &settings) : camera(camera), settings(settings), distant_lights(new LightCombiner) {}
+    Scene() {}
+    Scene(const Camera &camera, const Settings &settings) : camera(camera), settings(settings) {}
 
     void pre_render();
 
@@ -46,12 +46,10 @@ public:
     bool add_texture(std::shared_ptr<Texture> texture);
 
     std::vector<std::shared_ptr<Geometry>>& get_objects() { return objects; }
-    std::shared_ptr<LightCombiner> get_distant_lights() { return distant_lights; }
 
 private:
     std::vector<std::shared_ptr<Geometry>> objects;
     std::vector<std::shared_ptr<Material>> materials;
     std::vector<std::shared_ptr<Geometry>> lights;
-    std::shared_ptr<LightCombiner> distant_lights;
     std::vector<std::shared_ptr<Texture>> textures;
 };

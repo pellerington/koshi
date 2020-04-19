@@ -5,7 +5,11 @@
 #include <Util/Surface.h>
 class Geometry;
 
-// Make data type with pointers to next intersection in list????
+// Intersect should be an array of hits
+// Intersect should hold core details like Ray ect.
+// Hits should store the actualy surface/geometry of all hits
+// Use the [] operator to get a single hit.
+// Maybe call them Intersect and IntersectList? Or do something clever where Intersect[i] returns an intersect where only i's things are acceible?
 struct Intersect
 {
     Intersect(Ray& ray)

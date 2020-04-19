@@ -31,8 +31,8 @@ public:
 
         // TODO: Change all this when we switch to an object intersection model.
         const Transform3f& world_to_obj = sphere->get_world_to_obj();
-        const Vec3f& center = sphere->get_center();
-        const float& radius_sqr = sphere->get_radius_sqr();
+        const Vec3f& center = sphere->get_world_center();
+        const float& radius_sqr = sphere->get_world_radius_sqr();
 
         float t0, t1;
         if(!sphere->is_elliptoid())

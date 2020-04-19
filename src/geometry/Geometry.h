@@ -9,7 +9,7 @@
 #include <Util/Resources.h>
 #include <Util/Surface.h>
 #include <intersection/Ray.h>
-#include <Lights/Light.h>
+#include <lights/Light.h>
 
 class Surface;
 class Material;
@@ -29,9 +29,9 @@ public:
     {
     }
 
-    const Box3f& get_bbox() { return bbox; }
-    const Transform3f& get_obj_to_world() { return obj_to_world; }
-    const Transform3f& get_world_to_obj() { return world_to_obj; }
+    inline const Box3f& get_bbox() { return bbox; }
+    inline const Transform3f& get_obj_to_world() { return obj_to_world; }
+    inline const Transform3f& get_world_to_obj() { return world_to_obj; }
 
     // const Vec3f get_opacity(/* intersection */) { return hide_camera ? VEC3F_ZERO : VEC3F_ONES; }
 
@@ -62,8 +62,8 @@ public:
     // }
 
     // These should be an attribute
-    virtual bool sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources) { return false; }
-    virtual bool evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources) { return false; }
+    // virtual bool sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources) { return false; }
+    // virtual bool evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources) { return false; }
 
     // These should be an attribute
     std::shared_ptr<Light> light;

@@ -10,7 +10,8 @@ void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &ligh
     {
         // Make a better num_samples estimator
         const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_multiplier);
-        lights[i]->sample_light(num_samples, &surface.position, nullptr, light_samples, resources);
+        LightSampler * sampler = lights[i]->get_attribute<LightSampler>("light_sampler");
+        sampler->sample_light(num_samples, &surface.position, nullptr, light_samples, resources);
     }
 }
 
@@ -30,13 +31,6 @@ bool Scene::add_light(std::shared_ptr<Geometry> light)
 {
     lights.push_back(light);
     add_object(light);
-    return true;
-}
-
-bool Scene::add_distant_light(std::shared_ptr<Geometry> light)
-{
-    distant_lights->add_light(light);
-    add_light(light);
     return true;
 }
 
