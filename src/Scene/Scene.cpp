@@ -11,7 +11,8 @@ void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &ligh
         // Make a better num_samples estimator
         const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_multiplier);
         LightSampler * sampler = lights[i]->get_attribute<LightSampler>("light_sampler");
-        sampler->sample_light(num_samples, &surface.position, nullptr, light_samples, resources);
+        if(sampler)
+            sampler->sample_light(num_samples, &surface.position, nullptr, light_samples, resources);
     }
 }
 

@@ -27,11 +27,18 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, Resources &reso
         return (ray.hit) ? Vec3f(0.f) : /*volume_integrator.shadow(ray.tmax) * */ in_sample.lsample->intensity;
     }
 
-    LightSampler * light_sampler = (intersect.geometry) ? intersect.geometry->get_attribute<LightSampler>("light_sampler") : nullptr;
+    if(!intersect.geometry)
+        return color;
+
+    LightSampler * light_sampler = intersect.geometry->get_attribute<LightSampler>("light_sampler");
     if(light_sampler)
     {
         light_sampler->evaluate_light(intersect.surface, &ray.pos, nullptr, *in_sample.lsample, resources);
         color += /*shadow_tmax * */ in_sample.lsample->intensity;
+    }
+    else if(intersect.geometry->light)
+    {
+        color += intersect.geometry->light->get_intensity(intersect.surface, resources);
     }
 
     // Check if we should terminate early.
@@ -41,26 +48,6 @@ Vec3f PathIntegrator::integrate(Ray &ray, PathSample &in_sample, Resources &reso
     //Kill our ray if we are below the threshold.
     if(in_sample.quality < quality_threshold)
         return color;
-
-    // Scatter our volume
-    // std::vector<VolumeSample> volume_samples;
-    // volume_integrator->scatter(volume_samples);
-    // for(uint i = 0; i < volume_samples.size(); i++)
-    // {
-    //     PathSample sample;
-    //     sample.depth = in_sample.depth + 1;
-    //     sample.quality = in_sample.quality * volume_samples[i].quality;
-    //     sample.msample = &volume_samples[i];
-    //     sample.type = PathSample::Volume;
-    //     LightSample lsample;
-    //     sample.lsample = &lsample;
-
-    //     Ray ray(volume_samples[i].pos, volume_samples[i].wo);
-    //     ray.ior = intersect.ior;
-    //     ray.in_volumes = volume_samples[i].passthrough_volumes;
-
-    //     color += sample.msample->weight * integrate(ray, sample, resources);
-    // }
 
     // Scatter the surface
     if(/*!is_black(shadow_tmax) && */ray.hit)

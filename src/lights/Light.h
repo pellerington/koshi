@@ -1,15 +1,18 @@
 #pragma once
 
+#include <Util/Attribute.h>
+
 class Light
 {
 public:
-    Light(const Vec3f &intensity) : intensity(intensity) {}
+    Light(const AttributeVec3f& intensity_attr) : intensity_attr(intensity_attr) {}
 
-    Vec3f get_emission(/*const Surface &surface*/)
+    Vec3f get_intensity(const Surface& surface, Resources &resources)
     {
-        return intensity;
+        return intensity_attr.get_value(surface.u, surface.v, 0.f, resources);;
     }
+    
 private:
     // Add saturation/spectrum here too.
-    const Vec3f intensity;
+    const AttributeVec3f intensity_attr;
 };

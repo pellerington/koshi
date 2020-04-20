@@ -62,10 +62,6 @@ public:
     // }
 
     // These should be an attribute
-    // virtual bool sample_light(const uint num_samples, const Vec3f * pos, const Vec3f * pfar, std::vector<LightSample> &light_samples, Resources &resources) { return false; }
-    // virtual bool evaluate_light(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources) { return false; }
-
-    // These should be an attribute
     std::shared_ptr<Light> light;
     std::shared_ptr<Material> material;
 

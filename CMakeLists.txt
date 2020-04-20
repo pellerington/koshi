@@ -19,8 +19,8 @@ find_package(SFML 2 COMPONENTS graphics window system)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(koshi ${SOURCES})
 
-#set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -O3")
-set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -g")
+set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -O3")
+#set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -g")
 
 include_directories(${EMBREE_INCLUDE_DIRS})
 include_directories(${OpenVDB_INCLUDE_DIRS})

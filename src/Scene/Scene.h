@@ -41,7 +41,6 @@ public:
 
     bool add_object(std::shared_ptr<Geometry> object);
     bool add_material(std::shared_ptr<Material> material);
-    bool add_distant_light(std::shared_ptr<Geometry> light);
     bool add_light(std::shared_ptr<Geometry> light);
     bool add_texture(std::shared_ptr<Texture> texture);
 

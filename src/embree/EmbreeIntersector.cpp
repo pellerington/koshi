@@ -63,8 +63,7 @@ Intersect EmbreeIntersector::intersect(Ray &ray)
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
         ray.hit = false;
-        // intersect.geometry = (ray.tmax == FLT_MAX) ? scene->get_distant_lights().get() : nullptr;
-        // End hit callbacks.
+        null_intersection_callbacks(intersect);
     }
     else
     {

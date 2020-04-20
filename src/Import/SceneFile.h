@@ -10,6 +10,7 @@
 #include <geometry/GeometrySphere.h>
 #include <geometry/GeometryBox.h>
 #include <geometry/GeometryArea.h>
+#include <geometry/GeometryEnvironment.h>
 
 #include <Materials/MaterialLambert.h>
 #include <Materials/MaterialBackLambert.h>
@@ -20,7 +21,6 @@
 
 #include <lights/LightSamplerArea.h>
 #include <lights/LightSamplerSphere.h>
-// #include <lights/LightEnvironment.h>
 
 #include <Textures/Image.h>
 #include <Textures/Checker.h>
@@ -376,15 +376,14 @@ public:
 
                 if((*it)["type"] == "environment")
                 {
-                    // const Vec3f intensity = get_vec3f(*it, "intensity");
-                    // std::shared_ptr<Light> light(new Light(intensity));
+                    const Vec3f intensity = get_vec3f(*it, "intensity");
+                    std::shared_ptr<Texture> intensity_texture;
+                    if((*it)["texture"].is_string())
+                        intensity_texture = textures[(*it)["texture"]];
+                    std::shared_ptr<Light> light(new Light(AttributeVec3f(intensity_texture, intensity)));
 
-                    // std::shared_ptr<Texture> texture;
-                    // if((*it)["texture"].is_string())
-                    //     texture = textures[(*it)["texture"]];
-
-                    // std::shared_ptr<LightEnvironment> environment_light(new LightEnvironment(light, texture));
-                    // scene.add_distant_light(environment_light);
+                    std::shared_ptr<GeometryEnvironment> environment(new GeometryEnvironment(light));
+                    scene.add_light(environment);
                 }
 
                 if((*it)["type"] == "area")
@@ -401,7 +400,10 @@ public:
                     transform = transform * Transform3f::scale(scale);
 
                     const Vec3f intensity = get_vec3f(*it, "intensity");
-                    std::shared_ptr<Light> light(new Light(intensity));
+                    std::shared_ptr<Texture> intensity_texture;
+                    if((*it)["intensity_texture"].is_string())
+                        intensity_texture = textures[(*it)["intensity_texture"]];
+                    std::shared_ptr<Light> light(new Light(AttributeVec3f(intensity_texture, intensity)));
 
                     const bool double_sided = get_bool(*it, "double_sided");
                     const bool hide_camera = get_bool(*it, "hide_camera", true);
@@ -431,7 +433,10 @@ public:
                     transform = transform * Transform3f::scale(scale);
 
                     const Vec3f intensity = get_vec3f(*it, "intensity");
-                    std::shared_ptr<Light> light(new Light(intensity));
+                    std::shared_ptr<Texture> intensity_texture;
+                    if((*it)["intensity_texture"].is_string())
+                        intensity_texture = textures[(*it)["intensity_texture"]];
+                    std::shared_ptr<Light> light(new Light(AttributeVec3f(intensity_texture, intensity)));
 
                     const bool hide_camera = get_bool(*it, "hide_camera", true);
 

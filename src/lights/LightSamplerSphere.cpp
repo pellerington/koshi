@@ -58,7 +58,12 @@ bool LightSamplerSphere::sample_sa(const uint num_samples, const Vec3f * pos, co
         light_samples.emplace_back();
         LightSample &light_sample = light_samples.back();
         light_sample.position = *pos + t * sampled_dir;
-        light_sample.intensity = light->get_emission();
+
+        Surface surface(sampled_dir);
+        const Vec3f normal = light_sample.position - geometry->get_world_center();
+        surface.set_hit(light_sample.position, normal, normal, 0.f, 0.f);
+        light_sample.intensity = light->get_intensity(surface, resources);
+
         light_sample.pdf = sample_pdf;
     }
 
@@ -68,7 +73,7 @@ bool LightSamplerSphere::sample_sa(const uint num_samples, const Vec3f * pos, co
 bool LightSamplerSphere::evaluate_sa(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
 {
     light_sample.position = intersect.position;
-    light_sample.intensity = light->get_emission();
+    light_sample.intensity = light->get_intensity(intersect, resources);
     light_sample.pdf = (geometry->get_world_center() - *pos).sqr_length() / (TWO_PI * geometry->get_world_radius_sqr());
 
     return true;
@@ -105,11 +110,15 @@ bool LightSamplerSphere::sample_area(const uint num_samples, const Vec3f * pos, 
         light_samples.emplace_back();
         LightSample &light_sample = light_samples.back();
         light_sample.position = geometry->get_obj_to_world() * (obj_pos + obj_sampled_dir * t);
-        light_sample.intensity = light->get_emission();
 
         const Vec3f light_to_pos = light_sample.position - *pos;
         const float sqr_len = light_to_pos.sqr_length();
         const float cos_theta = fabs((light_to_pos / sqrtf(sqr_len)).dot((light_sample.position - geometry->get_world_center()).normalized()));
+
+        Surface surface(light_to_pos);
+        const Vec3f normal = light_sample.position - geometry->get_world_center();
+        surface.set_hit(light_sample.position, normal, normal, 0.f, 0.f);
+        light_sample.intensity = light->get_intensity(surface, resources);
 
         light_sample.pdf = sqr_len / (area * cos_theta);
     }
@@ -120,7 +129,7 @@ bool LightSamplerSphere::sample_area(const uint num_samples, const Vec3f * pos, 
 bool LightSamplerSphere::evaluate_area(const Surface &intersect, const Vec3f * pos, const Vec3f * pfar, LightSample &light_sample, Resources &resources)
 {
     light_sample.position = intersect.position;
-    light_sample.intensity = light->get_emission();
+    light_sample.intensity = light->get_intensity(intersect, resources);
 
     const Vec3f light_to_pos = light_sample.position - *pos;
     const float sqr_len = light_to_pos.sqr_length();

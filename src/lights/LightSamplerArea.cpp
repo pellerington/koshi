@@ -21,7 +21,7 @@ bool LightSamplerArea::sample_light(const uint num_samples, const Vec3f * pos, c
     {
         const Vec2f rnd = rng.Rand2D();
 
-        const Vec3f light_pos = obj_to_world * Vec3f(rnd[0]*2.f-1.f, rnd[1]*2.f-1.f, 0.f);
+        const Vec3f light_pos = obj_to_world * Vec3f(rnd[0]-0.5f, rnd[1]-0.5f, 0.f);
         const Vec3f dir = *pos - light_pos;
         const float sqr_len = dir.sqr_length();
         const float cos_theta = world_normal.dot(dir / sqrtf(sqr_len));
@@ -32,7 +32,11 @@ bool LightSamplerArea::sample_light(const uint num_samples, const Vec3f * pos, c
         LightSample &light_sample = light_samples.back();
 
         light_sample.position = light_pos;
-        light_sample.intensity = light->get_emission();
+
+        Surface surface(-dir);
+        surface.set_hit(light_sample.position, world_normal, world_normal, rnd[0], rnd[1]);
+        light_sample.intensity = light->get_intensity(surface, resources);
+
         light_sample.pdf = sqr_len / (area * (fabs(cos_theta) + EPSILON_F));
     }
 
@@ -47,7 +51,7 @@ bool LightSamplerArea::evaluate_light(const Surface &intersect, const Vec3f * po
     const Vec3f& world_normal = geometry->get_world_normal();
 
     light_sample.position = intersect.position;
-    light_sample.intensity = light->get_emission();
+    light_sample.intensity = light->get_intensity(intersect, resources);
 
     const Vec3f dir = *pos - light_sample.position;
     const float sqr_len = dir.sqr_length();
