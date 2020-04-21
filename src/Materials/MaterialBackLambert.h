@@ -8,7 +8,7 @@ public:
     MaterialBackLambert(const AttributeVec3f &diffuse_color_attr);
     Type get_type() { return Material::BackLambert; }
 
-    MaterialInstance * instance(const Surface * surface, Resources &resources);
+    MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
     struct MaterialInstanceBackLambert : public MaterialInstance
     {
         Vec3f diffuse_color;

@@ -11,12 +11,12 @@ public:
 
     virtual void pre_render() = 0;
 
-    virtual Intersect intersect(Ray& ray) = 0;
+    virtual IntersectList intersect(const Ray& ray) = 0;
     
-    void null_intersection_callbacks(Intersect& intersect)
+    void null_intersection_callbacks(IntersectList& intersects)
     {
         for(size_t i = 0; i < null_callbacks.size(); i++)
-            null_callbacks[i].first(intersect, null_callbacks[i].second);
+            null_callbacks[i].first(intersects, null_callbacks[i].second);
     }
 
 protected:

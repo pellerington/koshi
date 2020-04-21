@@ -4,7 +4,7 @@
 #include <vector>
 #include <base/Object.h>
 #include <intersection/Ray.h>
-#include <Util/Surface.h>
+#include <intersection/GeometrySurface.h>
 class Geometry;
 
 // Intersect should be an array of hits
@@ -14,22 +14,46 @@ class Geometry;
 // Maybe call them Intersect and IntersectList? Or do something clever where Intersect[i] returns an intersect where only i's things are acceible?
 struct Intersect
 {
-    Intersect(Ray& ray)
-    : ray(ray), geometry(nullptr),
-    surface(ray.dir, ray.ior->get_curr_ior(), ray.ior->get_prev_ior()),
-    ior(ray.ior)
+    Intersect(const Ray& _ray)
+    : ray(_ray), t(0.f), t_len(0.f), geometry(nullptr)
     {}
 
-    Ray& ray;
+    const Ray ray;
+    float t, t_len;
 
     Geometry * geometry;
-
-    Surface surface;
-    const IorStack * ior;
+    GeometrySurface surface;
+    // TODO: Make this a DATA type so we can have a GeometrySurface and GeometryVolume?
+    // GeometryData * data;
+    // <class T>
+    // T * get_data() { return (T*)data; }
 };
 
-typedef void (NullIntersectionCallback)(Intersect& intersect, Geometry * geometry);
+class IntersectList
+{
+public:
+    IntersectList(const Ray& _ray)
+    : ray(_ray)
+    {}
 
+    const Ray ray;
+    inline size_t size() const { return intersects.size(); }
+    inline bool hit() const { return !intersects.empty(); }
+    inline bool empty() const { return intersects.empty(); }
+
+    // TODO: Currently this is not safe is we resize vector. Use a linked list or something instead.
+    inline Intersect& operator[](const size_t& i) { return intersects[i]; }
+    inline const Intersect& operator[](const size_t& i) const { return intersects[i]; }
+    Intersect& push() {
+        intersects.push_back(Intersect(ray)); 
+        return intersects.back();
+    }
+
+private:
+    std::vector<Intersect> intersects;
+};
+
+typedef void (NullIntersectionCallback)(IntersectList& intersects, Geometry * geometry);
 struct IntersectionCallbacks : public Object
 {
     NullIntersectionCallback * null_intersection_cb = nullptr;

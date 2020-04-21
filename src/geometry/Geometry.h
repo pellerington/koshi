@@ -7,11 +7,9 @@
 #include <base/Object.h>
 
 #include <Util/Resources.h>
-#include <Util/Surface.h>
 #include <intersection/Ray.h>
 #include <lights/Light.h>
 
-class Surface;
 class Material;
 
 class Geometry : public Object

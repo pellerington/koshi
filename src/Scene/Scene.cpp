@@ -4,7 +4,7 @@ void Scene::pre_render()
 {
 }
 
-void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &light_samples, const float sample_multiplier, Resources &resources)
+void Scene::sample_lights(const Intersect& intersect, std::vector<LightSample> &light_samples, const float sample_multiplier, Resources &resources)
 {
     for(size_t i = 0; i < lights.size(); i++)
     {
@@ -12,7 +12,7 @@ void Scene::sample_lights(const Surface &surface, std::vector<LightSample> &ligh
         const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_multiplier);
         LightSampler * sampler = lights[i]->get_attribute<LightSampler>("light_sampler");
         if(sampler)
-            sampler->sample_light(num_samples, &surface.position, nullptr, light_samples, resources);
+            sampler->sample_light(num_samples, intersect, light_samples, resources);
     }
 }
 

@@ -2,7 +2,6 @@
 
 #include <Math/Types.h>
 #include <Scene/Scene.h>
-#include <Util/Surface.h>
 #include <intersection/Ray.h>
 #include <Util/Resources.h>
 

@@ -36,9 +36,9 @@ void EmbreeIntersector::pre_render()
 //         obj->process_intersection_volume(args);
 // }
 
-Intersect EmbreeIntersector::intersect(Ray &ray)
+IntersectList EmbreeIntersector::intersect(const Ray &ray)
 {
-    Intersect intersect(ray);
+    IntersectList intersects(ray);
 
     EmbreeIntersectContext context;
     context.ray = &ray;
@@ -62,25 +62,21 @@ Intersect EmbreeIntersector::intersect(Ray &ray)
     // Setup the intersection
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
-        ray.hit = false;
-        null_intersection_callbacks(intersect);
+        null_intersection_callbacks(intersects);
     }
     else
     {
-        ray.t = rtcRayHit.ray.tfar;
-        ray.tmax = rtcRayHit.ray.tfar;
-        ray.hit = true;
-
+        Intersect& intersect = intersects.push();
         intersect.geometry = (Geometry*)rtcGetGeometryUserData(rtcGetGeometry(rtc_scene, rtcRayHit.hit.geomID));
-        intersect.surface.set_hit
+        intersect.surface.set
         (
-            ray.get_position(ray.t),
-            Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
+            ray.get_position(rtcRayHit.ray.tfar),
             Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
             rtcRayHit.hit.u,
-            rtcRayHit.hit.v
+            rtcRayHit.hit.v,
+            ray.dir
         );
     }
 
-    return intersect;
+    return intersects;
 }

@@ -8,7 +8,7 @@
 class MeshFile
 {
 public:
-    static std::shared_ptr<GeometryMesh> ImportOBJ(const std::string filename, const Transform3f &transform, std::shared_ptr<Material> material, std::shared_ptr<Volume> volume = nullptr)
+    static std::shared_ptr<GeometryMesh> ImportOBJ(const std::string filename, const Transform3f &transform, std::shared_ptr<Material> material)
     {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;

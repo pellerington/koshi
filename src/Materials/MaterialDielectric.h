@@ -14,7 +14,7 @@ public:
                        const float &ior = 1.f);
     Type get_type() { return Material::Dielectric; }
 
-    MaterialInstance * instance(const Surface * surface, Resources &resources);
+    MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
     struct MaterialInstanceDielectric : public MaterialInstance
     {
         MaterialGGXReflect::MaterialInstanceGGXReflect reflect_instance;

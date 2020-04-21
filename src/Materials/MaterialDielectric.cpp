@@ -16,7 +16,7 @@ MaterialDielectric::MaterialDielectric(const AttributeVec3f &reflective_color_at
 {
 }
 
-MaterialInstance * MaterialDielectric::instance(const Surface * surface, Resources &resources)
+MaterialInstance * MaterialDielectric::instance(const GeometrySurface * surface, Resources &resources)
 {
     MaterialInstanceDielectric * instance = resources.memory.create<MaterialInstanceDielectric>();
 
@@ -24,8 +24,8 @@ MaterialInstance * MaterialDielectric::instance(const Surface * surface, Resourc
     instance->reflect_instance.surface = surface;
     instance->refract_instance.surface = surface;
 
-    instance->refract_instance.ior_in = surface->curr_ior;
-    instance->refract_instance.ior_out = surface->front ? ior : surface->prev_ior;
+    instance->refract_instance.ior_in = 1.f;//surface->curr_ior;
+    instance->refract_instance.ior_out = ior;//surface->facing ? ior : surface->prev_ior;
     instance->refract_instance.refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
     instance->refract_instance.roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
     instance->refract_instance.roughness = clamp(instance->refract_instance.roughness * instance->refract_instance.roughness, 0.01f, 0.99f);
@@ -68,7 +68,7 @@ bool MaterialDielectric::evaluate_material(const MaterialInstance * material_ins
     sample.pdf = 0.f;
 
     MaterialSample isample = sample;
-    if(instance->surface->front)
+    if(instance->surface->facing)
         if(ggx_reflect.evaluate_material(&instance->reflect_instance, isample))
         {
             sample.weight += isample.weight;

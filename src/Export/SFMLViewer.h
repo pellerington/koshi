@@ -13,7 +13,7 @@ public:
         const uint image_width = render->get_image_resolution().x;
         const uint image_height = render->get_image_resolution().y;
         const uint screen_width = screen_height * (float)image_width / image_height;
-        sf::RenderWindow window(sf::VideoMode(screen_width, screen_height), "My window");
+        sf::RenderWindow window(sf::VideoMode(screen_width, screen_height), "Koshi");
 
         sf::Texture texture;
         texture.create(image_width, image_height);

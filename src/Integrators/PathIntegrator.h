@@ -11,6 +11,7 @@ struct PathSample
     Type type;
 
     PathSample * parent;
+    const Intersect * intersect;
     uint depth;
     float quality;
 };

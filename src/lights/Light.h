@@ -7,9 +7,9 @@ class Light
 public:
     Light(const AttributeVec3f& intensity_attr) : intensity_attr(intensity_attr) {}
 
-    Vec3f get_intensity(const Surface& surface, Resources &resources)
+    Vec3f get_intensity(const Intersect& intersect, Resources &resources)
     {
-        return intensity_attr.get_value(surface.u, surface.v, 0.f, resources);;
+        return intensity_attr.get_value(intersect.surface.u, intersect.surface.v, 0.f, resources);;
     }
     
 private:

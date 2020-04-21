@@ -11,7 +11,7 @@ MaterialSubsurface::MaterialSubsurface(const AttributeVec3f &surface_color_attr,
 {
 }
 
-MaterialInstance * MaterialSubsurface::instance(const Surface * surface, Resources &resources)
+MaterialInstance * MaterialSubsurface::instance(const GeometrySurface * surface, Resources &resources)
 {
     MaterialInstanceSubsurface * instance = resources.memory.create<MaterialInstanceSubsurface>();
     instance->surface = surface;
@@ -27,10 +27,10 @@ bool MaterialSubsurface::sample_material(const MaterialInstance * material_insta
 {
     const MaterialInstanceSubsurface * instance = (const MaterialInstanceSubsurface *)material_instance;
 
-    if(instance->surface->front)
+    if(instance->surface->facing)
         lambert.sample_material(&instance->lambert_instance, samples, sample_reduction*instance->surface_weight, resources);
     const float front_samples = samples.size();
-    back_lambert.sample_material(&instance->back_lambert_instance, samples, sample_reduction*(instance->surface->front ? 1.f-instance->surface_weight : 1.f), resources);
+    back_lambert.sample_material(&instance->back_lambert_instance, samples, sample_reduction*(instance->surface->facing ? 1.f-instance->surface_weight : 1.f), resources);
     const float back_samples = samples.size() - front_samples;
     const float total_samples = front_samples + back_samples;
 
@@ -48,7 +48,7 @@ bool MaterialSubsurface::evaluate_material(const MaterialInstance * material_ins
 {
     const MaterialInstanceSubsurface * instance = (const MaterialInstanceSubsurface *)material_instance;
 
-    if(instance->surface->front)
+    if(instance->surface->facing)
         lambert.evaluate_material(&instance->lambert_instance, sample);
     else
         back_lambert.evaluate_material(&instance->back_lambert_instance, sample);

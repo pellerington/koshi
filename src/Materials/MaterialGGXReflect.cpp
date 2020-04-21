@@ -10,7 +10,7 @@ MaterialGGXReflect::MaterialGGXReflect(const AttributeVec3f &specular_color_attr
 {
 }
 
-MaterialInstance * MaterialGGXReflect::instance(const Surface * surface, Resources &resources)
+MaterialInstance * MaterialGGXReflect::instance(const GeometrySurface * surface, Resources &resources)
 {
     MaterialInstanceGGXReflect * instance = resources.memory.create<MaterialInstanceGGXReflect>();
     instance->surface = surface;
@@ -42,12 +42,12 @@ bool MaterialGGXReflect::sample_material(const MaterialInstance * material_insta
 
         const float theta = TWO_PI * rnd[0];
         const float phi = atanf(instance->roughness * sqrtf(rnd[1]) / sqrtf(1.f - rnd[1]));
-        const Vec3f h = (instance->surface->front ? 1.f : -1.f) * (instance->surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
+        const Vec3f h = (instance->surface->facing ? 1.f : -1.f) * (instance->surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
         const float h_dot_wi = clamp(h.dot(-instance->surface->wi), -1.f, 1.f);
 
         // If we are inside the only time we want to call this is if we have total internal reflection.
         const Vec3f f = instance->fresnel->Fr(fabs(h_dot_wi));
-        if(!instance->surface->front && f < 1.f)
+        if(!instance->surface->facing && f < 1.f)
             continue;
 
         samples.emplace_back();
@@ -55,7 +55,7 @@ bool MaterialGGXReflect::sample_material(const MaterialInstance * material_insta
         sample.quality = quality;
         sample.wo = (2.f * h_dot_wi * h + instance->surface->wi);
 
-        const Vec3f normal = (instance->surface->front ? 1.f : -1.f) * instance->surface->normal;
+        const Vec3f normal = (instance->surface->facing ? 1.f : -1.f) * instance->surface->normal;
         const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
         const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
         const float n_dot_wi = fabs(instance->surface->n_dot_wi);

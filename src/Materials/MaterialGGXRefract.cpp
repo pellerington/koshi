@@ -10,12 +10,12 @@ MaterialGGXRefract::MaterialGGXRefract(const AttributeVec3f &refractive_color_at
 {
 }
 
-MaterialInstance * MaterialGGXRefract::instance(const Surface * surface, Resources &resources)
+MaterialInstance * MaterialGGXRefract::instance(const GeometrySurface * surface, Resources &resources)
 {
     MaterialInstanceGGXRefract * instance = resources.memory.create<MaterialInstanceGGXRefract>();
     instance->surface = surface;
-    instance->ior_in = surface->curr_ior;
-    instance->ior_out = surface->front ? ior : surface->prev_ior;
+    instance->ior_in = 1.f;//surface->curr_ior;
+    instance->ior_out = ior;//surface->facing ? ior : surface->prev_ior;
     instance->refractive_color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
     instance->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
     instance->roughness = clamp(instance->roughness * instance->roughness, 0.01f, 0.99f);
@@ -40,7 +40,7 @@ bool MaterialGGXRefract::sample_material(const MaterialInstance * material_insta
 
         const float theta = TWO_PI * rnd[0];
         const float phi = atanf(instance->roughness * sqrtf(rnd[1]) / sqrtf(1.f - rnd[1]));
-        const Vec3f h = ((instance->surface->front) ? 1.f : -1.f) * (instance->surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
+        const Vec3f h = ((instance->surface->facing) ? 1.f : -1.f) * (instance->surface->transform * Vec3f(sinf(phi) * cosf(theta), cosf(phi), sinf(phi) * sinf(theta)));
 
         const float h_dot_wi = clamp(h.dot(-instance->surface->wi), -1.f, 1.f);
         const float eta = instance->ior_in / instance->ior_out;
@@ -52,7 +52,7 @@ bool MaterialGGXRefract::sample_material(const MaterialInstance * material_insta
         sample.quality = quality;
         sample.wo = eta * instance->surface->wi + (eta * fabs(h_dot_wi) - sqrtf(k)) * h;
 
-        const Vec3f normal = ((instance->surface->front) ? instance->surface->normal : -instance->surface->normal);
+        const Vec3f normal = ((instance->surface->facing) ? instance->surface->normal : -instance->surface->normal);
         const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
         const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
         const float n_dot_wi = clamp(normal.dot(-instance->surface->wi), -1.f, 1.f);
@@ -88,8 +88,8 @@ bool MaterialGGXRefract::evaluate_material(const MaterialInstance * material_ins
     if(sample.wo.dot(instance->surface->wi) > 0.f)
         return false;
 
-    const Vec3f normal = ((instance->surface->front) ? instance->surface->normal : -instance->surface->normal);
-    const Vec3f h = ((instance->surface->front) ? 1.f : -1.f) * (-instance->surface->wi*instance->ior_in + sample.wo*instance->ior_out).normalized();
+    const Vec3f normal = ((instance->surface->facing) ? instance->surface->normal : -instance->surface->normal);
+    const Vec3f h = ((instance->surface->facing) ? 1.f : -1.f) * (-instance->surface->wi*instance->ior_in + sample.wo*instance->ior_out).normalized();
 
     const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
     const float h_dot_wi = clamp(h.dot(-instance->surface->wi), -1.f, 1.f);

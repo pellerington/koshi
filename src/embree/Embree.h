@@ -10,5 +10,6 @@ struct Embree
 
 struct EmbreeIntersectContext : public RTCIntersectContext
 {
-    Ray * ray = nullptr;
+    const Ray * ray;
+    // Add Ptr to the IntersectList
 };

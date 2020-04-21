@@ -10,7 +10,7 @@ MaterialLambert::MaterialLambert(const AttributeVec3f &diffuse_color_attr)
 {
 }
 
-MaterialInstance * MaterialLambert::instance(const Surface * surface, Resources &resources)
+MaterialInstance * MaterialLambert::instance(const GeometrySurface * surface, Resources &resources)
 {
     MaterialInstanceLambert * instance = resources.memory.create<MaterialInstanceLambert>();
     instance->surface = surface;
@@ -22,7 +22,7 @@ bool MaterialLambert::sample_material(const MaterialInstance * material_instance
 {
     const MaterialInstanceLambert * instance = (const MaterialInstanceLambert *)material_instance;
 
-    if(!instance->surface->front)
+    if(!instance->surface->facing)
         return false;
 
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_reduction);
@@ -62,7 +62,7 @@ bool MaterialLambert::evaluate_material(const MaterialInstance * material_instan
 {
     const MaterialInstanceLambert * instance = (const MaterialInstanceLambert *)material_instance;
 
-    if(!instance->surface->front)
+    if(!instance->surface->facing)
         return false;
 
     const float n_dot_wo = instance->surface->normal.dot(sample.wo);

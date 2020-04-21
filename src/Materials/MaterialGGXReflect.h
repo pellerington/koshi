@@ -10,7 +10,7 @@ public:
     MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute);
     Type get_type() { return Material::GGXReflect; }
 
-    MaterialInstance * instance(const Surface * surface, Resources &resources);
+    MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
     struct MaterialInstanceGGXReflect : public MaterialInstance
     {
         Vec3f specular_color;

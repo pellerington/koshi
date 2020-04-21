@@ -21,14 +21,17 @@ public:
 private:
     IntersectionCallbacks * intersection_cb;
 
-    static void null_intersection_cb(Intersect& intersect, Geometry * geometry)
+    static void null_intersection_cb(IntersectList& intersects, Geometry * geometry)
     {
         // In the future add a IntersectList here and just append one
 
-        if(intersect.ray.tmax != FLT_MAX)
+        // We only hit if we have infinite distance.
+        if(intersects.ray.tmax != FLT_MAX)
             return;
 
-        intersect.ray.hit = true;
+        Intersect& intersect = intersects.push();
+
+        intersect.t = FLT_MAX;
         intersect.geometry = geometry;
 
         float theta = acosf(intersect.ray.dir.y);
@@ -40,12 +43,6 @@ private:
         const float u = phi * INV_TWO_PI;
         const float v = theta * INV_PI;
 
-        intersect.surface.set_hit
-        (
-            intersect.ray.dir * FLT_MAX,
-            -intersect.ray.dir.normalized(),
-            -intersect.ray.dir.normalized(),
-            u, v
-        );
+        intersect.surface.set(intersect.ray.dir * FLT_MAX, -intersect.ray.dir.normalized(), u, v, intersect.ray.dir.normalized());
     }
 };

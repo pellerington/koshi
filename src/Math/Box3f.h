@@ -52,5 +52,4 @@ private:
     Vec3f box_max;
     Vec3f box_center;
     Vec3f box_length;
-    // float box_volume;
 };

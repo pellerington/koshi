@@ -9,7 +9,7 @@ MaterialBackLambert::MaterialBackLambert(const AttributeVec3f &diffuse_color_att
 {
 }
 
-MaterialInstance * MaterialBackLambert::instance(const Surface * surface, Resources &resources)
+MaterialInstance * MaterialBackLambert::instance(const GeometrySurface * surface, Resources &resources)
 {
     MaterialInstanceBackLambert * instance = resources.memory.create<MaterialInstanceBackLambert>();
     instance->surface = surface;
@@ -35,7 +35,7 @@ bool MaterialBackLambert::sample_material(const MaterialInstance * material_inst
 
         const float theta = TWO_PI * rnd[0];
         const float r = sqrtf(rnd[1]);
-        const float x = r * cosf(theta), z = r * sinf(theta), y = ((instance->surface->front) ? -1.f : 1.f) * sqrtf(std::max(EPSILON_F, 1.f - rnd[1]));
+        const float x = r * cosf(theta), z = r * sinf(theta), y = ((instance->surface->facing) ? -1.f : 1.f) * sqrtf(std::max(EPSILON_F, 1.f - rnd[1]));
         sample.wo = instance->surface->transform * Vec3f(x, y, z);
         sample.weight = instance->diffuse_color * INV_PI * fabs(sample.wo.dot(instance->surface->normal));
         sample.pdf = fabs(y) * INV_PI;

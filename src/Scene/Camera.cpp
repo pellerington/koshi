@@ -14,5 +14,5 @@ Ray Camera::sample_pixel(const Vec2u &pixel, const Vec2f &rng) const
     Vec3f pixel_position(((float)(resolution.x - pixel.x) / resolution.x - 0.5f) * aspect_ratio, ((float)(resolution.y - pixel.y) / resolution.y - 0.5f), focal_length);
     pixel_position = pixel_position + pixel_delta * Vec3f(rng.x, rng.y, 0.f);
     pixel_position = transform * pixel_position;
-    return Ray(origin, (pixel_position - origin).normalized(), true, &initial_ior);
+    return Ray(origin, (pixel_position - origin).normalized());
 }
