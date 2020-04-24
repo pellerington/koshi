@@ -3,7 +3,7 @@
 LightSamplerArea::LightSamplerArea(GeometryArea * geometry) 
 : geometry(geometry)
 {
-    light = geometry->light.get();
+    light = geometry->get_attribute<Light>("light");
     double_sided = false;
     const Transform3f& obj_to_world = geometry->get_obj_to_world();
     area  = obj_to_world.multiply(Vec3f(1.f, 0.f, 0.f), false).length();
@@ -45,21 +45,15 @@ bool LightSamplerArea::sample_light(const uint num_samples, const Intersect& int
     return true;
 }
 
-bool LightSamplerArea::evaluate_light(const Intersect& light_intersect, const Intersect& intersect, LightSample &light_sample, Resources &resources)
+float LightSamplerArea::evaluate_light(const Intersect& light_intersect, const Intersect& intersect, Resources &resources)
 {
     if(!light_intersect.surface.facing && !double_sided)
-        return false;
+        return 0.f;
 
     const Vec3f& world_normal = geometry->get_world_normal();
-
-    light_sample.position = light_intersect.surface.position;
-    light_sample.intensity = light->get_intensity(light_intersect, resources);
-
-    const Vec3f dir = intersect.surface.position - light_sample.position;
+    const Vec3f dir = intersect.surface.position - light_intersect.surface.position;
     const float sqr_len = dir.sqr_length();
     const float cos_theta = fabs(world_normal.dot(dir / sqrtf(sqr_len)));
 
-    light_sample.pdf = sqr_len / (area * cos_theta);
-
-    return true;
+    return sqr_len / (area * cos_theta);
 }

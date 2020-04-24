@@ -5,6 +5,7 @@
 #include <memory>
 #include <Math/Types.h>
 #include <Math/RNG.h>
+#include <base/Object.h>
 
 #include <Util/Attribute.h>
 #include <Util/Resources.h>
@@ -16,15 +17,6 @@ struct MaterialSample
     Vec3f wo;
     Vec3f weight;
     float pdf;
-    float quality = 1.f;
-
-    enum Type { None, Diffuse, Glossy, Specular };
-    Type type = Type::None;
-
-    struct Data { virtual ~Data() = default; };
-    Data * data = nullptr;
-
-    virtual ~MaterialSample() = default;
 };
 
 struct MaterialInstance
@@ -33,21 +25,9 @@ struct MaterialInstance
     virtual ~MaterialInstance() = default;
 };
 
-class Material
+class Material : public Object
 {
 public:
-    enum Type
-    {
-        None,
-        Lambert,
-        BackLambert,
-        GGXReflect,
-        GGXRefract,
-        Dielectric,
-        Subsurface
-    };
-    virtual Type get_type() { return None; }
-
     virtual MaterialInstance * instance(const GeometrySurface * surface, Resources &resources) { return nullptr; }
 
     virtual bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources) { return false; }

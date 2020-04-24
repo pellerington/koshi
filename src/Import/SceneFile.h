@@ -7,6 +7,8 @@
 #include <Math/Types.h>
 #include <Scene/Scene.h>
 
+#include <base/ObjectGroup.h>
+
 #include <geometry/GeometrySphere.h>
 #include <geometry/GeometryBox.h>
 #include <geometry/GeometryArea.h>
@@ -32,23 +34,24 @@
 #include <embree/EmbreeGeometrySphere.h>
 #include <embree/EmbreeGeometryBox.h>
 
+#include <integrators/SurfaceIntegratorMaterialSampling.h>
+#include <integrators/SurfaceIntegratorLightSampling.h>
+#include <integrators/SurfaceIntegratorMultiImportanceSampling.h>
 #include <Export/DebugObj.h>
 #include <Import/MeshFile.h>
 
 class SceneFile
 {
 public:
-    static Scene Import(const std::string filename, const uint num_threads)
+    static Scene Import(const std::string filename, Settings& settings)
     {
         std::ifstream input_file(filename);
         nlohmann::json scene_file;
         input_file >> scene_file;
 
-        Scene::Settings settings;
         if(!scene_file["settings"].is_null())
         {
-            settings.num_threads = num_threads;
-            settings.quality = get_float(scene_file["settings"], "quality");
+            settings.sampling_quality = get_float(scene_file["settings"], "sampling_quality");
             settings.depth = get_uint(scene_file["settings"], "depth", 2);
             settings.max_depth = get_uint(scene_file["settings"], "max_depth", 32);
             settings.sample_lights = get_bool(scene_file["settings"], "sample_lights", true);
@@ -76,9 +79,9 @@ public:
         }
         Camera camera(camera_transform, resolution, samples_per_pixel, focal_length);
 
-        Scene scene(camera, settings);
+        Scene scene(camera);
 
-        std::map<std::string, std::shared_ptr<Texture>> textures;
+        std::map<std::string, Texture *> textures;
         if(scene_file["textures"].is_array())
         {
             for (auto it = scene_file["textures"].begin(); it != scene_file["textures"].end(); ++it)
@@ -90,7 +93,7 @@ public:
                         if((*it)["filename"].is_string())
                         {
                             const bool smooth = get_bool(*it, "smooth", true);
-                            std::shared_ptr<Texture> texture(new Image((*it)["filename"], smooth));
+                            Texture * texture = new Image((*it)["filename"], smooth);
                             scene.add_texture(texture);
                             textures[(*it)["name"]] = texture;
                         }
@@ -99,7 +102,7 @@ public:
                     if((*it)["type"] == "checker")
                     {
                         const Vec3f scale = get_vec3f(*it, "scale", 0.f);
-                        std::shared_ptr<Texture> texture(new Checker(scale));
+                        Texture * texture = new Checker(scale);
                         scene.add_texture(texture);
                         textures[(*it)["name"]] = texture;
                     }
@@ -109,7 +112,7 @@ public:
                         const Vec3f min = get_vec3f(*it, "min", 0.f);
                         const Vec3f max = get_vec3f(*it, "max", 1.f);
                         const uint axis = get_uint(*it, "axis", 0);
-                        std::shared_ptr<Texture> texture(new Gradient(min, max, axis));
+                        Texture * texture = new Gradient(min, max, axis);
                         scene.add_texture(texture);
                         textures[(*it)["name"]] = texture;
                     }
@@ -119,7 +122,7 @@ public:
                         const std::string filename = (*it)["filename"];
                         const std::string gridname = (*it)["gridname"];
 
-                        std::shared_ptr<Texture> texture(new OpenVDB(filename, gridname, num_threads));
+                        Texture * texture = new OpenVDB(filename, gridname, settings.num_threads);
                         scene.add_texture(texture);
                         textures[(*it)["name"]] = texture;
                     }
@@ -128,7 +131,7 @@ public:
             }
         }
 
-        std::map<std::string, std::shared_ptr<Material>> materials;
+        std::map<std::string, Material *> materials;
         // std::map<std::string, std::shared_ptr<Volume>> volumes;
 
         if(scene_file["materials"].is_array())
@@ -140,9 +143,9 @@ public:
                     if((*it)["type"] == "lambert")
                     {
                         const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
-                        std::shared_ptr<Texture> diffuse_color_texture = ((*it)["diffuse_color_texture"].is_string()) ? textures[(*it)["diffuse_color_texture"]] : nullptr;
+                        Texture * diffuse_color_texture = ((*it)["diffuse_color_texture"].is_string()) ? textures[(*it)["diffuse_color_texture"]] : nullptr;
 
-                        std::shared_ptr<Material> material(new MaterialLambert(AttributeVec3f(diffuse_color_texture, diffuse_color)));
+                        Material * material = new MaterialLambert(AttributeVec3f(diffuse_color_texture, diffuse_color));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -150,9 +153,9 @@ public:
                     if((*it)["type"] == "back_lambert")
                     {
                         const Vec3f diffuse_color = get_vec3f(*it, "diffuse_color");
-                        std::shared_ptr<Texture> diffuse_color_texture = ((*it)["diffuse_color_texture"].is_string()) ? textures[(*it)["diffuse_color_texture"]] : nullptr;
+                        Texture * diffuse_color_texture = ((*it)["diffuse_color_texture"].is_string()) ? textures[(*it)["diffuse_color_texture"]] : nullptr;
 
-                        std::shared_ptr<Material> material(new MaterialBackLambert(AttributeVec3f(diffuse_color_texture, diffuse_color)));
+                        Material * material = new MaterialBackLambert(AttributeVec3f(diffuse_color_texture, diffuse_color));
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -160,15 +163,15 @@ public:
                     if((*it)["type"] == "ggx")
                     {
                         const Vec3f specular_color = get_vec3f(*it, "specular_color");
-                        std::shared_ptr<Texture> specular_color_texture = ((*it)["specular_color_texture"].is_string()) ? textures[(*it)["specular_color_texture"]] : nullptr;
+                        Texture * specular_color_texture = ((*it)["specular_color_texture"].is_string()) ? textures[(*it)["specular_color_texture"]] : nullptr;
 
                         const float roughness = get_float(*it, "roughness");
-                        std::shared_ptr<Texture> roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
+                        Texture * roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
 
-                        std::shared_ptr<Material> material(new MaterialGGXReflect(
+                        Material * material = new MaterialGGXReflect(
                             AttributeVec3f(specular_color_texture, specular_color),
                             AttributeFloat(roughness_texture, roughness)
-                        ));
+                        );
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -176,17 +179,17 @@ public:
                     if((*it)["type"] == "ggx_refract")
                     {
                         const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
-                        std::shared_ptr<Texture> refractive_color_texture = ((*it)["refractive_color_texture"].is_string()) ? textures[(*it)["refractive_color_texture"]] : nullptr;
+                        Texture * refractive_color_texture = ((*it)["refractive_color_texture"].is_string()) ? textures[(*it)["refractive_color_texture"]] : nullptr;
 
                         const float roughness = get_float(*it, "roughness");
-                        std::shared_ptr<Texture> roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
+                        Texture * roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
 
                         const float ior = get_float(*it, "ior", 1.f);
 
-                        std::shared_ptr<Material> material(new MaterialGGXRefract(
+                        Material * material = new MaterialGGXRefract(
                             AttributeVec3f(refractive_color_texture, refractive_color),
                             AttributeFloat(roughness_texture, roughness), ior
-                        ));
+                        );
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -194,22 +197,22 @@ public:
                     if((*it)["type"] == "dielectric")
                     {
                         const Vec3f reflective_color = get_vec3f(*it, "reflective_color");
-                        std::shared_ptr<Texture> reflective_color_texture = ((*it)["reflective_color_texture"].is_string()) ? textures[(*it)["reflective_color_texture"]] : nullptr;
+                        Texture * reflective_color_texture = ((*it)["reflective_color_texture"].is_string()) ? textures[(*it)["reflective_color_texture"]] : nullptr;
 
                         const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
-                        std::shared_ptr<Texture> refractive_color_texture = ((*it)["refractive_color_texture"].is_string()) ? textures[(*it)["refractive_color_texture"]] : nullptr;
+                        Texture * refractive_color_texture = ((*it)["refractive_color_texture"].is_string()) ? textures[(*it)["refractive_color_texture"]] : nullptr;
 
                         const float roughness = get_float(*it, "roughness");
-                        std::shared_ptr<Texture> roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
+                        Texture * roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
 
                         const float ior = get_float(*it, "ior", 1.f);
 
-                        std::shared_ptr<Material> material(new MaterialDielectric(
+                        Material * material = new MaterialDielectric(
                             AttributeVec3f(reflective_color_texture, reflective_color),
                             AttributeVec3f(refractive_color_texture, refractive_color),
                             AttributeFloat(roughness_texture, roughness),
                             ior
-                        ));
+                        );
                         materials[(*it)["name"]] = material;
                         scene.add_material(material);
                     }
@@ -222,15 +225,15 @@ public:
                     //     const Vec3f subsurface_color = get_vec3f(*it, "subsurface_color");
 
                     //     const Vec3f surface_color = get_vec3f(*it, "surface_color");
-                    //     std::shared_ptr<Texture> surface_color_texture = ((*it)["surface_color_texture"].is_string()) ? textures[(*it)["surface_color_texture"]] : nullptr;
+                    //     Texture * surface_color_texture = ((*it)["surface_color_texture"].is_string()) ? textures[(*it)["surface_color_texture"]] : nullptr;
 
                     //     const float surface_weight = get_float(*it, "surface_weight");
-                    //     std::shared_ptr<Texture> surface_weight_texture = ((*it)["surface_weight_texture"].is_string()) ? textures[(*it)["surface_weight_texture"]] : nullptr;
+                    //     Texture * surface_weight_texture = ((*it)["surface_weight_texture"].is_string()) ? textures[(*it)["surface_weight_texture"]] : nullptr;
 
-                    //     std::shared_ptr<Volume> volume(new Volume(subsurface_density, nullptr, subsurface_color, 0.f));
+                    //     std::shared_ptr<Volume> volume = new Volume(subsurface_density, nullptr, subsurface_color, 0.f));
                     //     volumes[std::string("material_") + std::string((*it)["name"])] = volume;
 
-                    //     std::shared_ptr<Material> material(new MaterialSubsurface(
+                    //     Material * material = new MaterialSubsurface(
                     //         AttributeVec3f(surface_color_texture, surface_color),
                     //         AttributeFloat(surface_weight_texture, surface_weight)
                     //     ));
@@ -252,18 +255,26 @@ public:
         //                 const float density = get_float(*it, "density");
         //                 const Vec3f transparency = get_vec3f(*it, "transparency");
         //                 const Vec3f density_gain = Vec3f::clamp(VEC3F_ONES-transparency, 0.f, 1.f)*density;
-        //                 std::shared_ptr<Texture> density_texture = ((*it)["density_texture"].is_string()) ? textures[(*it)["density_texture"]] : nullptr;
+        //                 Texture * density_texture = ((*it)["density_texture"].is_string()) ? textures[(*it)["density_texture"]] : nullptr;
 
         //                 const float g = get_float(*it, "anistropy");
         //                 const Vec3f scattering = get_vec3f(*it, "scattering");
         //                 const Vec3f emission = get_vec3f(*it, "emission");
 
-        //                 std::shared_ptr<Volume> volume(new Volume(density_gain, density_texture, scattering, g, emission));
+        //                 std::shared_ptr<Volume> volume = new Volume(density_gain, density_texture, scattering, g, emission));
         //                 volumes[(*it)["name"]] = volume;
         //             }
         //         }
         //     }
         // }
+
+        Integrator * default_integrator = new SurfaceIntegratorMultiImportanceSampling;
+        ObjectGroup * mis_integrator_group = new ObjectGroup;
+        mis_integrator_group->push(new SurfaceIntegratorLightSampling);
+        mis_integrator_group->push(new SurfaceIntegratorMaterialSampling);
+        default_integrator->set_attribute("integrators", mis_integrator_group);
+
+        // TODO: Add user set integrators here.
 
         if(scene_file["objects"].is_array())
         {
@@ -274,8 +285,6 @@ public:
                 {
                     if((*it)["file"]["type"].is_string() && (*it)["file"]["name"].is_string())
                     {
-                        std::shared_ptr<Material> material = ((*it)["material"].is_string()) ? materials[(*it)["material"]] : nullptr;
-
                         const Vec3f scale = get_vec3f(*it, "scale", 1.f);
                         const Vec3f rotation = 2.f * PI * get_vec3f(*it, "rotation") / 360.f;
                         const Vec3f translation = get_vec3f(*it, "translation");
@@ -287,18 +296,19 @@ public:
                         transform = transform * Transform3f::x_rotation(rotation.x);
                         transform = transform * Transform3f::scale(scale);
 
-                        // std::shared_ptr<Volume> volume = nullptr;
-                        // if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
-                        //     volume = volumes[std::string("material_") + std::string((*it)["material"])];
-                        // else if((*it)["volume"].is_string())
-                        //     volume = volumes[(*it)["volume"]];
-
-                        std::shared_ptr<GeometryMesh> mesh;
+                        GeometryMesh * mesh;
                         if ((*it)["file"]["type"] == "obj")
-                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], transform, material);
+                            mesh = MeshFile::ImportOBJ((*it)["file"]["name"], transform);
+                        
+                        if(!mesh) continue;
 
-                        EmbreeGeometryMesh * embree_geometry = new EmbreeGeometryMesh(mesh.get());
-                        mesh->add_attribute("embree_geometry", embree_geometry);
+                        Material * material = ((*it)["material"].is_string()) ? materials[(*it)["material"]] : nullptr;
+                        mesh->set_attribute("material", material);
+
+                        EmbreeGeometryMesh * embree_geometry = new EmbreeGeometryMesh(mesh);
+                        mesh->set_attribute("embree_geometry", embree_geometry);
+
+                        mesh->set_attribute("integrator", default_integrator);
 
                         if(mesh)
                             scene.add_object(mesh);
@@ -318,20 +328,15 @@ public:
                     transform = transform * Transform3f::x_rotation(rotation.x);
                     transform = transform * Transform3f::scale(scale);
 
-                    std::shared_ptr<Material> material;
-                    if((*it)["material"].is_string())
-                        material = materials[(*it)["material"]];
+                    GeometrySphere * sphere = new GeometrySphere(transform);
 
-                    // std::shared_ptr<Volume> volume = nullptr;
-                    // if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
-                    //     volume = volumes[std::string("material_") + std::string((*it)["material"])];
-                    // else if((*it)["volume"].is_string())
-                    //     volume = volumes[(*it)["volume"]];
+                    Material * material = ((*it)["material"].is_string()) ? materials[(*it)["material"]] : nullptr;
+                    sphere->set_attribute("material", material);
 
-                    std::shared_ptr<GeometrySphere> sphere(new GeometrySphere(transform, material));
+                    EmbreeGeometrySphere * embree_geometry = new EmbreeGeometrySphere(sphere);
+                    sphere->set_attribute("embree_geometry", embree_geometry);
 
-                    EmbreeGeometrySphere * embree_geometry = new EmbreeGeometrySphere(sphere.get());
-                    sphere->add_attribute("embree_geometry", embree_geometry);
+                    sphere->set_attribute("integrator", default_integrator);
 
                     scene.add_object(sphere);
                 }
@@ -349,20 +354,15 @@ public:
                     transform = transform * Transform3f::x_rotation(rotation.x);
                     transform = transform * Transform3f::scale(scale);
 
-                    std::shared_ptr<Material> material;
-                    if((*it)["material"].is_string())
-                        material = materials[(*it)["material"]];
+                    GeometryBox * box = new GeometryBox(transform);
 
-                    // std::shared_ptr<Volume> volume = nullptr;
-                    // if((*it)["material"].is_string() && volumes.find(std::string("material_") + std::string((*it)["material"])) != volumes.end())
-                    //     volume = volumes[std::string("material_") + std::string((*it)["material"])];
-                    // else if((*it)["volume"].is_string())
-                    //     volume = volumes[(*it)["volume"]];
+                    Material * material = ((*it)["material"].is_string()) ? materials[(*it)["material"]] : nullptr;
+                    box->set_attribute("material", material);
 
-                    std::shared_ptr<GeometryBox> box(new GeometryBox(transform, material));
+                    EmbreeGeometryBox * embree_geometry = new EmbreeGeometryBox(box);
+                    box->set_attribute("embree_geometry", embree_geometry);
 
-                    EmbreeGeometryBox * embree_geometry = new EmbreeGeometryBox(box.get());
-                    box->add_attribute("embree_geometry", embree_geometry);
+                    box->set_attribute("integrator", default_integrator);
 
                     scene.add_object(box);
                 }
@@ -376,14 +376,18 @@ public:
 
                 if((*it)["type"] == "environment")
                 {
-                    const Vec3f intensity = get_vec3f(*it, "intensity");
-                    std::shared_ptr<Texture> intensity_texture;
-                    if((*it)["texture"].is_string())
-                        intensity_texture = textures[(*it)["texture"]];
-                    std::shared_ptr<Light> light(new Light(AttributeVec3f(intensity_texture, intensity)));
+                    GeometryEnvironment * environment = new GeometryEnvironment;
 
-                    std::shared_ptr<GeometryEnvironment> environment(new GeometryEnvironment(light));
-                    scene.add_light(environment);
+                    const Vec3f intensity = get_vec3f(*it, "intensity");
+                    Texture * intensity_texture = ((*it)["texture"].is_string()) ? textures[(*it)["texture"]] : nullptr;
+                    // Todo: this is not destructed properly (needs to be added to the scene)
+                    Light * light = new Light(AttributeVec3f(intensity_texture, intensity));
+
+                    environment->set_attribute("light", light);
+
+                    environment->set_attribute("integrator", default_integrator);
+
+                    scene.add_object(environment);
                 }
 
                 if((*it)["type"] == "area")
@@ -399,24 +403,24 @@ public:
                     transform = transform * Transform3f::x_rotation(rotation.x);
                     transform = transform * Transform3f::scale(scale);
 
+                    GeometryArea * area = new GeometryArea(transform);
+
                     const Vec3f intensity = get_vec3f(*it, "intensity");
-                    std::shared_ptr<Texture> intensity_texture;
-                    if((*it)["intensity_texture"].is_string())
-                        intensity_texture = textures[(*it)["intensity_texture"]];
-                    std::shared_ptr<Light> light(new Light(AttributeVec3f(intensity_texture, intensity)));
+                    Texture * intensity_texture = ((*it)["intensity_texture"].is_string()) ? textures[(*it)["intensity_texture"]] : nullptr;
+                    // Todo: this is not destructed properly (needs to be added to the scene)
+                    Light * light = new Light(AttributeVec3f(intensity_texture, intensity));
 
-                    const bool double_sided = get_bool(*it, "double_sided");
-                    const bool hide_camera = get_bool(*it, "hide_camera", true);
+                    area->set_attribute("light", light);
 
-                    std::shared_ptr<GeometryArea> area(new GeometryArea(transform, nullptr, light));
+                    EmbreeGeometryArea * embree_geometry = new EmbreeGeometryArea(area);
+                    area->set_attribute("embree_geometry", embree_geometry);
 
-                    EmbreeGeometryArea * embree_geometry = new EmbreeGeometryArea(area.get());
-                    area->add_attribute("embree_geometry", embree_geometry);
+                    LightSamplerArea * light_sampler = new LightSamplerArea(area);
+                    area->set_attribute("light_sampler", light_sampler);
 
-                    LightSamplerArea * light_sampler = new LightSamplerArea(area.get());
-                    area->add_attribute("light_sampler", light_sampler);
+                    area->set_attribute("integrator", default_integrator);
 
-                    scene.add_light(area);
+                    scene.add_object(area);
                 }
 
                 if((*it)["type"] == "sphere")
@@ -432,23 +436,24 @@ public:
                     transform = transform * Transform3f::x_rotation(rotation.x);
                     transform = transform * Transform3f::scale(scale);
 
+                    GeometrySphere * sphere = new GeometrySphere(transform);
+
                     const Vec3f intensity = get_vec3f(*it, "intensity");
-                    std::shared_ptr<Texture> intensity_texture;
-                    if((*it)["intensity_texture"].is_string())
-                        intensity_texture = textures[(*it)["intensity_texture"]];
-                    std::shared_ptr<Light> light(new Light(AttributeVec3f(intensity_texture, intensity)));
+                    Texture * intensity_texture = ((*it)["intensity_texture"].is_string()) ? textures[(*it)["intensity_texture"]] : nullptr;
+                    // Todo: this is not destructed properly (needs to be added to the scene)
+                    Light * light = new Light(AttributeVec3f(intensity_texture, intensity));
 
-                    const bool hide_camera = get_bool(*it, "hide_camera", true);
+                    sphere->set_attribute("light", light);
 
-                    std::shared_ptr<GeometrySphere> sphere(new GeometrySphere(transform, nullptr, light));
+                    EmbreeGeometrySphere * embree_geometry = new EmbreeGeometrySphere(sphere);
+                    sphere->set_attribute("embree_geometry", embree_geometry);
 
-                    EmbreeGeometrySphere * embree_geometry = new EmbreeGeometrySphere(sphere.get());
-                    sphere->add_attribute("embree_geometry", embree_geometry);
+                    LightSamplerSphere * light_sampler = new LightSamplerSphere(sphere);
+                    sphere->set_attribute("light_sampler", light_sampler);
 
-                    LightSamplerSphere * light_sampler = new LightSamplerSphere(sphere.get());
-                    sphere->add_attribute("light_sampler", light_sampler);
+                    sphere->set_attribute("integrator", default_integrator);
 
-                    scene.add_light(sphere);
+                    scene.add_object(sphere);
                 }
             }
         }

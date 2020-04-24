@@ -8,7 +8,6 @@ class MaterialGGXRefract : public Material
 {
 public:
     MaterialGGXRefract(const AttributeVec3f &refractive_color_attribute, const AttributeFloat &roughness_attribute, const float &ior = 1.f);
-    Type get_type() { return Material::GGXRefract; }
 
     MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
     struct MaterialInstanceGGXRefract : public MaterialInstance

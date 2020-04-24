@@ -1,12 +1,12 @@
 #include <geometry/GeometryMesh.h>
 
-GeometryMesh::GeometryMesh(uint _vertices_size, uint _triangles_size, uint _normals_size, uint _uvs_size,
+GeometryMesh::GeometryMesh(const Transform3f &obj_to_world,
+                           uint _vertices_size, uint _triangles_size, 
+                           uint _normals_size, uint _uvs_size,
                            VERT_DATA * _vertices, TRI_DATA * _tri_vert_index,
                            NORM_DATA * _normals, TRI_DATA * _tri_norm_index,
-                           UV_DATA * _uvs, TRI_DATA * _tri_uvs_index,
-                           const Transform3f &obj_to_world, 
-                           std::shared_ptr<Material> material)
-: Geometry(obj_to_world, nullptr, material),
+                           UV_DATA * _uvs, TRI_DATA * _tri_uvs_index)
+: Geometry(obj_to_world),
   vertices_size(_vertices_size), triangles_size(_triangles_size), normals_size(_normals_size), uvs_size(_uvs_size),
   vertices(_vertices), tri_vert_index(_tri_vert_index), normals(_normals), tri_norm_index(_tri_norm_index), uvs(_uvs), tri_uvs_index(_tri_uvs_index)
 {

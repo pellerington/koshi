@@ -6,7 +6,6 @@ class MaterialLambert : public Material
 {
 public:
     MaterialLambert(const AttributeVec3f &diffuse_color_attr);
-    Type get_type() { return Material::Lambert; }
 
     MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
     struct MaterialInstanceLambert : public MaterialInstance

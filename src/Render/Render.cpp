@@ -9,22 +9,19 @@
 #include <Util/Color.h>
 #include <Util/Memory.h>
 
+#include <integrators/Integrator.h>
 #include <embree/EmbreeIntersector.h>
 
 #define NEAREST_NEIGHBOUR
 
-Render::Render(Scene * scene, const uint &num_workers)
-: scene(scene), num_workers(num_workers), resolution(scene->camera.get_image_resolution())
+Render::Render(Scene * scene, const Settings * settings)
+: settings(settings), scene(scene), resolution(scene->camera.get_image_resolution())
 {
     scene->pre_render();
 
     // TODO: this should be passed in as an argument to the Render
     intersector = new EmbreeIntersector(scene);
     intersector->pre_render();
-
-    // This should be passed in or selected using a type (when we have multiple pixels)
-    integrator = std::unique_ptr<Integrator>(new PathIntegrator(scene));
-    integrator->pre_render();
 
     std::mt19937 seed_generator;
     pixels = (Pixel ***)malloc(resolution.x * sizeof(Pixel**));
@@ -47,11 +44,11 @@ void Render::start_render()
             work.push_back(Vec2i(x,y));
     RNG_UTIL::Shuffle<Vec2i>(work);
 
-    std::thread workers[num_workers];
-    for(uint i = 0; i < num_workers; i++)
+    std::thread workers[settings->num_threads];
+    for(uint i = 0; i < settings->num_threads; i++)
         workers[i] = std::thread(&Render::render_worker, this, i, work);
 
-    for(uint i = 0; i < num_workers; i++)
+    for(uint i = 0; i < settings->num_threads; i++)
         workers[i].join();
 
     const auto end = std::chrono::system_clock::now();
@@ -62,6 +59,7 @@ void Render::start_render()
 void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
 {
     Resources resources;
+    resources.settings = settings;
     resources.thread_id = id;
     resources.intersector = intersector;
 
@@ -69,14 +67,21 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
     while(!completed && !kill_signal)
     {
         completed = true;
-        for(size_t i = id * (work.size() / num_workers); i < (id + 1) * (work.size() / num_workers) && !kill_signal; i++)
+        for(size_t i = id * (work.size() / settings->num_threads); i < (id + 1) * (work.size() / settings->num_threads) && !kill_signal; i++)
         {
             const int &x = work[i][0], &y = work[i][1];
             if(pixels[x][y]->current_sample < pixels[x][y]->required_samples)
             {
                 Ray ray = scene->camera.sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.Rand2D());
                 resources.rng = RNG(pixels[x][y]->seed());
-                pixels[x][y]->color += integrator->integrate(ray, resources);
+
+                PathData path; // CAMERA
+                path.depth = 0;
+                path.quality = 1.f;
+                path.prev_path = nullptr;
+
+                IntersectList intersects = intersector->intersect(ray, &path);
+                pixels[x][y]->color += Integrator::shade(intersects, resources);
                 pixels[x][y]->current_sample++;
                 resources.memory.clear();
                 completed = false;

@@ -1,7 +1,7 @@
 #include <geometry/GeometrySphere.h>
 
-GeometrySphere::GeometrySphere(const Transform3f &obj_to_world, std::shared_ptr<Material> material, std::shared_ptr<Light> light, const bool hide_camera)
-: Geometry(obj_to_world, light, material, hide_camera)
+GeometrySphere::GeometrySphere(const Transform3f &obj_to_world)
+: Geometry(obj_to_world)
 {
     bbox = obj_to_world * Box3f(Vec3f(-1.f), Vec3f(1.f));
     center = obj_to_world * Vec3f(0.f);

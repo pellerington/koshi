@@ -9,7 +9,7 @@ void EmbreeIntersector::pre_render()
 
     // Build the scene
     rtc_scene = rtcNewScene(Embree::rtc_device);
-    std::vector<std::shared_ptr<Geometry>>& objects = scene->get_objects();
+    std::vector<Geometry*>& objects = scene->get_objects();
     for(size_t i = 0; i < objects.size(); i++)
     {
         EmbreeGeometry * embree_geometry = objects[i]->get_attribute<EmbreeGeometry>("embree_geometry");
@@ -21,7 +21,7 @@ void EmbreeIntersector::pre_render()
             //     rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
             rtcCommitGeometry(geom);
             rtcAttachGeometryByID(rtc_scene, geom, i);
-            rtcSetGeometryUserData(geom, objects[i].get());
+            rtcSetGeometryUserData(geom, objects[i]);
         }
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
@@ -36,9 +36,9 @@ void EmbreeIntersector::pre_render()
 //         obj->process_intersection_volume(args);
 // }
 
-IntersectList EmbreeIntersector::intersect(const Ray &ray)
+IntersectList EmbreeIntersector::intersect(const Ray &ray, const PathData * path)
 {
-    IntersectList intersects(ray);
+    IntersectList intersects(ray, path);
 
     EmbreeIntersectContext context;
     context.ray = &ray;

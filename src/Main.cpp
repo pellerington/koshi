@@ -57,8 +57,12 @@ int main(int argc, char *argv[])
     std::cout << "Threads: " << threads << '\n';
     std::cout << "File: " << filename << '\n';
 
-    Scene scene = SceneFile::Import(filename, threads);
-    Render render(&scene, threads);
+    Settings settings;
+    settings.num_threads = threads;
+
+    Scene scene = SceneFile::Import(filename, settings);
+
+    Render render(&scene, &settings);
 
     std::cout << "Imported Scene" << '\n';
 

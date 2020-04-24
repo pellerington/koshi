@@ -6,7 +6,7 @@
 class Object
 {
 public:
-    void add_attribute(const std::string &attribute_name, Object * object)
+    void set_attribute(const std::string &attribute_name, Object * object)
     {
         attributes[attribute_name] = object;
     }

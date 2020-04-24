@@ -1,8 +1,9 @@
 #pragma once
 
+#include <base/Object.h>
 #include <Util/Attribute.h>
 
-class Light
+class Light : public Object
 {
 public:
     Light(const AttributeVec3f& intensity_attr) : intensity_attr(intensity_attr) {}

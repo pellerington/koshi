@@ -8,7 +8,6 @@ class MaterialGGXReflect : public Material
 {
 public:
     MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute);
-    Type get_type() { return Material::GGXReflect; }
 
     MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
     struct MaterialInstanceGGXReflect : public MaterialInstance

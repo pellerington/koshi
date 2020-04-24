@@ -7,22 +7,22 @@
 class GeometryMesh : public Geometry
 {
 public:
-    GeometryMesh(uint _vertices_size, uint _triangles_size, uint _normals_size, uint _uvs_size,
+    GeometryMesh(const Transform3f &obj_to_world, 
+                 uint _vertices_size, uint _triangles_size, 
+                 uint _normals_size, uint _uvs_size,
                  VERT_DATA * _vertices, TRI_DATA * _tri_vert_index,
                  NORM_DATA * _normals, TRI_DATA * _tri_norm_index,
-                 UV_DATA * _uvs, TRI_DATA * _tri_uvs_index,
-                 const Transform3f &obj_to_world, 
-                 std::shared_ptr<Material> material = nullptr);
+                 UV_DATA * _uvs, TRI_DATA * _tri_uvs_index);
 
-    // void process_intersection(Surface &surface, const RTCRayHit &rtcRayHit, const Ray &ray);
 
-    // Replace these with actual attributes later
+    // Replace these with actual attributes
     VERT_DATA * get_vertices() { return vertices; }
     uint get_vertices_size() { return vertices_size; }
     TRI_DATA * get_indicies() { return tri_vert_index; }
     uint get_triangles_size() { return triangles_size; }
 
     ~GeometryMesh();
+
 private:
     // Make ALL attributes
     uint vertices_size;

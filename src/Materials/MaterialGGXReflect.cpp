@@ -32,7 +32,6 @@ bool MaterialGGXReflect::sample_material(const MaterialInstance * material_insta
 
     // Estimate the number of samples
     uint num_samples = SAMPLES_PER_SA * sqrtf(instance->roughness);
-    const float quality = 1.f / num_samples;
     num_samples = std::max(1.f, num_samples * sample_reduction);
     RNG &rng = resources.rng; rng.Reset2D();
 
@@ -52,7 +51,6 @@ bool MaterialGGXReflect::sample_material(const MaterialInstance * material_insta
 
         samples.emplace_back();
         MaterialSample &sample = samples.back();
-        sample.quality = quality;
         sample.wo = (2.f * h_dot_wi * h + instance->surface->wi);
 
         const Vec3f normal = (instance->surface->facing ? 1.f : -1.f) * instance->surface->normal;
@@ -66,7 +64,6 @@ bool MaterialGGXReflect::sample_material(const MaterialInstance * material_insta
 
         sample.weight = (n_dot_wo > 0.f) ? (instance->specular_color * f * g * d) / (4.f * n_dot_wi) : VEC3F_ZERO;
         sample.pdf = (d * n_dot_h) / (4.f * h_dot_wo);
-        sample.type = (instance->roughness < 0.02f) ? MaterialSample::Specular : MaterialSample::Glossy;
 
         if(sample.pdf < 0.01f)
             samples.pop_back();

@@ -8,7 +8,7 @@
 class MeshFile
 {
 public:
-    static std::shared_ptr<GeometryMesh> ImportOBJ(const std::string filename, const Transform3f &transform, std::shared_ptr<Material> material)
+    static GeometryMesh * ImportOBJ(const std::string filename, const Transform3f &transform)
     {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
@@ -22,7 +22,7 @@ public:
         if (!err.empty())
             std::cerr << err << std::endl;
         if (!loaded_obj)
-            return std::shared_ptr<GeometryMesh>();
+            return nullptr;
 
         uint num_vertices = attrib.vertices.size() / 3;
         VERT_DATA * vertices = new VERT_DATA[num_vertices];
@@ -94,10 +94,7 @@ public:
             offset += shapes[s].mesh.num_face_vertices.size();
         }
 
-        return std::shared_ptr<GeometryMesh>(new GeometryMesh(num_vertices, num_triangles, num_normals, num_uvs,
-                                                              vertices, tri_vert_index,
-                                                              normals, tri_norm_index,
-                                                              uvs, tri_uvs_index,
-                                                              transform, material));
+        return new GeometryMesh(transform, num_vertices, num_triangles, num_normals, num_uvs,
+                                vertices, tri_vert_index, normals, tri_norm_index, uvs, tri_uvs_index);
     }
 };

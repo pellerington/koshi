@@ -22,7 +22,6 @@ bool MaterialBackLambert::sample_material(const MaterialInstance * material_inst
     const MaterialInstanceBackLambert * instance = (const MaterialInstanceBackLambert *)material_instance;
 
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_reduction);
-    const float quality = 1.f / SAMPLES_PER_SA;
     RNG &rng = resources.rng; rng.Reset2D();
 
     for(uint i = 0; i < num_samples; i++)
@@ -31,7 +30,6 @@ bool MaterialBackLambert::sample_material(const MaterialInstance * material_inst
 
         samples.emplace_back();
         MaterialSample &sample = samples.back();
-        sample.quality = quality;
 
         const float theta = TWO_PI * rnd[0];
         const float r = sqrtf(rnd[1]);
@@ -39,7 +37,6 @@ bool MaterialBackLambert::sample_material(const MaterialInstance * material_inst
         sample.wo = instance->surface->transform * Vec3f(x, y, z);
         sample.weight = instance->diffuse_color * INV_PI * fabs(sample.wo.dot(instance->surface->normal));
         sample.pdf = fabs(y) * INV_PI;
-        sample.type = MaterialSample::Diffuse;
     }
 
     return true;

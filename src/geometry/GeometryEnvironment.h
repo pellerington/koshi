@@ -5,12 +5,12 @@
 class GeometryEnvironment : public Geometry
 {
 public:
-    GeometryEnvironment(std::shared_ptr<Light> light = nullptr)
-    : Geometry(Transform3f(), light)
+    GeometryEnvironment()
+    : Geometry(Transform3f())
     {
         intersection_cb = new IntersectionCallbacks;
         intersection_cb->null_intersection_cb = null_intersection_cb;
-        add_attribute("intersection_callbacks", intersection_cb);
+        set_attribute("intersection_callbacks", intersection_cb);
     }
 
     ~GeometryEnvironment()

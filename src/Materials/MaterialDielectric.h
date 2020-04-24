@@ -12,7 +12,6 @@ public:
                        const AttributeVec3f &refractive_color_attribute,
                        const AttributeFloat &roughness_attribute,
                        const float &ior = 1.f);
-    Type get_type() { return Material::Dielectric; }
 
     MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
     struct MaterialInstanceDielectric : public MaterialInstance

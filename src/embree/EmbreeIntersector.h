@@ -12,7 +12,7 @@ public:
 
     void pre_render();
 
-    IntersectList intersect(const Ray &ray);
+    IntersectList intersect(const Ray &ray, const PathData * path = nullptr);
 
 private:
     RTCScene rtc_scene;

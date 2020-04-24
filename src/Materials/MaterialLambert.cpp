@@ -26,7 +26,6 @@ bool MaterialLambert::sample_material(const MaterialInstance * material_instance
         return false;
 
     const uint num_samples = std::max(1.f, SAMPLES_PER_SA * sample_reduction);
-    const float quality = 1.f / SAMPLES_PER_SA;
     RNG &rng = resources.rng; rng.Reset2D();
 
     for(uint i = 0; i < num_samples; i++)
@@ -35,7 +34,6 @@ bool MaterialLambert::sample_material(const MaterialInstance * material_instance
 
         samples.emplace_back();
         MaterialSample &sample = samples.back();
-        sample.quality = quality;
 
 #if UNIFORM_SAMPLE
         // Uniform Sample
@@ -52,7 +50,6 @@ bool MaterialLambert::sample_material(const MaterialInstance * material_instance
         sample.pdf = y * INV_PI;
 #endif
         sample.weight = instance->diffuse_color * INV_PI * sample.wo.dot(instance->surface->normal);
-        sample.type = MaterialSample::Diffuse;
     }
 
     return true;

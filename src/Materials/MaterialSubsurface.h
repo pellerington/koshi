@@ -8,7 +8,6 @@ class MaterialSubsurface : public Material
 {
 public:
     MaterialSubsurface(const AttributeVec3f &surface_color_attr, const AttributeFloat &surface_weight);
-    Type get_type() { return Material::Subsurface; }
 
     MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
     struct MaterialInstanceSubsurface : public MaterialInstance

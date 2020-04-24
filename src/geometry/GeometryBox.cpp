@@ -22,8 +22,8 @@ const uint GeometryBox::indices[6][4] =
     {0, 1, 2, 3},
 };
 
-GeometryBox::GeometryBox(const Transform3f &obj_to_world, std::shared_ptr<Material> material)
-: Geometry(obj_to_world, nullptr, material)
+GeometryBox::GeometryBox(const Transform3f &obj_to_world)
+: Geometry(obj_to_world)
 {
     bbox = obj_to_world * Box3f(Vec3f(-0.5), Vec3f(0.5));
 }
