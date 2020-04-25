@@ -7,10 +7,7 @@
 class EmbreeIntersector : public Intersector
 {
 public:
-
-    EmbreeIntersector(Scene * scene) : Intersector(scene) {}
-
-    void pre_render();
+    EmbreeIntersector(Scene * scene);
 
     IntersectList intersect(const Ray &ray, const PathData * path = nullptr);
 

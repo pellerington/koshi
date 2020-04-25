@@ -1,13 +1,13 @@
 #pragma once
 
-#include <integrators/SurfaceIntegrator.h>
+#include <integrators/IntegratorSurface.h>
 #include <lights/LightSampler.h>
 #include <map>
 
-class SurfaceIntegratorLightSampling : public SurfaceIntegrator
+class IntegratorSurfaceLightSampler : public IntegratorSurface
 {
 public:
-    void pre_render(Scene * scene);
+    void pre_render(Scene * scene) override;
 
     std::vector<SurfaceSample> integrate_surface(
         MaterialInstance * material_instance, Material * material, 

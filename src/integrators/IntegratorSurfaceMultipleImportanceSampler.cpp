@@ -1,14 +1,14 @@
-#include <integrators/SurfaceIntegratorMultiImportanceSampling.h>
+#include <integrators/IntegratorSurfaceMultipleImportanceSampler.h>
 #include <base/ObjectGroup.h>
 
-void SurfaceIntegratorMultiImportanceSampling::pre_render(Scene * scene)
+void IntegratorSurfaceMultipleImportanceSampler::pre_render(Scene * scene)
 {
     ObjectGroup * input_group = get_attribute<ObjectGroup>("integrators");
     if(!input_group) return;
 
     for(uint i = 0; i < input_group->size(); i++)
     {
-        SurfaceIntegrator * integrator = input_group->get<SurfaceIntegrator>(i);
+        IntegratorSurface * integrator = input_group->get<IntegratorSurface>(i);
         if(!integrator) continue;
 
         integrator->pre_render(scene);
@@ -16,7 +16,7 @@ void SurfaceIntegratorMultiImportanceSampling::pre_render(Scene * scene)
     }
 }
 
-std::vector<SurfaceSample> SurfaceIntegratorMultiImportanceSampling::integrate_surface(
+std::vector<SurfaceSample> IntegratorSurfaceMultipleImportanceSampler::integrate_surface(
     MaterialInstance * material_instance, Material * material, 
     const Intersect& intersect, const GeometrySurface * surface,
     Resources& resources) const
@@ -44,7 +44,7 @@ std::vector<SurfaceSample> SurfaceIntegratorMultiImportanceSampling::integrate_s
     return samples;
 }
 
-float SurfaceIntegratorMultiImportanceSampling::evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources)
+float IntegratorSurfaceMultipleImportanceSampler::evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources)
 {
     float pdf = 0.f;
     for(uint i = 0; i < integrators.size(); i++)

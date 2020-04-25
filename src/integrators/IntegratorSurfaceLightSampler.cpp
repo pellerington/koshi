@@ -1,17 +1,21 @@
-#include <integrators/SurfaceIntegratorLightSampling.h>
+#include <integrators/IntegratorSurfaceLightSampler.h>
 #include <Scene/Scene.h>
 
-void SurfaceIntegratorLightSampling::pre_render(Scene * scene)
+void IntegratorSurfaceLightSampler::pre_render(Scene * scene)
 {
-    std::vector<Geometry*>& objects = scene->get_objects();
+    std::vector<Object*>& objects = scene->get_objects();
     for(size_t i = 0; i < objects.size(); i++)
     {
-        LightSampler * sampler = objects[i]->get_attribute<LightSampler>("light_sampler");
-        if(sampler) lights[objects[i]] = sampler;
+        Geometry * geometry = dynamic_cast<Geometry*>(objects[i]);
+        if(geometry)
+        {
+            LightSampler * sampler = geometry->get_attribute<LightSampler>("light_sampler");
+            if(sampler) lights[geometry] = sampler;
+        }
     }
 }
 
-std::vector<SurfaceSample> SurfaceIntegratorLightSampling::integrate_surface(
+std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
     MaterialInstance * material_instance, Material * material, 
     const Intersect& intersect, const GeometrySurface * surface, 
     Resources& resources) const
@@ -64,7 +68,7 @@ std::vector<SurfaceSample> SurfaceIntegratorLightSampling::integrate_surface(
     return samples;
 }
 
-float SurfaceIntegratorLightSampling::evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources)
+float IntegratorSurfaceLightSampler::evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources)
 {
     float pdf = 0.f;
     for(uint i = 0; i < sample.intersects.size(); i++)

@@ -9,8 +9,6 @@ class Intersector
 public:
     Intersector(Scene * scene);
 
-    virtual void pre_render() = 0;
-
     virtual IntersectList intersect(const Ray& ray, const PathData * path = nullptr) = 0;
     
     void null_intersection_callbacks(IntersectList& intersects)

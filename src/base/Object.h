@@ -2,10 +2,14 @@
 
 #include <string>
 #include <unordered_map>
+class Scene;
 
 class Object
 {
 public:
+
+    virtual void pre_render(Scene * scene) {}
+
     void set_attribute(const std::string &attribute_name, Object * object)
     {
         attributes[attribute_name] = object;

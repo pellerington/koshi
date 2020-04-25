@@ -9,10 +9,7 @@ class Scene;
 class Integrator : public Object
 {
 public:
-    // Called before render starts. Eg. Photon map would compute the cache here.
-    virtual void pre_render(Scene * scene) {}
-
-    // virtual void pre_integrate(/* blah */) {}
+    // virtual IntegratorInstance * pre_integrate(/* blah */) {}
 
     // Perform the integration of an intersection. Eg. Direct sampling would generate light paths here.
     virtual Vec3f integrate(const Intersect& intersect/*, Transmittance& transmittance*/, Resources &resources) const = 0;

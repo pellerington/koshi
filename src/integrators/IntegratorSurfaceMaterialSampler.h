@@ -1,8 +1,8 @@
 #pragma once
 
-#include <integrators/SurfaceIntegrator.h>
+#include <integrators/IntegratorSurface.h>
 
-class SurfaceIntegratorMaterialSampling : public SurfaceIntegrator
+class IntegratorSurfaceMaterialSampler : public IntegratorSurface
 {
     std::vector<SurfaceSample> integrate_surface(
         MaterialInstance * material_instance, Material * material, 

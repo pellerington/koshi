@@ -16,7 +16,7 @@ struct SurfaceSample
     IntersectList intersects;
 };
 
-class SurfaceIntegrator : public Integrator
+class IntegratorSurface : public Integrator
 {
 public:
     Vec3f integrate(const Intersect& intersect/*, Transmittance& transmittance*/, Resources &resources) const

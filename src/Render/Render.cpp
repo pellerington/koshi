@@ -21,7 +21,6 @@ Render::Render(Scene * scene, const Settings * settings)
 
     // TODO: this should be passed in as an argument to the Render
     intersector = new EmbreeIntersector(scene);
-    intersector->pre_render();
 
     std::mt19937 seed_generator;
     pixels = (Pixel ***)malloc(resolution.x * sizeof(Pixel**));

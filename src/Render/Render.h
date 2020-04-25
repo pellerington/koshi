@@ -6,6 +6,7 @@
 #include <Math/Types.h>
 #include <Scene/Scene.h>
 #include <intersection/Intersector.h>
+#include <Scene/Settings.h>
 
 struct Pixel
 {

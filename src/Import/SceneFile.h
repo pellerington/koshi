@@ -34,9 +34,9 @@
 #include <embree/EmbreeGeometrySphere.h>
 #include <embree/EmbreeGeometryBox.h>
 
-#include <integrators/SurfaceIntegratorMaterialSampling.h>
-#include <integrators/SurfaceIntegratorLightSampling.h>
-#include <integrators/SurfaceIntegratorMultiImportanceSampling.h>
+#include <integrators/IntegratorSurfaceMaterialSampler.h>
+#include <integrators/IntegratorSurfaceLightSampler.h>
+#include <integrators/IntegratorSurfaceMultipleImportanceSampler.h>
 #include <Export/DebugObj.h>
 #include <Import/MeshFile.h>
 
@@ -94,7 +94,7 @@ public:
                         {
                             const bool smooth = get_bool(*it, "smooth", true);
                             Texture * texture = new Image((*it)["filename"], smooth);
-                            scene.add_texture(texture);
+                            scene.add_object(texture);
                             textures[(*it)["name"]] = texture;
                         }
                     }
@@ -103,7 +103,7 @@ public:
                     {
                         const Vec3f scale = get_vec3f(*it, "scale", 0.f);
                         Texture * texture = new Checker(scale);
-                        scene.add_texture(texture);
+                        scene.add_object(texture);
                         textures[(*it)["name"]] = texture;
                     }
 
@@ -113,7 +113,7 @@ public:
                         const Vec3f max = get_vec3f(*it, "max", 1.f);
                         const uint axis = get_uint(*it, "axis", 0);
                         Texture * texture = new Gradient(min, max, axis);
-                        scene.add_texture(texture);
+                        scene.add_object(texture);
                         textures[(*it)["name"]] = texture;
                     }
 
@@ -123,7 +123,7 @@ public:
                         const std::string gridname = (*it)["gridname"];
 
                         Texture * texture = new OpenVDB(filename, gridname, settings.num_threads);
-                        scene.add_texture(texture);
+                        scene.add_object(texture);
                         textures[(*it)["name"]] = texture;
                     }
 
@@ -147,7 +147,7 @@ public:
 
                         Material * material = new MaterialLambert(AttributeVec3f(diffuse_color_texture, diffuse_color));
                         materials[(*it)["name"]] = material;
-                        scene.add_material(material);
+                        scene.add_object(material);
                     }
 
                     if((*it)["type"] == "back_lambert")
@@ -157,7 +157,7 @@ public:
 
                         Material * material = new MaterialBackLambert(AttributeVec3f(diffuse_color_texture, diffuse_color));
                         materials[(*it)["name"]] = material;
-                        scene.add_material(material);
+                        scene.add_object(material);
                     }
 
                     if((*it)["type"] == "ggx")
@@ -173,7 +173,7 @@ public:
                             AttributeFloat(roughness_texture, roughness)
                         );
                         materials[(*it)["name"]] = material;
-                        scene.add_material(material);
+                        scene.add_object(material);
                     }
 
                     if((*it)["type"] == "ggx_refract")
@@ -191,7 +191,7 @@ public:
                             AttributeFloat(roughness_texture, roughness), ior
                         );
                         materials[(*it)["name"]] = material;
-                        scene.add_material(material);
+                        scene.add_object(material);
                     }
 
                     if((*it)["type"] == "dielectric")
@@ -214,7 +214,7 @@ public:
                             ior
                         );
                         materials[(*it)["name"]] = material;
-                        scene.add_material(material);
+                        scene.add_object(material);
                     }
 
                     // if((*it)["type"] == "subsurface")
@@ -238,7 +238,7 @@ public:
                     //         AttributeFloat(surface_weight_texture, surface_weight)
                     //     ));
                     //     materials[(*it)["name"]] = material;
-                    //     scene.add_material(material);
+                    //     scene.add_object(material);
                     // }
                 }
             }
@@ -268,11 +268,13 @@ public:
         //     }
         // }
 
-        Integrator * default_integrator = new SurfaceIntegratorMultiImportanceSampling;
+        Integrator * default_integrator = new IntegratorSurfaceMultipleImportanceSampler;
         ObjectGroup * mis_integrator_group = new ObjectGroup;
-        mis_integrator_group->push(new SurfaceIntegratorLightSampling);
-        mis_integrator_group->push(new SurfaceIntegratorMaterialSampling);
+        mis_integrator_group->push(new IntegratorSurfaceLightSampler);
+        mis_integrator_group->push(new IntegratorSurfaceMaterialSampler);
         default_integrator->set_attribute("integrators", mis_integrator_group);
+
+        scene.add_object(default_integrator);
 
         // TODO: Add user set integrators here.
 

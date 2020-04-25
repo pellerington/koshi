@@ -1,6 +1,6 @@
-#include <integrators/SurfaceIntegratorMaterialSampling.h>
+#include <integrators/IntegratorSurfaceMaterialSampler.h>
 
-std::vector<SurfaceSample> SurfaceIntegratorMaterialSampling::integrate_surface(
+std::vector<SurfaceSample> IntegratorSurfaceMaterialSampler::integrate_surface(
     MaterialInstance * material_instance, Material * material, 
     const Intersect& intersect, const GeometrySurface * surface, 
     Resources& resources) const
@@ -39,7 +39,7 @@ std::vector<SurfaceSample> SurfaceIntegratorMaterialSampling::integrate_surface(
     return samples;
 }
 
-float SurfaceIntegratorMaterialSampling::evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources)
+float IntegratorSurfaceMaterialSampler::evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources)
 {
     return sample.material_sample.pdf;
 }

@@ -7,9 +7,9 @@
 
 struct Resources
 {
-    const Settings * settings;
     uint thread_id;
+    const Settings * settings;
+    Intersector * intersector;
     Memory memory;
     RNG rng;
-    Intersector * intersector;
 };

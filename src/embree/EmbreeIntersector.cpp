@@ -1,27 +1,28 @@
 #include <embree/EmbreeIntersector.h>
 #include <embree/EmbreeGeometry.h>
-
+#include <geometry/Geometry.h>
 #include <Scene/Scene.h>
 
-void EmbreeIntersector::pre_render()
+EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
 {
-    // Attach the intersectors here, but find a way to attach default attributes in the future.
-
     // Build the scene
     rtc_scene = rtcNewScene(Embree::rtc_device);
-    std::vector<Geometry*>& objects = scene->get_objects();
-    for(size_t i = 0; i < objects.size(); i++)
+    std::vector<Object*>& objects = scene->get_objects();
+    for(uint i = 0; i < objects.size(); i++)
     {
-        EmbreeGeometry * embree_geometry = objects[i]->get_attribute<EmbreeGeometry>("embree_geometry");
-        if(embree_geometry)
+        Geometry * geometry = dynamic_cast<Geometry*>(objects[i]);
+        if(geometry)
         {
-            // objects[i]->set_id(i);
-            RTCGeometry geom = embree_geometry->get_rtc_geometry();
-            // if(objects[i]->use_intersection_filter())
-            //     rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
-            rtcCommitGeometry(geom);
-            rtcAttachGeometryByID(rtc_scene, geom, i);
-            rtcSetGeometryUserData(geom, objects[i]);
+            EmbreeGeometry * embree_geometry = geometry->get_attribute<EmbreeGeometry>("embree_geometry");
+            if(embree_geometry)
+            {
+                RTCGeometry geom = embree_geometry->get_rtc_geometry();
+                // if(objects[i]->use_intersection_filter())
+                //     rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
+                rtcCommitGeometry(geom);
+                rtcAttachGeometry(rtc_scene, geom);
+                rtcSetGeometryUserData(geom, geometry);
+            }
         }
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
@@ -59,7 +60,7 @@ IntersectList EmbreeIntersector::intersect(const Ray &ray, const PathData * path
     // Perform intersection
     rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
 
-    // Setup the intersection
+    // Finalize the intersection
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
         null_intersection_callbacks(intersects);

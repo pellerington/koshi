@@ -6,14 +6,18 @@
 Intersector::Intersector(Scene * scene)
 : scene(scene)
 {
-    std::vector<Geometry*>& objects = scene->get_objects();
+    std::vector<Object*>& objects = scene->get_objects();
     for(size_t i = 0; i < objects.size(); i++)
     {
-        IntersectionCallbacks * callbacks = objects[i]->get_attribute<IntersectionCallbacks>("intersection_callbacks");
-        if(callbacks)
+        Geometry * geometry = dynamic_cast<Geometry*>(objects[i]);
+        if(geometry)
         {
-            if(callbacks->null_intersection_cb)
-                null_callbacks.push_back(std::make_pair(callbacks->null_intersection_cb, objects[i]));
+            IntersectionCallbacks * callbacks = geometry->get_attribute<IntersectionCallbacks>("intersection_callbacks");
+            if(callbacks)
+            {
+                if(callbacks->null_intersection_cb)
+                    null_callbacks.push_back(std::make_pair(callbacks->null_intersection_cb, geometry));
+            }
         }
     }
 }
