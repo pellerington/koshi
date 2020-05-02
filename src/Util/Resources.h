@@ -3,7 +3,7 @@
 #include <Util/Memory.h>
 #include <Math/RNG.h>
 #include <intersection/Intersector.h>
-#include <Scene/Settings.h>
+#include <base/Settings.h>
 
 struct Resources
 {

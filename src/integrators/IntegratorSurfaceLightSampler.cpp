@@ -1,12 +1,11 @@
 #include <integrators/IntegratorSurfaceLightSampler.h>
-#include <Scene/Scene.h>
+#include <base/Scene.h>
 
 void IntegratorSurfaceLightSampler::pre_render(Scene * scene)
 {
-    std::vector<Object*>& objects = scene->get_objects();
-    for(size_t i = 0; i < objects.size(); i++)
+    for(auto object = scene->begin(); object != scene->end(); ++object)
     {
-        Geometry * geometry = dynamic_cast<Geometry*>(objects[i]);
+        Geometry * geometry = dynamic_cast<Geometry*>(object->second);
         if(geometry)
         {
             LightSampler * sampler = geometry->get_attribute<LightSampler>("light_sampler");

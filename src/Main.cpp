@@ -2,7 +2,7 @@
 #include <thread>
 
 #include <Math/Types.h>
-#include <Import/SceneFile.h>
+#include <import/SceneFile.h>
 #include <Export/SFMLViewer.h>
 #include <Export/OIIOViewer.h>
 #include <Export/DebugObj.h>
@@ -59,10 +59,15 @@ int main(int argc, char *argv[])
 
     Settings settings;
     settings.num_threads = threads;
+    Scene scene;
 
-    Scene scene = SceneFile::Import(filename, settings);
+    SceneFile scene_file;    
+    scene_file.Import(filename, scene, settings);
 
-    Render render(&scene, &settings);
+    for(auto it = scene.begin(); it != scene.end(); ++it)
+        std::cout << it->first << " " << it->second << " " << (it->second != nullptr) << "\n";
+
+    Render render(scene, settings);
 
     std::cout << "Imported Scene" << '\n';
 

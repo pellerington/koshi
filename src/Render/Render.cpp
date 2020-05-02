@@ -5,7 +5,6 @@
 #include <chrono>
 #include <thread>
 
-#include <Textures/Image.h>
 #include <Util/Color.h>
 #include <Util/Memory.h>
 
@@ -14,13 +13,15 @@
 
 #define NEAREST_NEIGHBOUR
 
-Render::Render(Scene * scene, const Settings * settings)
-: settings(settings), scene(scene), resolution(scene->camera.get_image_resolution())
+Render::Render(Scene& scene, Settings& settings)
+: scene(scene), camera(scene.get_camera()), settings(settings), resolution(camera->get_image_resolution())
 {
-    scene->pre_render();
+    // TODO: Perform checks (eg. does the camera exist.)
+
+    scene.pre_render();
 
     // TODO: this should be passed in as an argument to the Render
-    intersector = new EmbreeIntersector(scene);
+    intersector = new EmbreeIntersector(&scene);
 
     std::mt19937 seed_generator;
     pixels = (Pixel ***)malloc(resolution.x * sizeof(Pixel**));
@@ -28,7 +29,7 @@ Render::Render(Scene * scene, const Settings * settings)
     {
         pixels[x] = (Pixel **)malloc(resolution.y * sizeof(Pixel*));
         for(uint y = 0; y < resolution.y; y++)
-            pixels[x][y] = new Pixel(x, y, scene->camera.get_pixel_samples(Vec2u(x, y)), seed_generator(), RNG(seed_generator()));
+            pixels[x][y] = new Pixel(x, y, camera->get_pixel_samples(Vec2u(x, y)), seed_generator(), RNG(seed_generator()));
     }
 }
 
@@ -43,11 +44,11 @@ void Render::start_render()
             work.push_back(Vec2i(x,y));
     RNG_UTIL::Shuffle<Vec2i>(work);
 
-    std::thread workers[settings->num_threads];
-    for(uint i = 0; i < settings->num_threads; i++)
+    std::thread workers[settings.num_threads];
+    for(uint i = 0; i < settings.num_threads; i++)
         workers[i] = std::thread(&Render::render_worker, this, i, work);
 
-    for(uint i = 0; i < settings->num_threads; i++)
+    for(uint i = 0; i < settings.num_threads; i++)
         workers[i].join();
 
     const auto end = std::chrono::system_clock::now();
@@ -58,7 +59,7 @@ void Render::start_render()
 void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
 {
     Resources resources;
-    resources.settings = settings;
+    resources.settings = &settings;
     resources.thread_id = id;
     resources.intersector = intersector;
 
@@ -66,12 +67,12 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
     while(!completed && !kill_signal)
     {
         completed = true;
-        for(size_t i = id * (work.size() / settings->num_threads); i < (id + 1) * (work.size() / settings->num_threads) && !kill_signal; i++)
+        for(size_t i = id * (work.size() / settings.num_threads); i < (id + 1) * (work.size() / settings.num_threads) && !kill_signal; i++)
         {
             const int &x = work[i][0], &y = work[i][1];
             if(pixels[x][y]->current_sample < pixels[x][y]->required_samples)
             {
-                Ray ray = scene->camera.sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.Rand2D());
+                Ray ray = camera->sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.Rand2D());
                 resources.rng = RNG(pixels[x][y]->seed());
 
                 PathData path; // CAMERA

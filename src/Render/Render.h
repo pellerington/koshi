@@ -4,9 +4,9 @@
 #include <iostream>
 
 #include <Math/Types.h>
-#include <Scene/Scene.h>
+#include <base/Scene.h>
 #include <intersection/Intersector.h>
-#include <Scene/Settings.h>
+#include <base/Settings.h>
 
 struct Pixel
 {
@@ -26,16 +26,19 @@ struct Pixel
 class Render
 {
 public:
-    Render(Scene * scene, const Settings * settings);
+    Render(Scene& scene, Settings& settings);
     void start_render();
     void render_worker(const uint id, const std::vector<Vec2i> &work);
     Vec3f get_pixel_color(const uint& x, const uint& y) const;
-    inline Vec2u get_image_resolution() const { return scene->camera.get_image_resolution(); }
+    inline Vec2u get_image_resolution() const { return resolution; }
     void kill_render() { kill_signal = true; }
+
 private:
     Intersector * intersector;
-    const Settings * settings;
-    const Scene * scene;
+    Scene& scene;
+    const Camera * camera;
+    Settings& settings;
+
     const Vec2u resolution;
     Pixel *** pixels; // <- Needs to be freed when renderer is killed.
     bool kill_signal = false;

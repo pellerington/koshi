@@ -2,10 +2,10 @@
 
 #include <Textures/Texture.h>
 
-class Checker : public Texture
+class TextureChecker : public Texture
 {
 public:
-    Checker(const Vec3f scale = VEC3F_ONES)
+    TextureChecker(const Vec3f scale = VEC3F_ONES)
     : scale(scale) {}
 
     const Vec3f get_vec3f(const float &u, const float &v, const float &w, Resources &resources)

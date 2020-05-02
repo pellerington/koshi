@@ -1,12 +1,13 @@
 #pragma once
 
+#include <Textures/Texture.h>
 #include <openvdb/openvdb.h>
 #include <openvdb/tools/Interpolation.h>
 
-class OpenVDB : public Texture
+class TexutreOpenVDB : public Texture
 {
 public:
-    OpenVDB(const std::string filename, const std::string gridname, const uint num_threads) : num_threads(num_threads)
+    TexutreOpenVDB(const std::string filename, const std::string gridname, const uint num_threads) : num_threads(num_threads)
     {
         openvdb::initialize(); // call this static somehow?
 

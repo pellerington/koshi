@@ -1,5 +1,7 @@
 #pragma once
 
+#include <OpenImageIO/imageio.h>
+
 class OIIOViewer
 {
 public:

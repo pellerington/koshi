@@ -1,16 +1,15 @@
 #include <embree/EmbreeIntersector.h>
 #include <embree/EmbreeGeometry.h>
 #include <geometry/Geometry.h>
-#include <Scene/Scene.h>
+#include <base/Scene.h>
 
 EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
 {
     // Build the scene
     rtc_scene = rtcNewScene(Embree::rtc_device);
-    std::vector<Object*>& objects = scene->get_objects();
-    for(uint i = 0; i < objects.size(); i++)
+    for(auto object = scene->begin(); object != scene->end(); ++object)
     {
-        Geometry * geometry = dynamic_cast<Geometry*>(objects[i]);
+        Geometry * geometry = dynamic_cast<Geometry*>(object->second);
         if(geometry)
         {
             EmbreeGeometry * embree_geometry = geometry->get_attribute<EmbreeGeometry>("embree_geometry");

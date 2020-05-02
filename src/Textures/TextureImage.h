@@ -4,11 +4,12 @@
 #include <OpenImageIO/texture.h>
 
 #include <Textures/Texture.h>
-
-class Image : public Texture
+ 
+// TODO: include more options such as MipMode and InterpMode
+class TextureImage : public Texture
 {
 public:
-    Image(const std::string &_filename, const bool smooth) : filename(_filename)
+    TextureImage(const std::string &_filename, const bool smooth) : filename(_filename)
     {
         texture_system = OIIO::TextureSystem::create();
         // texture_system->attribute("max_memory_MB", 1000.0f);
