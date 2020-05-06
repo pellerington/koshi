@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Math/Transform3f.h>
-#include <Math/RNG.h>
 #include <intersection/Ray.h>
 
 class Camera

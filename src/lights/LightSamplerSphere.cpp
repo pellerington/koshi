@@ -3,6 +3,7 @@
 LightSamplerSphere::LightSamplerSphere(GeometrySphere * geometry)
 : geometry(geometry)
 {
+    // TODO: No Guarentee we will get this, do it in pre_render()
     light = geometry->get_attribute<Light>("light");
 
     // Approximate area
@@ -39,11 +40,11 @@ bool LightSamplerSphere::sample_sa(const uint num_samples, const Intersect& inte
 
     Transform3f basis = Transform3f::basis_transform(center_dir);
     const float sample_pdf = center_t_sqr / (TWO_PI * geometry->get_world_radius_sqr());
-    RNG &rng = resources.rng; rng.Reset2D();
+    RandomNumberGen2D rng = resources.random_number_service.get_random_2D();
 
     for(uint i = 0; i < num_samples; i++)
     {
-        const Vec2f rnd = rng.Rand2D();
+        const Vec2f rnd = rng.rand();
 
         const float theta = TWO_PI * rnd[0];
         const float phi = max_angle * sqrtf(rnd[1]);
@@ -83,11 +84,11 @@ bool LightSamplerSphere::sample_area(const uint num_samples, const Intersect& in
 
     const Vec3f& pos = intersect.surface.position;
     const Vec3f obj_pos = geometry->get_world_to_obj() * pos;
-    RNG &rng = resources.rng; rng.Reset2D();
+    RandomNumberGen2D rng = resources.random_number_service.get_random_2D();
 
     for(uint i = 0; i < num_samples; i++)
     {
-        const Vec2f rnd = rng.Rand2D();
+        const Vec2f rnd = rng.rand();
 
         const float theta = TWO_PI * rnd[0];
         const float phi = acosf(1.f - 2.f * rnd[1]);

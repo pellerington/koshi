@@ -1,28 +1,27 @@
 #pragma once
 
-#include <Materials/Material.h>
-#include <Materials/Fresnel.h>
-#include <Materials/GGX.h>
+#include <materials/Material.h>
+#include <materials/Fresnel.h>
+#include <materials/GGX.h>
+
+struct MaterialLobeGGXReflect : public MaterialLobe
+{
+    Fresnel * fresnel;
+    float roughness_sqr;
+
+    bool sample(MaterialSample& sample, Resources& resources) const;
+    bool evaluate(MaterialSample& sample, Resources& resources) const;
+
+    Type type() const { return (roughness > EPSILON_F) ? Type::Glossy : Type::Specular; }
+};
 
 class MaterialGGXReflect : public Material
 {
 public:
     MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute);
-
-    MaterialInstance * instance(const GeometrySurface * surface, Resources &resources);
-    struct MaterialInstanceGGXReflect : public MaterialInstance
-    {
-        Vec3f specular_color;
-        Fresnel * fresnel;
-        float roughness;
-        float roughness_sqr;
-    };
-
-    bool sample_material(const MaterialInstance * material_instance, std::vector<MaterialSample> &samples, const float sample_reduction, Resources &resources);
-    bool evaluate_material(const MaterialInstance * material_instance, MaterialSample &sample);
+    MaterialInstance instance(const GeometrySurface * surface, Resources &resources);
 
 private:
-
     const AttributeVec3f specular_color_attribute;
     const AttributeFloat roughness_attribute;
 

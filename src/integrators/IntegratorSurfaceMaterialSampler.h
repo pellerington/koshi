@@ -5,9 +5,12 @@
 class IntegratorSurfaceMaterialSampler : public IntegratorSurface
 {
     std::vector<SurfaceSample> integrate_surface(
-        MaterialInstance * material_instance, Material * material, 
+        const MaterialInstance& material_instance,
         const Intersect& intersect, const GeometrySurface * surface, 
         Resources& resources) const;
 
-    float evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources);
+    float evaluate(const SurfaceSample& sample, 
+        const MaterialInstance& material_instance,
+        const Intersect& intersect, const GeometrySurface * surface, 
+        Resources& resources) const;
 };

@@ -15,7 +15,7 @@ void IntegratorSurfaceLightSampler::pre_render(Scene * scene)
 }
 
 std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
-    MaterialInstance * material_instance, Material * material, 
+    const MaterialInstance& material_instance,
     const Intersect& intersect, const GeometrySurface * surface, 
     Resources& resources) const
 {
@@ -43,7 +43,8 @@ std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
             Vec3f wo = (light_samples[i].position - surface->position).normalized();
             MaterialSample material_sample;
             material_sample.wo = wo;
-            if(!material->evaluate_material(material_instance, material_sample)) continue;
+            material_instance.evaluate(material_sample, resources); 
+            if(is_black(material_sample.weight)) continue;
 
             const bool reflect = wo.dot(intersect.surface.normal) > 0;
             const Vec3f ray_pos = reflect ? intersect.surface.front_position : intersect.surface.back_position;
@@ -67,7 +68,10 @@ std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
     return samples;
 }
 
-float IntegratorSurfaceLightSampler::evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources)
+float IntegratorSurfaceLightSampler::evaluate(const SurfaceSample& sample, 
+    const MaterialInstance& material_instance,
+    const Intersect& intersect, const GeometrySurface * surface, 
+    Resources& resources) const
 {
     float pdf = 0.f;
     for(uint i = 0; i < sample.intersects.size(); i++)

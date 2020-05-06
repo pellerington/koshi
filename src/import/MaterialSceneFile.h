@@ -2,8 +2,8 @@
 
 #include "import/SceneFile.h"
 
-#include "Materials/MaterialLambert.h"
-#include "Materials/MaterialGGXReflect.h"
+#include "materials/MaterialLambert.h"
+#include "materials/MaterialGGXReflect.h"
 
 struct MaterialSceneFile
 {
@@ -34,7 +34,7 @@ struct MaterialSceneFile
         const Vec3f diffuse_color = accessor.get_vec3f("diffuse_color");
         Texture * diffuse_color_texture = dynamic_cast<Texture*>(accessor.get_object("diffuse_color_texture"));
 
-        return new MaterialLambert(AttributeVec3f(diffuse_color_texture, diffuse_color));
+        return new MaterialLambert<true>(AttributeVec3f(diffuse_color_texture, diffuse_color));
     }
 
     //TODO : Combine lambert and back lambert

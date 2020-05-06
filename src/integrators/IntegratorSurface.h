@@ -1,7 +1,7 @@
 #pragma once
 
 #include <integrators/Integrator.h>
-#include <Materials/Material.h>
+#include <materials/Material.h>
 #include <Util/Color.h>
 
 struct SurfaceSample
@@ -40,9 +40,9 @@ public:
         Material * material = intersect.geometry->get_attribute<Material>("material");
         if(!material) return color;
 
-        MaterialInstance * material_instance = material->instance(surface, resources);
+        MaterialInstance material_instance = material->instance(surface, resources);
 
-        std::vector<SurfaceSample> scatter = integrate_surface(material_instance, material, intersect, surface, resources);
+        std::vector<SurfaceSample> scatter = integrate_surface(material_instance, intersect, surface, resources);
         for(uint i = 0; i < scatter.size(); i++)
             color += scatter[i].li * scatter[i].material_sample.weight * scatter[i].weight / (scatter[i].pdf);
 
@@ -50,9 +50,12 @@ public:
     }
 
     virtual std::vector<SurfaceSample> integrate_surface(
-        MaterialInstance * material_instance, Material * material, 
-        const Intersect& intersect, const GeometrySurface * surface,
+        const MaterialInstance& material_instance,
+        const Intersect& intersect, const GeometrySurface * surface, 
         Resources& resources) const = 0;
 
-    virtual float evaluate(const Intersect& intersect, const SurfaceSample& sample, Resources& resources) = 0;
+    virtual float evaluate(const SurfaceSample& sample, 
+        const MaterialInstance& material_instance,
+        const Intersect& intersect, const GeometrySurface * surface, 
+        Resources& resources) const = 0;
 };

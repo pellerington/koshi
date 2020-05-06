@@ -23,13 +23,16 @@ Render::Render(Scene& scene, Settings& settings)
     // TODO: this should be passed in as an argument to the Render
     intersector = new EmbreeIntersector(&scene);
 
+    RandomNumberService random_number_service;
+    random_number_service.pre_render();
+
     std::mt19937 seed_generator;
     pixels = (Pixel ***)malloc(resolution.x * sizeof(Pixel**));
     for(uint x = 0; x < resolution.x; x++)
     {
         pixels[x] = (Pixel **)malloc(resolution.y * sizeof(Pixel*));
         for(uint y = 0; y < resolution.y; y++)
-            pixels[x][y] = new Pixel(x, y, camera->get_pixel_samples(Vec2u(x, y)), seed_generator(), RNG(seed_generator()));
+            pixels[x][y] = new Pixel(x, y, camera->get_pixel_samples(Vec2u(x, y)), seed_generator(), random_number_service.get_random_2D());
     }
 }
 
@@ -37,12 +40,14 @@ void Render::start_render()
 {
     const auto start = std::chrono::system_clock::now();
 
+    RandomNumberService random_number_service;
+
     std::vector<Vec2i> work;
     work.reserve(resolution.x * resolution.y);
     for(size_t x = 0; x < resolution.x; x++)
         for(size_t y = 0; y < resolution.y; y++)
             work.push_back(Vec2i(x,y));
-    RNG_UTIL::Shuffle<Vec2i>(work);
+    random_number_service.shuffle<Vec2i>(work);
 
     std::thread workers[settings.num_threads];
     for(uint i = 0; i < settings.num_threads; i++)
@@ -72,8 +77,8 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
             const int &x = work[i][0], &y = work[i][1];
             if(pixels[x][y]->current_sample < pixels[x][y]->required_samples)
             {
-                Ray ray = camera->sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.Rand2D());
-                resources.rng = RNG(pixels[x][y]->seed());
+                Ray ray = camera->sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.rand());
+                resources.random_number_service = RandomNumberService(pixels[x][y]->seed());
 
                 PathData path; // CAMERA
                 path.depth = 0;

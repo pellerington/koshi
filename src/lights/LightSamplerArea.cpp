@@ -16,10 +16,10 @@ bool LightSamplerArea::sample_light(const uint num_samples, const Intersect& int
 
     const Transform3f& obj_to_world = geometry->get_obj_to_world();
     const Vec3f& world_normal = geometry->get_world_normal();
-    RNG &rng = resources.rng; rng.Reset2D();
+    RandomNumberGen2D rng = resources.random_number_service.get_random_2D();
     for(uint i = 0; i < num_samples; i++)
     {
-        const Vec2f rnd = rng.Rand2D();
+        const Vec2f rnd = rng.rand();
 
         const Vec3f light_pos = obj_to_world * Vec3f(rnd[0]-0.5f, rnd[1]-0.5f, 0.f);
         const Vec3f dir = intersect.surface.position - light_pos;

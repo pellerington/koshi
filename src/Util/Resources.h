@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Util/Memory.h>
-#include <Math/RNG.h>
+#include <Math/Random.h>
 #include <intersection/Intersector.h>
 #include <base/Settings.h>
 
@@ -11,5 +11,5 @@ struct Resources
     const Settings * settings;
     Intersector * intersector;
     Memory memory;
-    RNG rng;
+    RandomNumberService random_number_service;
 };
