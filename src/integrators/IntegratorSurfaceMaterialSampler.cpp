@@ -15,25 +15,17 @@ std::vector<SurfaceSample> IntegratorSurfaceMaterialSampler::integrate_surface(
         const MaterialLobe * lobe = material_instance[l];
 
         float next_quality = quality;
-        uint num_samples = 1;
-        if(quality < 1.f)
-        {
-            MaterialLobe::Type lobe_type = lobe->type();
-            if(lobe_type == MaterialLobe::Diffuse)
-            {
-                num_samples = std::max(1u, (uint)(SAMPLES_PER_SA * quality * resources.settings->sampling_quality));
-                next_quality *= 1.f / SAMPLES_PER_SA;
-            }
-            else if(lobe_type == MaterialLobe::Glossy)
-            {
-                const float num_glossy_samples = SAMPLES_PER_SA * sqrtf(lobe->roughness);
-                num_samples = std::max(1u, (uint)(num_glossy_samples * quality * resources.settings->sampling_quality));
-                next_quality *= 1.f / num_glossy_samples;
-            }
-        }
+
+        float num_unreduced_samples = 1.f;
+        MaterialLobe::Type lobe_type = lobe->type();
+        if(lobe_type == MaterialLobe::Diffuse)
+            num_unreduced_samples = SAMPLES_PER_SA;
+        else if(lobe_type == MaterialLobe::Glossy)
+            num_unreduced_samples = SAMPLES_PER_SA * sqrtf(lobe->roughness);
+        next_quality *= 1.f / num_unreduced_samples;
+        uint num_samples = (quality > 1.f - EPSILON_F) ? std::max(1.f, num_unreduced_samples * quality * resources.settings->sampling_quality) : 1;
 
         const float inv_num_samples = 1.f / (float)num_samples;
-        
         for(uint i = 0; i < num_samples; i++)
         {
             MaterialSample material_sample;
@@ -54,14 +46,12 @@ std::vector<SurfaceSample> IntegratorSurfaceMaterialSampler::integrate_surface(
             // TODO: We need to be able to copy intersects
             // sample.intersects = resources.intersector->intersect(ray, &next_path);
 
-            sample.material_sample = material_sample;
-
-            sample.weight = inv_num_samples;
+            sample.weight = material_sample.weight * inv_num_samples;
             sample.pdf = material_sample.pdf;
 
             // TODO: Do we need to evaluate pdf and weight for all other lobes? Maybe not
 
-            sample.li = Integrator::shade(samples[i].intersects, resources);
+            sample.li = Integrator::shade(sample.intersects, resources);
         }
     }
 
@@ -73,5 +63,9 @@ float IntegratorSurfaceMaterialSampler::evaluate(const SurfaceSample& sample,
     const Intersect& intersect, const GeometrySurface * surface, 
     Resources& resources) const
 {
-    return sample.material_sample.pdf;
+    float pdf = 0.f;
+    const Vec3f& wo = intersect.ray.dir;
+    for(uint i = 0; i < material_instance.size(); i++)
+        pdf += material_instance[i]->pdf(wo, resources);
+    return pdf;
 }

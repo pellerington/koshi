@@ -41,10 +41,8 @@ std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
             next_path.prev_path = prev_path;
 
             Vec3f wo = (light_samples[i].position - surface->position).normalized();
-            MaterialSample material_sample;
-            material_sample.wo = wo;
-            material_instance.evaluate(material_sample, resources); 
-            if(is_black(material_sample.weight)) continue;
+            Vec3f weight = material_instance.weight(wo, resources); 
+            if(is_black(weight)) continue;
 
             const bool reflect = wo.dot(intersect.surface.normal) > 0;
             const Vec3f ray_pos = reflect ? intersect.surface.front_position : intersect.surface.back_position;
@@ -59,8 +57,7 @@ std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
                 shadow = 0.f;
 
             samples.back().li = shadow * light_samples[i].intensity;
-            samples.back().material_sample = material_sample;
-            samples.back().weight = inv_num_samples;
+            samples.back().weight = weight * inv_num_samples;
             samples.back().pdf = light_samples[i].pdf;
         }
     }

@@ -12,11 +12,14 @@
 
 #define UNIFORM_SAMPLE false
 
+// TODO: Max lobes could be templatable.
+#define MAX_LOBES 16
+
 struct MaterialSample
 {
     Vec3f wo;
     Vec3f weight;
-    float pdf = 0.f; // TODO: Seperate this out.
+    float pdf;
 };
 
 struct MaterialLobe /* : public Data */
@@ -30,8 +33,8 @@ struct MaterialLobe /* : public Data */
 
     virtual bool sample(MaterialSample& sample, Resources& resources) const = 0;
 
-    // TODO: Seperate Evaluate into PDF and Weight, so we can compose pdf's more easily.
-    virtual bool evaluate(MaterialSample& sample, Resources& resources) const = 0;
+    virtual Vec3f weight(const Vec3f& wo, Resources& resources) const = 0;
+    virtual float pdf(const Vec3f& wo, Resources& resources) const = 0;
 
     enum Type { Diffuse, Glossy, Specular };
     virtual Type type() const = 0;
@@ -44,24 +47,19 @@ struct MaterialLobe /* : public Data */
 class MaterialInstance
 {
 public:
-    inline void push(MaterialLobe * lobe) { lobes.push_back(lobe); }
-    inline size_t size() const { return lobes.size(); }
+    inline void push(MaterialLobe * lobe) { lobes[num_lobes++] = lobe; }
+    inline size_t size() const { return num_lobes; }
     inline const MaterialLobe * operator[](const size_t& i) const { return lobes[i]; }
-    void evaluate(MaterialSample& sample, Resources& resources) const
+    inline Vec3f weight(const Vec3f& wo, Resources& resources) const
     {
-        for(size_t i = 0; i < lobes.size(); i++)
-        {
-            MaterialSample isample = sample;
-            if(lobes[i]->evaluate(isample, resources))
-            {
-                sample.weight += isample.weight;
-                sample.pdf += isample.pdf;
-            }
-        }
+        Vec3f weight;
+        for(size_t i = 0; i < num_lobes; i++)
+            weight += lobes[i]->weight(wo, resources);
+        return weight;
     }
 private:
-    // TODO: Replace these vectors with scratchpad vectors.
-    std::vector<MaterialLobe*>  lobes;
+    uint num_lobes = 0;
+    MaterialLobe* lobes[MAX_LOBES];
 };
 
 class Material : public Object

@@ -5,8 +5,6 @@
 #include <Math/Types.h>
 #include <Math/Transform3f.h>
 
-#define SAMPLES_PER_SA 64
-
 struct GeometrySurface /* : public GeometryData */
 {
     void set(const Vec3f& _position, const Vec3f& _normal, const float& _u, const float& _v, const Vec3f& _wi = VEC3F_ZERO)

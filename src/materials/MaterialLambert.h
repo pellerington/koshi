@@ -6,7 +6,8 @@ template<bool FRONT>
 struct MaterialLobeLambert : public MaterialLobe
 {
     bool sample(MaterialSample& sample, Resources& resources) const;
-    bool evaluate(MaterialSample& sample, Resources& resources) const;
+    Vec3f weight(const Vec3f& wo, Resources& resources) const;
+    float pdf(const Vec3f& wo, Resources& resources) const;
 
     Type type() const { return Type::Diffuse; }
 };

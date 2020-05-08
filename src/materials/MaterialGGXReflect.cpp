@@ -56,24 +56,35 @@ bool MaterialLobeGGXReflect::sample(MaterialSample& sample, Resources& resources
     return sample.pdf > 0.01f;
 }
 
-bool MaterialLobeGGXReflect::evaluate(MaterialSample& sample, Resources& resources) const
+Vec3f MaterialLobeGGXReflect::weight(const Vec3f& wo, Resources& resources) const
 {
-    if(sample.wo.dot(surface->normal) < 0)
-        return false;
+    if(wo.dot(surface->normal) < 0)
+        return VEC3F_ZERO;
 
-    const Vec3f h = (sample.wo - surface->wi).normalized();
+    const Vec3f h = (wo - surface->wi).normalized();
     const float n_dot_h = clamp(h.dot(surface->normal), -1.f, 1.f);
     const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
-    const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
+    const float h_dot_wo = clamp(h.dot(wo), -1.f, 1.f);
     const float n_dot_wi = surface->n_dot_wi;
-    const float n_dot_wo = clamp(surface->normal.dot(sample.wo), -1.f, 1.f);
+    const float n_dot_wo = clamp(surface->normal.dot(wo), -1.f, 1.f);
 
     const float d = D(surface->normal, h, n_dot_h, roughness_sqr);
-    const float g = G1(-surface->wi, surface->normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, surface->normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
+    const float g = G1(-surface->wi, surface->normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(wo, surface->normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
     const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
 
-    sample.weight = (color * f * g * d) / (4.f * n_dot_wi);
-    sample.pdf = (d * n_dot_h) / (4.f * h_dot_wo);
+    return (color * f * g * d) / (4.f * n_dot_wi);
+}
 
-    return true;
+float MaterialLobeGGXReflect::pdf(const Vec3f& wo, Resources& resources) const
+{
+    if(wo.dot(surface->normal) < 0)
+        return 0.f;
+
+    const Vec3f h = (wo - surface->wi).normalized();
+    const float n_dot_h = clamp(h.dot(surface->normal), -1.f, 1.f);
+    const float h_dot_wo = clamp(h.dot(wo), -1.f, 1.f);
+
+    const float d = D(surface->normal, h, n_dot_h, roughness_sqr);
+
+    return (d * n_dot_h) / (4.f * h_dot_wo);
 }

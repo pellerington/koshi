@@ -4,15 +4,16 @@
 #include <materials/Material.h>
 #include <Util/Color.h>
 
+#define SAMPLES_PER_SA 64
+
 struct SurfaceSample
 {
     // TODO: Passing the intersects this way is anoying and horrible. Find a better way.
     SurfaceSample(const IntersectList& intersects) : intersects(intersects) {}
 
     Vec3f li;
-    float weight;
+    Vec3f weight;
     float pdf;
-    MaterialSample material_sample;
     IntersectList intersects;
 };
 
@@ -31,7 +32,7 @@ public:
         Light * light = intersect.geometry->get_attribute<Light>("light");
         if(light) color += light->get_intensity(intersect, resources);
 
-        // TODO: put this in the preintersect.geometry->get_attribute<Material>("material");_render step (no need to recalculate every time)
+        // TODO: put this in the pre_render step (no need to recalculate every time)
         float min_quality = std::pow(1.f / SAMPLES_PER_SA, resources.settings->depth);
 
         if(is_saturated(color) || intersect.path->depth > resources.settings->max_depth || intersect.path->quality < min_quality)
@@ -44,7 +45,7 @@ public:
 
         std::vector<SurfaceSample> scatter = integrate_surface(material_instance, intersect, surface, resources);
         for(uint i = 0; i < scatter.size(); i++)
-            color += scatter[i].li * scatter[i].material_sample.weight * scatter[i].weight / (scatter[i].pdf);
+            color += scatter[i].li * scatter[i].weight / (scatter[i].pdf);
 
         return color;
     }

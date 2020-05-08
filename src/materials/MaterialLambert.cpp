@@ -50,22 +50,33 @@ bool MaterialLobeLambert<FRONT>::sample(MaterialSample& sample, Resources &resou
 }
 
 template<bool FRONT>
-bool MaterialLobeLambert<FRONT>::evaluate(MaterialSample& sample, Resources &resources) const
+Vec3f MaterialLobeLambert<FRONT>::weight(const Vec3f& wo, Resources &resources) const
 {
+    // TODO: Add domain check to helpers.
     if(FRONT && !surface->facing)
-        return false;
+        return VEC3F_ZERO;
 
-    float n_dot_wo = surface->normal.dot(sample.wo);
+    const float n_dot_wo = surface->normal.dot(wo);
     if((FRONT && n_dot_wo < 0.f) || (!FRONT && n_dot_wo * surface->n_dot_wi > 0.f))
-        return false;
+        return VEC3F_ZERO;
 
-    n_dot_wo = fabs(n_dot_wo);
-    sample.weight = color * INV_PI * n_dot_wo;
+    return color * INV_PI * fabs(n_dot_wo);
+}
+
+template<bool FRONT>
+float MaterialLobeLambert<FRONT>::pdf(const Vec3f& wo, Resources &resources) const
+{
+    // TODO: Add domain check to helpers.
+    if(FRONT && !surface->facing)
+        return 0.f;
+
+    const float n_dot_wo = surface->normal.dot(wo);
+    if((FRONT && n_dot_wo < 0.f) || (!FRONT && n_dot_wo * surface->n_dot_wi > 0.f))
+        return 0.f;
+
 #if UNIFORM_SAMPLE
-    sample.pdf = INV_TWO_PI;
+    return INV_TWO_PI;
 #else
-    sample.pdf = n_dot_wo * INV_PI;
+    return fabs(n_dot_wo) * INV_PI;
 #endif
-
-    return true;
 }

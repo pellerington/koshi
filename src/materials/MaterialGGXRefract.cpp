@@ -63,34 +63,53 @@ bool MaterialLobeGGXRefract::sample(MaterialSample& sample, Resources& resources
     return sample.pdf > 0.f;
 }
 
-bool MaterialLobeGGXRefract::evaluate(MaterialSample& sample, Resources& resources) const
+Vec3f MaterialLobeGGXRefract::weight(const Vec3f& wo, Resources& resources) const
 {
     // Currently see little reason to evalualte this. Prehaps on the condition that we are exiting the object.
-    return false;
+    return VEC3F_ZERO;
 
-    if(sample.wo.dot(surface->wi) > 0.f)
-        return false;
+    if(wo.dot(surface->wi) > 0.f)
+        return VEC3F_ZERO;
 
     const Vec3f normal = ((surface->facing) ? surface->normal : -surface->normal);
-    const Vec3f h = ((surface->facing) ? 1.f : -1.f) * (-surface->wi*ior_in + sample.wo*ior_out).normalized();
+    const Vec3f h = ((surface->facing) ? 1.f : -1.f) * (-surface->wi*ior_in + wo*ior_out).normalized();
 
     const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
     const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
-    const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
+    const float h_dot_wo = clamp(h.dot(wo), -1.f, 1.f);
     const float n_dot_wi = clamp(normal.dot(-surface->wi), -1.f, 1.f);
-    const float n_dot_wo = clamp(normal.dot(sample.wo), -1.f, 1.f);
+    const float n_dot_wo = clamp(normal.dot(wo), -1.f, 1.f);
 
     const float d = D(normal, h, n_dot_h, roughness_sqr);
-    const float g = G1(-surface->wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
+    const float g = G1(-surface->wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
     const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
 
     const float denom = std::pow(ior_in * h_dot_wi + ior_out * h_dot_wo + EPSILON_F, 2);
 
-    sample.weight = ior_out * ior_out * (fabs(h_dot_wi) * fabs(h_dot_wo)) / (fabs(n_dot_wi) * fabs(n_dot_wo));
-    sample.weight *= color * f * g * d * fabs(n_dot_wo) / denom;
+    Vec3f weight = ior_out * ior_out * (fabs(h_dot_wi) * fabs(h_dot_wo)) / (fabs(n_dot_wi) * fabs(n_dot_wo));
+    weight *= color * f * g * d * fabs(n_dot_wo) / denom;
     // sample.weight *= eta * eta;
 
-    sample.pdf = d * n_dot_h * (ior_out * ior_out * fabs(h_dot_wo)) / denom;
+    return weight;
+}
 
-    return true;
+float MaterialLobeGGXRefract::pdf(const Vec3f& wo, Resources& resources) const
+{
+    // Currently see little reason to evalualte this. Prehaps on the condition that we are exiting the object.
+    return 0.f;
+
+    if(wo.dot(surface->wi) > 0.f)
+        return 0.f;
+
+    const Vec3f normal = ((surface->facing) ? surface->normal : -surface->normal);
+    const Vec3f h = ((surface->facing) ? 1.f : -1.f) * (-surface->wi*ior_in + wo*ior_out).normalized();
+
+    const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
+    const float h_dot_wi = clamp(h.dot(-surface->wi), -1.f, 1.f);
+    const float h_dot_wo = clamp(h.dot(wo), -1.f, 1.f);
+
+    const float d = D(normal, h, n_dot_h, roughness_sqr);
+
+    const float denom = std::pow(ior_in * h_dot_wi + ior_out * h_dot_wo + EPSILON_F, 2);
+    return d * n_dot_h * (ior_out * ior_out * fabs(h_dot_wo)) / denom;
 }

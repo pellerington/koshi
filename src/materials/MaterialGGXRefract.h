@@ -12,7 +12,8 @@ struct MaterialLobeGGXRefract : public MaterialLobe
     float ior_out;
 
     bool sample(MaterialSample& sample, Resources& resources) const;
-    bool evaluate(MaterialSample& sample, Resources& resources) const;
+    Vec3f weight(const Vec3f& wo, Resources& resources) const;
+    float pdf(const Vec3f& wo, Resources& resources) const;
 
     Type type() const { return (roughness > EPSILON_F) ? Type::Glossy : Type::Specular; }
 };
