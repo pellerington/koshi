@@ -19,11 +19,11 @@ struct MaterialLobeGGXReflect : public MaterialLobe
 class MaterialGGXReflect : public Material
 {
 public:
-    MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute);
+    MaterialGGXReflect(const AttributeVec3f &color_attribute, const AttributeFloat &roughness_attribute);
     MaterialInstance instance(const GeometrySurface * surface, Resources &resources);
 
 private:
-    const AttributeVec3f specular_color_attribute;
+    const AttributeVec3f color_attribute;
     const AttributeFloat roughness_attribute;
 
     /* DEALING WITH FRESNEL:

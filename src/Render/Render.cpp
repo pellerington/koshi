@@ -85,7 +85,7 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
                 path.quality = 1.f;
                 path.prev_path = nullptr;
 
-                IntersectList intersects = intersector->intersect(ray, &path);
+                IntersectList * intersects = intersector->intersect(ray, &path, resources);
                 pixels[x][y]->color += Integrator::shade(intersects, resources);
                 pixels[x][y]->current_sample++;
 

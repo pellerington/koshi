@@ -16,8 +16,8 @@ MaterialInstance MaterialGGXRefract::instance(const GeometrySurface * surface, R
     MaterialLobeGGXRefract * lobe = resources.memory.create<MaterialLobeGGXRefract>();
     lobe->surface = surface;
     lobe->rng = resources.random_number_service.get_random_2D();
-    lobe->ior_in = 1.f;//surface->curr_ior;
-    lobe->ior_out = ior;//surface->facing ? ior : surface->prev_ior;
+    lobe->ior_in = surface->facing ? 1.f : ior;
+    lobe->ior_out = surface->facing ? ior : 1.f;
     lobe->color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
     lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
     lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);

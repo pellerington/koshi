@@ -5,8 +5,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialGGXReflect::MaterialGGXReflect(const AttributeVec3f &specular_color_attribute, const AttributeFloat &roughness_attribute)
-: specular_color_attribute(specular_color_attribute), roughness_attribute(roughness_attribute)
+MaterialGGXReflect::MaterialGGXReflect(const AttributeVec3f &color_attribute, const AttributeFloat &roughness_attribute)
+: color_attribute(color_attribute), roughness_attribute(roughness_attribute)
 {
 }
 
@@ -16,7 +16,7 @@ MaterialInstance MaterialGGXReflect::instance(const GeometrySurface * surface, R
     MaterialLobeGGXReflect * lobe = resources.memory.create<MaterialLobeGGXReflect>();
     lobe->surface = surface;
     lobe->rng = resources.random_number_service.get_random_2D();
-    lobe->color = specular_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
+    lobe->color = color_attribute.get_value(surface->u, surface->v, 0.f, resources);
     lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
     lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);
     lobe->roughness_sqr = lobe->roughness * lobe->roughness;

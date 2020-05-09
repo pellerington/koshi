@@ -8,37 +8,34 @@
 
 struct SurfaceSample
 {
-    // TODO: Passing the intersects this way is anoying and horrible. Find a better way.
-    SurfaceSample(const IntersectList& intersects) : intersects(intersects) {}
-
     Vec3f li;
     Vec3f weight;
     float pdf;
-    IntersectList intersects;
+    const IntersectList * intersects;
 };
 
 class IntegratorSurface : public Integrator
 {
 public:
-    Vec3f integrate(const Intersect& intersect/*, Transmittance& transmittance*/, Resources &resources) const
+    Vec3f integrate(const Intersect * intersect/*, Transmittance& transmittance*/, Resources &resources) const
     {
         Vec3f color = VEC3F_ZERO;
 
         // Check it is geometry surface.
         // dynamic_cast<GeometrySurface*>
-        const GeometrySurface * surface = &intersect.surface;
+        const GeometrySurface * surface = &intersect->surface;
 
         // Add light contribution.
-        Light * light = intersect.geometry->get_attribute<Light>("light");
+        Light * light = intersect->geometry->get_attribute<Light>("light");
         if(light) color += light->get_intensity(intersect, resources);
 
         // TODO: put this in the pre_render step (no need to recalculate every time)
         float min_quality = std::pow(1.f / SAMPLES_PER_SA, resources.settings->depth);
 
-        if(is_saturated(color) || intersect.path->depth > resources.settings->max_depth || intersect.path->quality < min_quality)
+        if(is_saturated(color) || intersect->path->depth > resources.settings->max_depth || intersect->path->quality < min_quality)
             return color;
 
-        Material * material = intersect.geometry->get_attribute<Material>("material");
+        Material * material = intersect->geometry->get_attribute<Material>("material");
         if(!material) return color;
 
         MaterialInstance material_instance = material->instance(surface, resources);
@@ -52,11 +49,11 @@ public:
 
     virtual std::vector<SurfaceSample> integrate_surface(
         const MaterialInstance& material_instance,
-        const Intersect& intersect, const GeometrySurface * surface, 
+        const Intersect * intersect, const GeometrySurface * surface, 
         Resources& resources) const = 0;
 
     virtual float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,
-        const Intersect& intersect, const GeometrySurface * surface, 
+        const Intersect * intersect, const GeometrySurface * surface, 
         Resources& resources) const = 0;
 };

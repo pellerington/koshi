@@ -1,5 +1,6 @@
 #include <integrators/IntegratorSurfaceLightSampler.h>
 #include <base/Scene.h>
+#include <intersection/Intersector.h>
 
 void IntegratorSurfaceLightSampler::pre_render(Scene * scene)
 {
@@ -16,10 +17,10 @@ void IntegratorSurfaceLightSampler::pre_render(Scene * scene)
 
 std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
     const MaterialInstance& material_instance,
-    const Intersect& intersect, const GeometrySurface * surface, 
+    const Intersect * intersect, const GeometrySurface * surface, 
     Resources& resources) const
 {
-    const PathData * prev_path = intersect.path;
+    const PathData * prev_path = intersect->path;
     const uint depth = prev_path ? prev_path->depth : 0;
     const float quality = prev_path ? prev_path->quality : 1.f;
 
@@ -44,21 +45,22 @@ std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
             Vec3f weight = material_instance.weight(wo, resources); 
             if(is_black(weight)) continue;
 
-            const bool reflect = wo.dot(intersect.surface.normal) > 0;
-            const Vec3f ray_pos = reflect ? intersect.surface.front_position : intersect.surface.back_position;
+            const bool reflect = wo.dot(intersect->surface.normal) > 0;
+            const Vec3f ray_pos = reflect ? intersect->surface.front_position : intersect->surface.back_position;
             Ray ray(ray_pos, wo, 0.f, (light_samples[i].position - ray_pos).length() - EPSILON_F);
-            samples.emplace_back(resources.intersector->intersect(ray, &next_path));
-            
-            // samples.back().intersects = resources.intersector->intersect(ray, &next_path);
+            samples.emplace_back();
+            SurfaceSample& sample = samples.back();
+
+            sample.intersects = resources.intersector->intersect(ray, &next_path, resources);
 
             // Replace this with transmittance context later
             Vec3f shadow = 1.f;
-            if(samples.back().intersects.hit())
+            if(sample.intersects->hit())
                 shadow = 0.f;
 
-            samples.back().li = shadow * light_samples[i].intensity;
-            samples.back().weight = weight * inv_num_samples;
-            samples.back().pdf = light_samples[i].pdf;
+            sample.li = shadow * light_samples[i].intensity;
+            sample.weight = weight * inv_num_samples;
+            sample.pdf = light_samples[i].pdf;
         }
     }
 
@@ -67,15 +69,15 @@ std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
 
 float IntegratorSurfaceLightSampler::evaluate(const SurfaceSample& sample, 
     const MaterialInstance& material_instance,
-    const Intersect& intersect, const GeometrySurface * surface, 
+    const Intersect * intersect, const GeometrySurface * surface, 
     Resources& resources) const
 {
     float pdf = 0.f;
-    for(uint i = 0; i < sample.intersects.size(); i++)
+    for(uint i = 0; i < sample.intersects->size(); i++)
     {
-        auto light = lights.find(sample.intersects[i].geometry);
+        auto light = lights.find(sample.intersects->get(i)->geometry);
         if(light == lights.end()) continue;
-        pdf += light->second->evaluate_light(sample.intersects[i], intersect, resources);
+        pdf += light->second->evaluate_light(sample.intersects->get(i), intersect, resources);
     }
     return pdf;
 }

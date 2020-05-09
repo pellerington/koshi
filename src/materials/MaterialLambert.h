@@ -16,10 +16,10 @@ template<bool FRONT>
 class MaterialLambert : public Material
 {
 public:
-    MaterialLambert(const AttributeVec3f &diffuse_color_attr);
+    MaterialLambert(const AttributeVec3f &color_attr);
     MaterialInstance instance(const GeometrySurface * surface, Resources &resources);
 private:
-    const AttributeVec3f diffuse_color_attr;
+    const AttributeVec3f color_attr;
 };
 
 template class MaterialLambert<true>;

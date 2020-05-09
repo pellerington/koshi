@@ -9,6 +9,7 @@
 
 #include <Util/Attribute.h>
 #include <Util/Resources.h>
+#include <intersection/GeometrySurface.h>
 
 #define UNIFORM_SAMPLE false
 

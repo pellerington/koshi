@@ -2,8 +2,8 @@
 
 #include <Util/Memory.h>
 #include <Math/Random.h>
-#include <intersection/Intersector.h>
 #include <base/Settings.h>
+class Intersector;
 
 struct Resources
 {

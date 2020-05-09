@@ -6,8 +6,8 @@
 #include <iostream>
 
 template<bool FRONT>
-MaterialLambert<FRONT>::MaterialLambert(const AttributeVec3f &diffuse_color_attr)
-: diffuse_color_attr(diffuse_color_attr)
+MaterialLambert<FRONT>::MaterialLambert(const AttributeVec3f &color_attr)
+: color_attr(color_attr)
 {
 }
 
@@ -18,7 +18,7 @@ MaterialInstance MaterialLambert<FRONT>::instance(const GeometrySurface * surfac
     MaterialLobeLambert<FRONT> * lobe = resources.memory.create<MaterialLobeLambert<FRONT>>();
     lobe->surface = surface;
     lobe->rng = resources.random_number_service.get_random_2D();
-    lobe->color = diffuse_color_attr.get_value(surface->u, surface->v, 0.f, resources);
+    lobe->color = color_attr.get_value(surface->u, surface->v, 0.f, resources);
     instance.push(lobe);
     return instance;
 }

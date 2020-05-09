@@ -18,7 +18,7 @@ void IntegratorSurfaceMultipleImportanceSampler::pre_render(Scene * scene)
 
 std::vector<SurfaceSample> IntegratorSurfaceMultipleImportanceSampler::integrate_surface(
     const MaterialInstance& material_instance, 
-    const Intersect& intersect, const GeometrySurface * surface,
+    const Intersect * intersect, const GeometrySurface * surface,
     Resources& resources) const
 {
     std::vector<SurfaceSample> samples;
@@ -46,7 +46,7 @@ std::vector<SurfaceSample> IntegratorSurfaceMultipleImportanceSampler::integrate
 
 float IntegratorSurfaceMultipleImportanceSampler::evaluate(const SurfaceSample& sample, 
     const MaterialInstance& material_instance,
-    const Intersect& intersect, const GeometrySurface * surface, 
+    const Intersect * intersect, const GeometrySurface * surface, 
     Resources& resources) const
 {
     float pdf = 0.f;

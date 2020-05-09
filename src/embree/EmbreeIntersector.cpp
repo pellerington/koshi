@@ -36,9 +36,9 @@ EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
 //         obj->process_intersection_volume(args);
 // }
 
-IntersectList EmbreeIntersector::intersect(const Ray &ray, const PathData * path)
+IntersectList * EmbreeIntersector::intersect(const Ray& ray, const PathData * path, Resources& resources)
 {
-    IntersectList intersects(ray, path);
+    IntersectList * intersects = resources.memory.create<IntersectList>(ray, path);
 
     EmbreeIntersectContext context;
     context.ray = &ray;
@@ -62,13 +62,13 @@ IntersectList EmbreeIntersector::intersect(const Ray &ray, const PathData * path
     // Finalize the intersection
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
     {
-        null_intersection_callbacks(intersects);
+        null_intersection_callbacks(intersects, resources);
     }
     else
     {
-        Intersect& intersect = intersects.push();
-        intersect.geometry = (Geometry*)rtcGetGeometryUserData(rtcGetGeometry(rtc_scene, rtcRayHit.hit.geomID));
-        intersect.surface.set
+        Intersect * intersect = intersects->push(resources);
+        intersect->geometry = (Geometry*)rtcGetGeometryUserData(rtcGetGeometry(rtc_scene, rtcRayHit.hit.geomID));
+        intersect->surface.set
         (
             ray.get_position(rtcRayHit.ray.tfar),
             Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
