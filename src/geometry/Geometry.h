@@ -27,8 +27,6 @@ public:
     inline const Transform3f& get_obj_to_world() { return obj_to_world; }
     inline const Transform3f& get_world_to_obj() { return world_to_obj; }
 
-    // const Vec3f get_opacity(/* intersection */) { return hide_camera ? VEC3F_ZERO : VEC3F_ONES; }
-
 protected:
     Box3f bbox;
     Transform3f obj_to_world;

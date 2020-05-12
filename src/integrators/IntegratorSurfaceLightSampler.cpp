@@ -53,10 +53,8 @@ std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
 
             sample.intersects = resources.intersector->intersect(ray, &next_path, resources);
 
-            // Replace this with transmittance context later
-            Vec3f shadow = 1.f;
-            if(sample.intersects->hit())
-                shadow = 0.f;
+            Transmittance transmittance = Integrator::shadow(sample.intersects, resources);
+            Vec3f shadow = transmittance.shadow(ray.tmax);
 
             sample.li = shadow * light_samples[i].intensity;
             sample.weight = weight * inv_num_samples;
@@ -74,10 +72,11 @@ float IntegratorSurfaceLightSampler::evaluate(const SurfaceSample& sample,
 {
     float pdf = 0.f;
     for(uint i = 0; i < sample.intersects->size(); i++)
+    for(const Intersect * light_intersect = sample.intersects->get(0); light_intersect; light_intersect = light_intersect->next)
     {
-        auto light = lights.find(sample.intersects->get(i)->geometry);
+        auto light = lights.find(light_intersect->geometry);
         if(light == lights.end()) continue;
-        pdf += light->second->evaluate_light(sample.intersects->get(i), intersect, resources);
+        pdf += light->second->evaluate_light(light_intersect, intersect, resources);
     }
     return pdf;
 }

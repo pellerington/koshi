@@ -1,6 +1,7 @@
 #include <embree/EmbreeIntersector.h>
 #include <embree/EmbreeGeometry.h>
 #include <geometry/Geometry.h>
+#include <intersection/Opacity.h>
 #include <base/Scene.h>
 
 EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
@@ -16,8 +17,7 @@ EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
             if(embree_geometry)
             {
                 RTCGeometry geom = embree_geometry->get_rtc_geometry();
-                // if(objects[i]->use_intersection_filter())
-                //     rtcSetGeometryIntersectFilterFunction(geom, &Scene::intersection_callback);
+                rtcSetGeometryIntersectFilterFunction(geom, &EmbreeIntersector::intersect_callback);
                 rtcCommitGeometry(geom);
                 rtcAttachGeometry(rtc_scene, geom);
                 rtcSetGeometryUserData(geom, geometry);
@@ -28,20 +28,50 @@ EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
     rtcCommitScene(rtc_scene);
 }
 
-// void Scene::intersection_callback(const RTCFilterFunctionNArguments * args)
-// {
-//     Object * obj = (Object*)args->geometryUserPtr;
-//     obj->process_intersection_visibility(args);
-//     if(obj->volume)
-//         obj->process_intersection_volume(args);
-// }
+void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * args)
+{
+    EmbreeIntersectContext * context = (EmbreeIntersectContext*)args->context;
+    Geometry * geometry = (Geometry*)args->geometryUserPtr;
+    const Ray& ray = context->intersects->ray;
+
+    Intersect * intersect = context->intersects->push(*context->resources);
+    intersect->geometry = geometry;
+    intersect->t = RTCRayN_tfar(args->ray, args->N, 0);
+    intersect->t_len = 0;
+
+    intersect->surface.set
+    (
+        ray.get_position(intersect->t),
+        Vec3f(RTCHitN_Ng_x(args->hit, args->N, 0), 
+              RTCHitN_Ng_y(args->hit, args->N, 0), 
+              RTCHitN_Ng_z(args->hit, args->N, 0)).normalized(),
+        RTCHitN_u(args->hit, args->N, 0),
+        RTCHitN_v(args->hit, args->N, 0),
+        ray.dir
+    );
+
+    Opacity * opacity = geometry->get_attribute<Opacity>("opacity");
+    if(opacity)
+    {
+        intersect->opacity = opacity->get_opacity(intersect, *context->resources);
+        if(intersect->opacity.r < 1.f || intersect->opacity.g < 1.f || intersect->opacity.b < 1.f)
+        {
+            args->valid[0] = 0;
+            if(!intersect->opacity)
+                context->intersects->pop();
+        }
+    }
+
+    // TODO: Add a maximum amount of intersections.
+}
 
 IntersectList * EmbreeIntersector::intersect(const Ray& ray, const PathData * path, Resources& resources)
 {
     IntersectList * intersects = resources.memory.create<IntersectList>(ray, path);
 
     EmbreeIntersectContext context;
-    context.ray = &ray;
+    context.intersects = intersects;
+    context.resources = &resources;
     RTCIntersectContext * rtc_context = &context;
     rtcInitIntersectContext(rtc_context);
 
@@ -59,24 +89,12 @@ IntersectList * EmbreeIntersector::intersect(const Ray& ray, const PathData * pa
     // Perform intersection
     rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
 
-    // Finalize the intersection
+    // Perform null intersect callbacks
     if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
-    {
         null_intersection_callbacks(intersects, resources);
-    }
-    else
-    {
-        Intersect * intersect = intersects->push(resources);
-        intersect->geometry = (Geometry*)rtcGetGeometryUserData(rtcGetGeometry(rtc_scene, rtcRayHit.hit.geomID));
-        intersect->surface.set
-        (
-            ray.get_position(rtcRayHit.ray.tfar),
-            Vec3f(rtcRayHit.hit.Ng_x, rtcRayHit.hit.Ng_y, rtcRayHit.hit.Ng_z).normalized(),
-            rtcRayHit.hit.u,
-            rtcRayHit.hit.v,
-            ray.dir
-        );
-    }
+
+    // Finalize the intersection
+    intersects->finalize(rtcRayHit.ray.tfar);
 
     return intersects;
 }

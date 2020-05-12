@@ -2,6 +2,7 @@
 
 #include <embree3/rtcore.h>
 #include <intersection/Ray.h>
+#include <intersection/Intersect.h>
 
 struct Embree
 {
@@ -10,6 +11,6 @@ struct Embree
 
 struct EmbreeIntersectContext : public RTCIntersectContext
 {
-    const Ray * ray;
-    // Add Ptr to the IntersectList
+    IntersectList * intersects;
+    Resources * resources;
 };

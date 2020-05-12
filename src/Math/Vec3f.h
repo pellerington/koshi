@@ -62,6 +62,9 @@ public:
 
     inline bool operator< (const float &n) const { return x < n && y < n && z < n; }
 
+    inline bool null() const { return x == 0.f && y == 0.f && z == 0.f; }
+    inline bool operator!() const { return x == 0.f && y == 0.f && z == 0.f; }
+
     inline float length() const {
         __m128 sqr = _mm_mul_ps(data, data);
         return sqrtf(sqr[0] + sqr[1] + sqr[2]);

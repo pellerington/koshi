@@ -11,6 +11,8 @@
 #include <embree/EmbreeGeometryBox.h>
 #include <embree/EmbreeGeometrySphere.h>
 
+#include <intersection/Opacity.h>
+
 #include <import/MeshFile.h>
 
 struct GeometrySceneFile
@@ -21,6 +23,10 @@ struct GeometrySceneFile
         type.reserved_attributes.push_back("scale");
         type.reserved_attributes.push_back("rotation");
         type.reserved_attributes.push_back("translation");
+
+        type.reserved_attributes.push_back("opacity");
+        type.reserved_attributes.push_back("opacity_texture");
+        type.reserved_attributes.push_back("hide_camera");
     }
 
     static void add_types(Types& types)
@@ -62,6 +68,21 @@ struct GeometrySceneFile
         return transform;
     }
 
+    static Object * get_opacity(AttributeAccessor& accessor, Object * geometry)
+    {
+        const Vec3f opacity = accessor.get_vec3f("opacity", 1.f);
+        Texture * opacity_texture = dynamic_cast<Texture*>(accessor.get_object("opacity_texture"));
+        const bool hide_camera = accessor.get_bool("hide_camera");
+        if(opacity == 1.f && !opacity_texture && !hide_camera)
+            return nullptr;
+            
+        Opacity * object = new Opacity(AttributeVec3f(opacity_texture, opacity), hide_camera);
+        accessor.add_object("opacity", object);
+        geometry->set_attribute("opacity", object);
+
+        return object;
+    }
+
     static Object * create_geometry_mesh(AttributeAccessor& accessor, Object * parent)
     {
         Transform3f transform = get_transform(accessor);
@@ -71,8 +92,12 @@ struct GeometrySceneFile
         if(filetype == "obj")
             geometry = MeshFile::ImportOBJ(accessor.get_string("filename"), transform);
 
+
         // TODO: Move embree geometry somewhere else.
-        if(geometry) {
+        if(geometry) 
+        {
+            get_opacity(accessor, geometry);
+
             EmbreeGeometryMesh * embree = new EmbreeGeometryMesh(geometry);
             geometry->set_attribute("embree_geometry", embree);
             accessor.add_object("embree_geometry", embree);
@@ -85,9 +110,13 @@ struct GeometrySceneFile
     {
         Transform3f transform = get_transform(accessor);
         GeometryBox * geometry = new GeometryBox(transform);
+
+        get_opacity(accessor, geometry);
+
         EmbreeGeometryBox * embree = new EmbreeGeometryBox(geometry);
         geometry->set_attribute("embree_geometry", embree);
         accessor.add_object("embree_geometry", embree);
+
         return geometry;
     }
 
@@ -95,9 +124,13 @@ struct GeometrySceneFile
     {
         Transform3f transform = get_transform(accessor);
         GeometrySphere * geometry = new GeometrySphere(transform);
+
+        get_opacity(accessor, geometry);
+
         EmbreeGeometrySphere * embree = new EmbreeGeometrySphere(geometry);
         geometry->set_attribute("embree_geometry", embree);
         accessor.add_object("embree_geometry", embree);
+
         return geometry;
     }
 };

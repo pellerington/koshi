@@ -27,6 +27,7 @@ public:
     {
         GeometrySphere * sphere = (GeometrySphere*)args->geometryUserPtr;
         EmbreeIntersectContext * context = (EmbreeIntersectContext*)args->context;
+        const Ray& ray = context->intersects->ray;
         args->valid[0] = 0;
 
         // TODO: Change all this when we switch to an object intersection model.
@@ -37,9 +38,9 @@ public:
         float t0, t1;
         if(!sphere->is_elliptoid())
         {
-            const Vec3f v = context->ray->pos - center;
-            const float a = context->ray->dir.dot(context->ray->dir);
-            const float b = 2.f * v.dot(context->ray->dir);
+            const Vec3f v = ray.pos - center;
+            const float a = ray.dir.dot(ray.dir);
+            const float b = 2.f * v.dot(ray.dir);
             const float c = v.dot(v) - radius_sqr;
             const float discriminant = b*b - 4.f*a*c;
             if(discriminant < 0.f) return;
@@ -50,8 +51,8 @@ public:
         }
         else
         {
-            const Vec3f ray_pos_object = world_to_obj * context->ray->pos;
-            Vec3f ray_dir_object = world_to_obj.multiply(context->ray->dir, false);
+            const Vec3f ray_pos_object = world_to_obj * ray.pos;
+            Vec3f ray_dir_object = world_to_obj.multiply(ray.dir, false);
             const float inv_obj_dir_len = 1.f / ray_dir_object.length();
             ray_dir_object *= inv_obj_dir_len;
 
@@ -72,7 +73,7 @@ public:
 
         if(t0 < ray_tfar && t0 > ray_tnear)
         {
-            const Vec3f sphere_position = context->ray->pos + context->ray->dir * t0;
+            const Vec3f sphere_position = ray.pos + ray.dir * t0;
             const Vec3f normal = (sphere_position - center).normalized();
             args->valid[0] = -1;
             const float tfar_prev = ray_tfar;
@@ -104,7 +105,7 @@ public:
 
         if(t1 < ray_tfar && t1 > ray_tnear)
         {
-            const Vec3f sphere_position = context->ray->pos + context->ray->dir * t1;
+            const Vec3f sphere_position = ray.pos + ray.dir * t1;
             const Vec3f normal = (sphere_position - center).normalized();
             args->valid[0] = -1;
             const float tfar_prev = ray_tfar;

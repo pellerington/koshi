@@ -6,38 +6,53 @@
 #include <geometry/Geometry.h>
 class Scene;
 
+// struct IntegratorData
+// {
+// };
+
+class Transmittance;
+
 class Integrator : public Object
 {
 public:
-    // virtual IntegratorInstance * pre_integrate(/* blah */) {}
+    // virtual IntegratorData * pre_integrate(const Intersect * intersect) = 0;
 
     // Perform the integration of an intersection. Eg. Direct sampling would generate light paths here.
-    virtual Vec3f integrate(const Intersect * intersect/*, Transmittance& transmittance*/, Resources &resources) const = 0;
+    virtual Vec3f integrate(const Intersect * intersect, Transmittance& transmittance, Resources &resources) const = 0;
 
-    // Todo: move this function somewhere else. Shader::shade ???
-    static Vec3f shade(const IntersectList * intersects,  Resources &resources)
+    virtual Vec3f shadow(const float& t, const Intersect * intersect)
     {
-        if(intersects->empty())
-            return VEC3F_ZERO;
-
-        Vec3f color = VEC3F_ZERO;
-
-        // Todo: First pass of integrators alowing them to add something to a transmittance context
-        // Transmittancec = shadow(intersects, resources) ???? Means we have to redo get_attribute integrator
-
-        for(size_t i = 0; i < intersects->size(); i++)
-        {
-            const Intersect * intersect = intersects->get(i);
-            Geometry * geometry = intersect->geometry;
-
-            Integrator * integrator = geometry->get_attribute<Integrator>("integrator");
-            if(integrator)
-                color += integrator->integrate(intersect /*, transmittance */, resources);
-        }
-
-        return  color;
+        return (t > intersect->t) ? VEC3F_ZERO : VEC3F_ONES;
     }
 
-    // static Transmitance? shadow(const IntersectList * intersects, Resources &resources)
-    //
+    // Todo: move this function somewhere else. Shader::shade ???
+    static Vec3f shade(const IntersectList * intersects, Resources &resources);
+    static Transmittance shadow(const IntersectList * intersects, Resources &resources);
+};
+
+struct IntegratorList
+{
+    IntegratorList(IntegratorList * next = nullptr) : next(next) {}
+    const Intersect * intersect;
+    Integrator * integrator;
+    //IntegratorData * data;
+    IntegratorList * next;
+};
+
+class Transmittance
+{
+public:
+    Transmittance(IntegratorList * integrators) : integrators(integrators) {}
+    Vec3f shadow(const float& t)
+    {
+        Vec3f opacity = VEC3F_ONES;
+        for(IntegratorList * integrator = integrators; integrator; integrator = integrator->next)
+        {
+            if(t > integrator->intersect->t)
+                opacity *= 1.f - ((1.f - integrator->integrator->shadow(t, integrator->intersect)) * integrator->intersect->opacity);
+        }
+        return opacity;
+    }
+private:
+    IntegratorList * integrators;
 };
