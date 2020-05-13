@@ -8,8 +8,8 @@
 #include <Math/Types.h>
 #include <Math/BlueNoiseGenerator.h>
 
-#define NUM_MAPS 2048;
-#define NUM_POINTS 128;
+#define NUM_MAPS 2048
+#define NUM_POINTS 128
 
 class RandomNumberService;
 

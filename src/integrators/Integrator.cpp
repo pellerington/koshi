@@ -22,13 +22,10 @@ Vec3f Integrator::shade(const IntersectList * intersects, Resources &resources)
     }
 
     Transmittance transmittance(integrators);
-
     for(const IntegratorList * integrator = integrators; integrator; integrator = integrator->next)
-    {
         color += integrator->intersect->opacity * integrator->integrator->integrate(integrator->intersect, transmittance, resources);
-    }
 
-    return  color;
+    return color;
 }
 
 Transmittance Integrator::shadow(const IntersectList * intersects, Resources &resources)

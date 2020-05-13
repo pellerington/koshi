@@ -2,9 +2,9 @@
 
 #include "import/SceneFile.h"
 
-#include <integrators/IntegratorSurfaceMaterialSampler.h>
-#include <integrators/IntegratorSurfaceLightSampler.h>
-#include <integrators/IntegratorSurfaceMultipleImportanceSampler.h>
+#include <integrators/SurfaceMaterialSampler.h>
+#include <integrators/SurfaceLightSampler.h>
+#include <integrators/SurfaceMultipleImportanceSampler.h>
 
 struct IntegratorSceneFile
 {
@@ -30,17 +30,17 @@ struct IntegratorSceneFile
 
     static Object * create_surface_material_integrator(AttributeAccessor& accessor, Object * parent)
     {
-        return new IntegratorSurfaceMaterialSampler;
+        return new SurfaceMaterialSampler;
     }
 
     static Object * create_surface_light_integrator(AttributeAccessor& accessor, Object * parent)
     {
-        return new IntegratorSurfaceLightSampler;
+        return new SurfaceLightSampler;
     }
 
     static Object * create_surface_mis_integrator(AttributeAccessor& accessor, Object * parent)
     {
-        IntegratorSurfaceMultipleImportanceSampler * integrator = new IntegratorSurfaceMultipleImportanceSampler;
+        SurfaceMultipleImportanceSampler * integrator = new SurfaceMultipleImportanceSampler;
         ObjectGroup * group = accessor.get_objects("integrators");
         integrator->set_attribute("integrators", group);
         return integrator;

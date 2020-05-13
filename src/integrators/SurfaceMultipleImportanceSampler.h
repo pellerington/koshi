@@ -1,17 +1,15 @@
 #pragma once
 
 #include <integrators/IntegratorSurface.h>
-#include <lights/LightSampler.h>
-#include <map>
 
-class IntegratorSurfaceLightSampler : public IntegratorSurface
+class SurfaceMultipleImportanceSampler : public IntegratorSurface
 {
 public:
-    void pre_render(Scene * scene) override;
+    void pre_render(Scene * scene);
 
     std::vector<SurfaceSample> integrate_surface(
-        const MaterialInstance& material_instance,
-        const Intersect * intersect, const GeometrySurface * surface, 
+        const MaterialInstance& material_instance, 
+        const Intersect * intersect, const GeometrySurface * surface,
         Resources& resources) const;
 
     float evaluate(const SurfaceSample& sample, 
@@ -20,5 +18,5 @@ public:
         Resources& resources) const;
 
 private:
-    std::unordered_map<Geometry*, LightSampler*> lights;
+    std::vector<IntegratorSurface*> integrators;
 };

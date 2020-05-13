@@ -1,7 +1,7 @@
-#include <integrators/IntegratorSurfaceMaterialSampler.h>
+#include <integrators/SurfaceMaterialSampler.h>
 #include <intersection/Intersector.h>
 
-std::vector<SurfaceSample> IntegratorSurfaceMaterialSampler::integrate_surface(
+std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
     const MaterialInstance& material_instance,
     const Intersect * intersect, const GeometrySurface * surface, 
     Resources& resources) const
@@ -48,7 +48,7 @@ std::vector<SurfaceSample> IntegratorSurfaceMaterialSampler::integrate_surface(
             sample.weight = material_sample.weight * inv_num_samples;
             sample.pdf = material_sample.pdf;
 
-            // TODO: Do we need to evaluate pdf and weight for all other lobes? Maybe not
+            // TODO: Do we need to evaluate pdf and weight for all other lobes? Probably?
 
             sample.li = Integrator::shade(sample.intersects, resources);
         }
@@ -57,7 +57,7 @@ std::vector<SurfaceSample> IntegratorSurfaceMaterialSampler::integrate_surface(
     return samples;
 }
 
-float IntegratorSurfaceMaterialSampler::evaluate(const SurfaceSample& sample, 
+float SurfaceMaterialSampler::evaluate(const SurfaceSample& sample, 
     const MaterialInstance& material_instance,
     const Intersect * intersect, const GeometrySurface * surface, 
     Resources& resources) const

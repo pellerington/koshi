@@ -34,6 +34,11 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
     Geometry * geometry = (Geometry*)args->geometryUserPtr;
     const Ray& ray = context->intersects->ray;
 
+    // Remove duplicates
+    for(Intersect * intersect = context->intersects->get(0); intersect; intersect = intersect->next)
+        if(intersect->geometry == geometry && intersect->t == RTCRayN_tfar(args->ray, args->N, 0))
+            return;
+
     Intersect * intersect = context->intersects->push(*context->resources);
     intersect->geometry = geometry;
     intersect->t = RTCRayN_tfar(args->ray, args->N, 0);

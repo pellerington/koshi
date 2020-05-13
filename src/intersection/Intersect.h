@@ -115,6 +115,7 @@ public:
         }
     }
 
+
 private:
     Intersect * intersect0;
     uint num_intersects;

@@ -1,8 +1,8 @@
-#include <integrators/IntegratorSurfaceLightSampler.h>
+#include <integrators/SurfaceLightSampler.h>
 #include <base/Scene.h>
 #include <intersection/Intersector.h>
 
-void IntegratorSurfaceLightSampler::pre_render(Scene * scene)
+void SurfaceLightSampler::pre_render(Scene * scene)
 {
     for(auto object = scene->begin(); object != scene->end(); ++object)
     {
@@ -15,7 +15,7 @@ void IntegratorSurfaceLightSampler::pre_render(Scene * scene)
     }
 }
 
-std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
+std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
     const MaterialInstance& material_instance,
     const Intersect * intersect, const GeometrySurface * surface, 
     Resources& resources) const
@@ -65,7 +65,7 @@ std::vector<SurfaceSample> IntegratorSurfaceLightSampler::integrate_surface(
     return samples;
 }
 
-float IntegratorSurfaceLightSampler::evaluate(const SurfaceSample& sample, 
+float SurfaceLightSampler::evaluate(const SurfaceSample& sample, 
     const MaterialInstance& material_instance,
     const Intersect * intersect, const GeometrySurface * surface, 
     Resources& resources) const
