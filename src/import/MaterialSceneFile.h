@@ -5,6 +5,7 @@
 #include "materials/MaterialLambert.h"
 #include "materials/MaterialGGXReflect.h"
 #include "materials/MaterialGGXRefract.h"
+#include "materials/MaterialDielectric.h"
 
 struct MaterialSceneFile
 {
@@ -38,6 +39,18 @@ struct MaterialSceneFile
         material_ggx_refract.reserved_attributes.push_back("ior");
         material_ggx_refract.create_object_cb = create_material_ggx_refract;
         types.add(material_ggx_refract);
+
+        // Material Dielectric
+        Type material_dielectric("material_dielectric");
+        material_dielectric.reserved_attributes.push_back("reflect_color");
+        material_dielectric.reserved_attributes.push_back("reflect_color_texture");
+        material_dielectric.reserved_attributes.push_back("refract_color");
+        material_dielectric.reserved_attributes.push_back("refract_color_texture");
+        material_dielectric.reserved_attributes.push_back("roughness");
+        material_dielectric.reserved_attributes.push_back("roughness_texture");
+        material_dielectric.reserved_attributes.push_back("ior");
+        material_dielectric.create_object_cb = create_material_dielectric;
+        types.add(material_dielectric);
     }
 
     static Object * create_material_lambert(AttributeAccessor& accessor, Object * parent)
@@ -77,25 +90,23 @@ struct MaterialSceneFile
         );
     }
 
+    static Object * create_material_dielectric(AttributeAccessor& accessor, Object * parent)
+    {
+        const Vec3f reflect_color = accessor.get_vec3f("reflect_color");
+        Texture * reflect_color_texture = dynamic_cast<Texture*>(accessor.get_object("reflect_color_texture"));
+        const Vec3f refract_color = accessor.get_vec3f("refract_color");
+        Texture * refract_color_texture = dynamic_cast<Texture*>(accessor.get_object("refract_color_texture"));
+        const float roughness = accessor.get_float("roughness");
+        Texture * roughness_texture = dynamic_cast<Texture*>(accessor.get_object("roughness_texture"));
+        const float ior = accessor.get_float("ior");
+
+        return new MaterialDielectric(
+            AttributeVec3f(reflect_color_texture, reflect_color),
+            AttributeVec3f(refract_color_texture, refract_color),
+            AttributeFloat(roughness_texture, roughness), ior
+        );
+    }
 };
-
-    //                 if((*it)["type"] == "ggx_refract")
-    //                 {
-    //                     const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
-    //                     Texture * refractive_color_texture = ((*it)["refractive_color_texture"].is_string()) ? textures[(*it)["refractive_color_texture"]] : nullptr;
-
-    //                     const float roughness = get_float(*it, "roughness");
-    //                     Texture * roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
-
-    //                     const float ior = get_float(*it, "ior", 1.f);
-
-    //                     Material * material = new MaterialGGXRefract(
-    //                         AttributeVec3f(refractive_color_texture, refractive_color),
-    //                         AttributeFloat(roughness_texture, roughness), ior
-    //                     );
-    //                     materials[(*it)["name"]] = material;
-    //                     scene.add_object(material);
-    //                 }
 
     //                 if((*it)["type"] == "dielectric")
     //                 {

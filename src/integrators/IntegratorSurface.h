@@ -42,7 +42,9 @@ public:
 
         std::vector<SurfaceSample> scatter = integrate_surface(material_instance, intersect, surface, resources);
         for(uint i = 0; i < scatter.size(); i++)
-            color += (scatter[i].li * scatter[i].weight) / scatter[i].pdf;
+        {
+            color += scatter[i].li * scatter[i].weight / scatter[i].pdf;
+        }
 
         return color * transmittance.shadow(intersect->t);
     }

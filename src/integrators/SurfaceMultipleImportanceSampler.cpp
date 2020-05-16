@@ -28,15 +28,18 @@ std::vector<SurfaceSample> SurfaceMultipleImportanceSampler::integrate_surface(
 
         for(uint j = 0; j < sub_samples.size(); j++)
         {
-            const float pdf_sqr = sub_samples[j].pdf * sub_samples[j].pdf;
-            float pdf_sqr_sum = pdf_sqr;
-            for(uint k = 0; k < integrators.size(); k++)
+            if(sub_samples[j].pdf < INV_EPSILON_F)
             {
-                if(k == i) continue;
-                float temp_pdf = integrators[k]->evaluate(sub_samples[j], material_instance, intersect, surface, resources);
-                pdf_sqr_sum += temp_pdf * temp_pdf;
+                const float pdf_sqr = sub_samples[j].pdf * sub_samples[j].pdf;
+                float pdf_sqr_sum = pdf_sqr;
+                for(uint k = 0; k < integrators.size(); k++)
+                {
+                    if(k == i) continue;
+                    float temp_pdf = integrators[k]->evaluate(sub_samples[j], material_instance, intersect, surface, resources);
+                    pdf_sqr_sum += temp_pdf * temp_pdf;
+                }
+                sub_samples[j].weight *= pdf_sqr / pdf_sqr_sum;
             }
-            sub_samples[j].weight *= pdf_sqr / pdf_sqr_sum;
         }
 
         std::move(sub_samples.begin(), sub_samples.end(), std::back_inserter(samples));

@@ -47,7 +47,7 @@ std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
 
             const bool reflect = wo.dot(intersect->surface.normal) > 0;
             const Vec3f ray_pos = reflect ? intersect->surface.front_position : intersect->surface.back_position;
-            Ray ray(ray_pos, wo, 0.f, (light_samples[i].position - ray_pos).length() - EPSILON_F);
+            Ray ray(ray_pos, wo, 0.f, (light_samples[i].position - ray_pos).length() - RAY_OFFSET);
             samples.emplace_back();
             SurfaceSample& sample = samples.back();
 

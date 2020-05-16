@@ -18,7 +18,7 @@ MaterialInstance MaterialGGXReflect::instance(const GeometrySurface * surface, R
     lobe->rng = resources.random_number_service.get_random_2D();
     lobe->color = color_attribute.get_value(surface->u, surface->v, 0.f, resources);
     lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
-    lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.05f, 0.95f);
+    lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);
     lobe->roughness_sqr = lobe->roughness * lobe->roughness;
     lobe->fresnel = resources.memory.create<FresnelMetalic>(lobe->color);
     instance.push(lobe);

@@ -14,8 +14,8 @@ struct GeometrySurface /* : public GeometryData */
         set_normal(_normal);
         geometric_normal = _normal;
         u = _u; v = _v;
-        front_position = position + geometric_normal *  EPSILON_F;
-        back_position  = position + geometric_normal * -EPSILON_F;
+        front_position = position + geometric_normal *  RAY_OFFSET;
+        back_position  = position + geometric_normal * -RAY_OFFSET;
     }
 
     void set_normal(const Vec3f& _normal)

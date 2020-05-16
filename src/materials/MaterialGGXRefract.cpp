@@ -20,7 +20,7 @@ MaterialInstance MaterialGGXRefract::instance(const GeometrySurface * surface, R
     lobe->ior_out = surface->facing ? ior : 1.f;
     lobe->color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
     lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
-    lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.05f, 0.95f);
+    lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);
     lobe->roughness_sqr = lobe->roughness * lobe->roughness;
     lobe->fresnel = resources.memory.create<FresnelDielectric>(lobe->ior_in, lobe->ior_out);
     instance.push(lobe);

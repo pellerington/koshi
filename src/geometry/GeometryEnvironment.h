@@ -1,12 +1,13 @@
 #pragma once
 
 #include <geometry/Geometry.h>
+#include <intersection/Opacity.h>
 
 class GeometryEnvironment : public Geometry
 {
 public:
-    GeometryEnvironment()
-    : Geometry(Transform3f())
+    GeometryEnvironment(const Transform3f& transform)
+    : Geometry(transform)
     {
         intersection_cb = new IntersectionCallbacks;
         intersection_cb->null_intersection_cb = null_intersection_cb;
@@ -34,9 +35,11 @@ private:
         intersect->t = FLT_MAX;
         intersect->geometry = geometry;
 
-        float theta = acosf(intersect->ray.dir.y);
-        float phi = atanf((intersect->ray.dir.z + EPSILON_F) / (intersect->ray.dir.x + EPSILON_F));
-        const bool zd = intersect->ray.dir.z > 0, xd = intersect->ray.dir.x > 0;
+        const Vec3f dir = geometry->get_world_to_obj().multiply(intersect->ray.dir, false);
+
+        float theta = acosf(dir.y);
+        float phi = atanf((dir.z + EPSILON_F) / (dir.x + EPSILON_F));
+        const bool zd = dir.z > 0, xd = dir.x > 0;
         if(!zd) phi += PI;
         if(xd != zd) phi += PI;
 
@@ -44,5 +47,13 @@ private:
         const float v = theta * INV_PI;
 
         intersect->surface.set(intersect->ray.dir * FLT_MAX, -intersect->ray.dir.normalized(), u, v, intersect->ray.dir.normalized());
+    
+        Opacity * opacity = geometry->get_attribute<Opacity>("opacity");
+        if(opacity)
+        {
+            intersect->opacity = opacity->get_opacity(intersect, resources);
+            if(!intersect->opacity)
+                intersects->pop();
+        }
     }
 };

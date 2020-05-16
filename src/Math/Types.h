@@ -14,8 +14,11 @@
 #define INV_TWO_PI 0.15915494309f
 #define INV_FOUR_PI 0.07957747154f
 
-#define EPSILON_F 0.000001f
-#define DELTA_PDF 1e9f
+#define EPSILON_F 1e-16f
+#define INV_EPSILON_F 1e16f
+
+#define RAY_OFFSET 0.000001f
+
 
 static const Vec3f VEC3F_ZERO = 0.f;
 static const Vec3f VEC3F_ONES = 1.f;

@@ -7,14 +7,10 @@
 #include <import/GeometrySceneFile.h>
 
 #include <geometry/GeometryEnvironment.h>
-#include <geometry/GeometryArea.h>
-#include <geometry/GeometrySphere.h>
 
 #include <lights/LightSamplerArea.h>
 #include <lights/LightSamplerSphere.h>
-
-#include <embree/EmbreeGeometryArea.h>
-#include <embree/EmbreeGeometrySphere.h>
+#include <lights/LightSamplerDistant.h>
 
 struct LightSceneFile
 {
@@ -34,6 +30,13 @@ struct LightSceneFile
         light_environment.create_object_cb = create_light_environment;
         types.add(light_environment);
 
+        // Light Environment
+        Type light_distant("light_distant");
+        GeometrySceneFile::set_geometry_type(light_distant);
+        set_light_type(light_distant);
+        light_distant.create_object_cb = create_light_distant;
+        types.add(light_distant);
+
         // Light Area
         Type light_area("light_area");
         GeometrySceneFile::set_geometry_type(light_area);
@@ -51,7 +54,8 @@ struct LightSceneFile
 
     static Object * create_light_environment(AttributeAccessor& accessor, Object * parent)
     {
-        GeometryEnvironment * environment = new GeometryEnvironment;
+        Transform3f transform = GeometrySceneFile::get_transform(accessor);
+        GeometryEnvironment * environment = new GeometryEnvironment(transform);
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
@@ -62,6 +66,26 @@ struct LightSceneFile
         GeometrySceneFile::get_opacity(accessor, environment);
 
         return environment;
+    }
+
+    static Object * create_light_distant(AttributeAccessor& accessor, Object * parent)
+    {
+        Transform3f transform = GeometrySceneFile::get_transform(accessor);
+        Geometry * geometry = new Geometry(transform);
+
+        const Vec3f intensity = accessor.get_vec3f("intensity");
+        Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
+        Light * light = new Light(AttributeVec3f(intensity_texture, intensity));
+        accessor.add_object("light", light);
+        geometry->set_attribute("light", light);
+
+        LightSamplerDistant * light_sampler = new LightSamplerDistant(geometry);
+        accessor.add_object("light_sampler", light_sampler);
+        geometry->set_attribute("light_sampler", light_sampler);
+
+        // GeometrySceneFile::get_opacity(accessor, geometry);
+
+        return geometry;
     }
 
     static Object * create_light_area(AttributeAccessor& accessor, Object * parent)
