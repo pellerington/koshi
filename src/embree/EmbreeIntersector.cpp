@@ -2,6 +2,7 @@
 #include <embree/EmbreeGeometry.h>
 #include <geometry/Geometry.h>
 #include <intersection/Opacity.h>
+#include <integrators/Integrator.h>
 #include <base/Scene.h>
 
 EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
@@ -26,6 +27,8 @@ EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
     rtcCommitScene(rtc_scene);
+
+    default_integrator = dynamic_cast<Integrator*>(scene->get_object("default_integrator"));
 }
 
 void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * args)
@@ -34,16 +37,16 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
     Geometry * geometry = (Geometry*)args->geometryUserPtr;
     const Ray& ray = context->intersects->ray;
 
-    // Remove duplicates
+    // Ignore if a duplicate
     for(Intersect * intersect = context->intersects->get(0); intersect; intersect = intersect->next)
         if(intersect->geometry == geometry && intersect->t == RTCRayN_tfar(args->ray, args->N, 0))
             return;
 
+    // Push intersect data.
     Intersect * intersect = context->intersects->push(*context->resources);
     intersect->geometry = geometry;
     intersect->t = RTCRayN_tfar(args->ray, args->N, 0);
     intersect->t_len = 0;
-
     intersect->surface.set
     (
         ray.get_position(intersect->t),
@@ -55,6 +58,7 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
         ray.dir
     );
 
+    // Get the opacity of the intersect.
     Opacity * opacity = geometry->get_attribute<Opacity>("opacity");
     if(opacity)
     {
@@ -62,24 +66,40 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
         if(intersect->opacity.r < 1.f || intersect->opacity.g < 1.f || intersect->opacity.b < 1.f)
         {
             args->valid[0] = 0;
-            if(!intersect->opacity)
-                context->intersects->pop();
+            if(!intersect->opacity) context->intersects->pop();
         }
     }
 
-    // TODO: Add a maximum amount of intersections.
+    // Close any segments for this geometry. 
+    if(!intersect->surface->facing)
+        for(Intersect * intersect = context->intersects->get(0); intersect; intersect = intersect->next)
+            if(intersect->geometry == geometry && intersect->t_len > 0.f)
+                intersect->t_len = RTCRayN_tfar(args->ray, args->N, 0) - intersect->t;
+
+    // Add an integrator.
+    intersect->integrator = geometry->get_attribute<Integrator>("integrator");
+    if(!intersect->integrator)
+        intersect->integrator = context->default_integrator;
+
+    // TODO: Add a maximum/limit to the amount of intersections.
 }
 
-IntersectList * EmbreeIntersector::intersect(const Ray& ray, const PathData * path, Resources& resources)
+IntersectList * EmbreeIntersector::intersect(const Ray& ray, const PathData * path, Resources& resources,
+    PreIntersectionCallback * pre_intersect_callback, void * pre_intersect_data)
 {
     IntersectList * intersects = resources.memory.create<IntersectList>(ray, path);
 
+    if(pre_intersect_callback)
+        pre_intersect_callback(intersects, resources, pre_intersect_data);
+
     EmbreeIntersectContext context;
     context.intersects = intersects;
+    context.default_integrator = default_integrator;
     context.resources = &resources;
     RTCIntersectContext * rtc_context = &context;
     rtcInitIntersectContext(rtc_context);
 
+    // Setup embree ray/hit variables.
     RTCRayHit rtcRayHit;
     rtcRayHit.ray.org_x = ray.pos[0]; rtcRayHit.ray.org_y = ray.pos[1]; rtcRayHit.ray.org_z = ray.pos[2];
     rtcRayHit.ray.dir_x = ray.dir[0]; rtcRayHit.ray.dir_y = ray.dir[1]; rtcRayHit.ray.dir_z = ray.dir[2];

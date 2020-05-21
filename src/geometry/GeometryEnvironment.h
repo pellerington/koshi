@@ -2,16 +2,24 @@
 
 #include <geometry/Geometry.h>
 #include <intersection/Opacity.h>
+#include <integrators/Integrator.h>
 
 class GeometryEnvironment : public Geometry
 {
 public:
     GeometryEnvironment(const Transform3f& transform)
-    : Geometry(transform)
+    : Geometry(transform), integrator(nullptr)
     {
         intersection_cb = new IntersectionCallbacks;
         intersection_cb->null_intersection_cb = null_intersection_cb;
         set_attribute("intersection_callbacks", intersection_cb);
+    }
+
+    void pre_render(Scene * scene)
+    {
+        integrator = get_attribute<Integrator>("integrator");
+        if(!integrator)
+            integrator = dynamic_cast<Integrator*>(scene->get_object("default_integrator"));
     }
 
     ~GeometryEnvironment()
@@ -20,6 +28,7 @@ public:
     }
 
 private:
+    Integrator * integrator;
     IntersectionCallbacks * intersection_cb;
 
     static void null_intersection_cb(IntersectList * intersects, Geometry * geometry, Resources& resources)
@@ -30,6 +39,7 @@ private:
         if(intersects->ray.tmax != FLT_MAX)
             return;
 
+        GeometryEnvironment * environment_geometry = (GeometryEnvironment *)geometry;
         Intersect * intersect = intersects->push(resources);
 
         intersect->t = FLT_MAX;
@@ -55,5 +65,7 @@ private:
             if(!intersect->opacity)
                 intersects->pop();
         }
+
+        intersect->integrator = environment_geometry->integrator;
     }
 };

@@ -7,10 +7,12 @@
 #include <intersection/Ray.h>
 #include <intersection/GeometrySurface.h>
 class Geometry;
+class Integrator;
 
 // TODO: Template max intersects in the future.
 #define MAX_INTERSECTS 16
 
+// Todo: Rename pathData to something more general.
 // Todo: make this more user friendly and configurable. Let people attach arbitary data to it.
 // Todo: move into it's own file.
 struct PathData
@@ -18,7 +20,7 @@ struct PathData
     uint depth;
     double quality;
     // LPE
-    // IorStack
+    // InteriorMedium
     const PathData * prev_path;
 };
 
@@ -32,11 +34,12 @@ class IntersectList;
 struct Intersect
 {
     Intersect(const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), t(0.f), t_len(0.f), geometry(nullptr), opacity(VEC3F_ONES), path(path), next(nullptr)
+    : ray(ray), t(0.f), t_len(0.f), opacity(VEC3F_ONES), geometry(nullptr), integrator(nullptr), path(path), next(nullptr)
     {}
 
     const Ray ray;
     float t, t_len;
+    Vec3f opacity;
 
     Geometry * geometry;
     GeometrySurface surface;
@@ -45,10 +48,10 @@ struct Intersect
     // <class T>
     // T * get_data() { return (T*)data; }
 
-    Vec3f opacity;
+    Integrator * integrator;
 
+    // TODO: Cleanup these.
     const PathData * path;
-
     Intersect * next;
 };
 
@@ -122,6 +125,8 @@ private:
     const PathData * path;
 };
 
+// TODO: Move intersect callbacks to thier own file.
+// HitIntersectionCallback
 typedef void (NullIntersectionCallback)(IntersectList * intersects, Geometry * geometry, Resources& resources);
 struct IntersectionCallbacks : public Object
 {

@@ -34,6 +34,7 @@ struct MaterialSceneFile
         Type material_ggx_refract("material_ggx_refract");
         material_ggx_refract.reserved_attributes.push_back("color");
         material_ggx_refract.reserved_attributes.push_back("color_texture");
+        material_ggx_refract.reserved_attributes.push_back("color_depth");
         material_ggx_refract.reserved_attributes.push_back("roughness");
         material_ggx_refract.reserved_attributes.push_back("roughness_texture");
         material_ggx_refract.reserved_attributes.push_back("ior");
@@ -46,6 +47,7 @@ struct MaterialSceneFile
         material_dielectric.reserved_attributes.push_back("reflect_color_texture");
         material_dielectric.reserved_attributes.push_back("refract_color");
         material_dielectric.reserved_attributes.push_back("refract_color_texture");
+        material_dielectric.reserved_attributes.push_back("refract_color_depth");
         material_dielectric.reserved_attributes.push_back("roughness");
         material_dielectric.reserved_attributes.push_back("roughness_texture");
         material_dielectric.reserved_attributes.push_back("ior");
@@ -80,13 +82,15 @@ struct MaterialSceneFile
     {
         const Vec3f color = accessor.get_vec3f("color");
         Texture * color_texture = dynamic_cast<Texture*>(accessor.get_object("color_texture"));
+        const float color_depth = accessor.get_float("color_depth");
         const float roughness = accessor.get_float("roughness");
         Texture * roughness_texture = dynamic_cast<Texture*>(accessor.get_object("roughness_texture"));
         const float ior = accessor.get_float("ior");
 
         return new MaterialGGXRefract(
             AttributeVec3f(color_texture, color),
-            AttributeFloat(roughness_texture, roughness), ior
+            AttributeFloat(roughness_texture, roughness), 
+            ior, color_depth
         );
     }
 
@@ -96,6 +100,7 @@ struct MaterialSceneFile
         Texture * reflect_color_texture = dynamic_cast<Texture*>(accessor.get_object("reflect_color_texture"));
         const Vec3f refract_color = accessor.get_vec3f("refract_color");
         Texture * refract_color_texture = dynamic_cast<Texture*>(accessor.get_object("refract_color_texture"));
+        const float refract_color_depth = accessor.get_float("refract_color_depth");
         const float roughness = accessor.get_float("roughness");
         Texture * roughness_texture = dynamic_cast<Texture*>(accessor.get_object("roughness_texture"));
         const float ior = accessor.get_float("ior");
@@ -103,30 +108,8 @@ struct MaterialSceneFile
         return new MaterialDielectric(
             AttributeVec3f(reflect_color_texture, reflect_color),
             AttributeVec3f(refract_color_texture, refract_color),
+            refract_color_depth,
             AttributeFloat(roughness_texture, roughness), ior
         );
     }
 };
-
-    //                 if((*it)["type"] == "dielectric")
-    //                 {
-    //                     const Vec3f reflective_color = get_vec3f(*it, "reflective_color");
-    //                     Texture * reflective_color_texture = ((*it)["reflective_color_texture"].is_string()) ? textures[(*it)["reflective_color_texture"]] : nullptr;
-
-    //                     const Vec3f refractive_color = get_vec3f(*it, "refractive_color");
-    //                     Texture * refractive_color_texture = ((*it)["refractive_color_texture"].is_string()) ? textures[(*it)["refractive_color_texture"]] : nullptr;
-
-    //                     const float roughness = get_float(*it, "roughness");
-    //                     Texture * roughness_texture = ((*it)["roughness_texture"].is_string()) ? textures[(*it)["roughness_texture"]] : nullptr;
-
-    //                     const float ior = get_float(*it, "ior", 1.f);
-
-    //                     Material * material = new MaterialDielectric(
-    //                         AttributeVec3f(reflective_color_texture, reflective_color),
-    //                         AttributeVec3f(refractive_color_texture, refractive_color),
-    //                         AttributeFloat(roughness_texture, roughness),
-    //                         ior
-    //                     );
-    //                     materials[(*it)["name"]] = material;
-    //                     scene.add_object(material);
-    //                 }

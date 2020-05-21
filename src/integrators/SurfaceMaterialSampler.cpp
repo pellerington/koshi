@@ -4,12 +4,13 @@
 std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
     const MaterialInstance& material_instance,
     const Intersect * intersect, const GeometrySurface * surface, 
-    Resources& resources) const
+    InteriorMedium& interiors, Resources& resources) const
 {
     const PathData * prev_path = intersect->path;
     const uint depth = prev_path ? prev_path->depth : 0;
     const float quality = prev_path ? prev_path->quality : 1.f;
 
+    // TODO: vector uses malloc which we should be avoiding. create an allocator using resources, OR make our won vector class.
     std::vector<SurfaceSample> samples;
     for(uint l = 0; l < material_instance.size(); l++)
     {
@@ -26,6 +27,11 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
         next_quality *= 1.f / num_unreduced_samples;
         uint num_samples = std::max(1.f, num_unreduced_samples * quality * resources.settings->sampling_quality);
 
+        // transmit interiors
+        InteriorMedium transmit_interiors = surface->facing 
+            ? interiors.push(intersect->geometry, lobe->interior)
+            : interiors.pop(intersect->geometry);
+
         const float inv_num_samples = 1.f / (float)num_samples;
         for(uint i = 0; i < num_samples; i++)
         {
@@ -38,13 +44,16 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
             next_path.quality = next_quality;
             next_path.prev_path = prev_path;
 
-            const bool reflect = material_sample.wo.dot(intersect->surface.normal) > 0;
-            Ray ray(reflect ? intersect->surface.front_position : intersect->surface.back_position, material_sample.wo);
+            const bool front = material_sample.wo.dot(surface->normal) > 0;
+            const bool transmit = front ^ surface->facing;
+            const Vec3f& ray_position = front ? surface->front_position : surface->back_position;
+            Ray ray(ray_position, material_sample.wo);
+
             samples.emplace_back();
-            
             SurfaceSample& sample = samples.back();
 
-            sample.intersects = resources.intersector->intersect(ray, &next_path, resources);
+            sample.intersects = resources.intersector->intersect(ray, &next_path, resources, 
+                InteriorMedium::pre_intersect_callback, transmit ? &transmit_interiors : &interiors);
             sample.weight = material_sample.weight * inv_num_samples;
             sample.pdf = material_sample.pdf;
 

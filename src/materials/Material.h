@@ -10,11 +10,14 @@
 #include <Util/Attribute.h>
 #include <Util/Resources.h>
 #include <intersection/GeometrySurface.h>
+#include <intersection/InteriorMedium.h>
 
 #define UNIFORM_SAMPLE false
 
 // TODO: Max lobes could be templatable.
 #define MAX_LOBES 16
+
+class Integrator;
 
 struct MaterialSample
 {
@@ -23,7 +26,7 @@ struct MaterialSample
     float pdf;
 };
 
-struct MaterialLobe /* : public Data */
+struct MaterialLobe
 {
     // TODO: Add a constructor which takes resources and surface. This way we can instansiate our stuff easier.
 
@@ -31,6 +34,8 @@ struct MaterialLobe /* : public Data */
     RandomNumberGen2D rng;
     Vec3f color;
     float roughness;
+
+    Integrator * interior = nullptr;
 
     virtual bool sample(MaterialSample& sample, Resources& resources) const = 0;
 
@@ -60,7 +65,7 @@ public:
     }
 private:
     uint num_lobes = 0;
-    MaterialLobe* lobes[MAX_LOBES];
+    MaterialLobe * lobes[MAX_LOBES];
 };
 
 class Material : public Object

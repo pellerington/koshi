@@ -117,12 +117,17 @@ public:
 
     inline void abs() { x = fabs(x); y = fabs(y); z = fabs(z); }
 
+    // This is an approximation, switch to actual std::exp?
     inline static Vec3f exp(const Vec3f &v) {
         Vec3f x(v);
         x = 1.f + x / 256.f;
         x *= x; x *= x; x *= x; x *= x;
         x *= x; x *= x; x *= x; x *= x;
         return x;
+    }
+
+    inline static Vec3f log(const Vec3f &v) {
+        return Vec3f(logf(v.x), logf(v.y), logf(v.z));
     }
 
     inline void floor() {

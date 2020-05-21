@@ -33,14 +33,18 @@ public:
         const float min_quality = std::pow(1.f / SAMPLES_PER_SA, resources.settings->depth);
 
         if(is_saturated(color) || intersect->path->depth > resources.settings->max_depth || intersect->path->quality < min_quality)
+        {
             return color * transmittance.shadow(intersect->t);
+        }
 
         Material * material = intersect->geometry->get_attribute<Material>("material");
         if(!material) return color * transmittance.shadow(intersect->t);
 
         MaterialInstance material_instance = material->instance(surface, resources);
 
-        std::vector<SurfaceSample> scatter = integrate_surface(material_instance, intersect, surface, resources);
+        InteriorMedium interiors(intersect->t, transmittance.get_intersects());
+
+        std::vector<SurfaceSample> scatter = integrate_surface(material_instance, intersect, surface, interiors, resources);
         for(uint i = 0; i < scatter.size(); i++)
         {
             color += scatter[i].li * scatter[i].weight / scatter[i].pdf;
@@ -49,10 +53,15 @@ public:
         return color * transmittance.shadow(intersect->t);
     }
 
+    virtual Vec3f shadow(const float& t, const Intersect * intersect) const
+    {
+        return (t > intersect->t) ? VEC3F_ZERO : VEC3F_ONES;
+    }
+
     virtual std::vector<SurfaceSample> integrate_surface(
         const MaterialInstance& material_instance,
         const Intersect * intersect, const GeometrySurface * surface, 
-        Resources& resources) const = 0;
+        InteriorMedium& interiors, Resources& resources) const = 0;
 
     virtual float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,

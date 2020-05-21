@@ -2,6 +2,7 @@
 
 #include <materials/MaterialGGXReflect.h>
 #include <materials/MaterialGGXRefract.h>
+#include <integrators/AbsorptionMedium.h>
 
 #include <Math/Helpers.h>
 #include <Util/Color.h>
@@ -10,10 +11,12 @@
 
 MaterialDielectric::MaterialDielectric(const AttributeVec3f &reflective_color_attribute,
                                        const AttributeVec3f &refractive_color_attribute,
+                                       const float& refractive_color_depth,
                                        const AttributeFloat &roughness_attribute,
                                        const float &ior)
 : reflective_color_attribute(reflective_color_attribute), 
   refractive_color_attribute(refractive_color_attribute),
+  refractive_color_depth(refractive_color_depth),
   roughness_attribute(roughness_attribute), ior(ior)
 {
 }
@@ -32,6 +35,11 @@ MaterialInstance MaterialDielectric::instance(const GeometrySurface * surface, R
     refract_lobe->roughness = clamp(refract_lobe->roughness * refract_lobe->roughness, 0.01f, 0.99f);
     refract_lobe->roughness_sqr = refract_lobe->roughness * refract_lobe->roughness;
     refract_lobe->fresnel = resources.memory.create<FresnelDielectric>(refract_lobe->ior_in, refract_lobe->ior_out);
+    if(refractive_color_depth > EPSILON_F)
+    {
+        refract_lobe->interior = surface->facing ? resources.memory.create<AbsorbtionMedium>(refract_lobe->color, refractive_color_depth) : nullptr;
+        refract_lobe->color = VEC3F_ONES;
+    }
 
     MaterialLobeGGXReflect * reflect_lobe = resources.memory.create<MaterialLobeGGXReflect>();
     reflect_lobe->surface = surface;

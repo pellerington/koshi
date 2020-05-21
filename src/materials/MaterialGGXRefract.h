@@ -21,11 +21,12 @@ struct MaterialLobeGGXRefract : public MaterialLobe
 class MaterialGGXRefract : public Material
 {
 public:
-    MaterialGGXRefract(const AttributeVec3f &refractive_color_attribute, const AttributeFloat &roughness_attribute, const float &ior = 1.f);
-    MaterialInstance instance(const GeometrySurface * surface, Resources &resources);
+    MaterialGGXRefract(const AttributeVec3f& color_attribute, const AttributeFloat& roughness_attribute, const float& ior, const float& color_depth = 0.f);
+    MaterialInstance instance(const GeometrySurface * surface, Resources& resources);
 
 private:
-    const AttributeVec3f refractive_color_attribute;
+    const AttributeVec3f color_attribute;
+    const float color_depth;
     const AttributeFloat roughness_attribute;
     const float ior;
 };

@@ -18,14 +18,15 @@ void SurfaceLightSampler::pre_render(Scene * scene)
 std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
     const MaterialInstance& material_instance,
     const Intersect * intersect, const GeometrySurface * surface, 
-    Resources& resources) const
+    InteriorMedium& interiors, Resources& resources) const
 {
     const PathData * prev_path = intersect->path;
     const uint depth = prev_path ? prev_path->depth : 0;
     const float quality = prev_path ? prev_path->quality : 1.f;
 
+    InteriorMedium transmit_interiors = interiors.pop(intersect->geometry);
+
     std::vector<SurfaceSample> samples;
-    // if(resources.settings->sample_lights)
     for(auto light = lights.begin(); light != lights.end(); ++light)
     {
         // Make a better num_samples estimator
@@ -45,13 +46,16 @@ std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
             Vec3f weight = material_instance.weight(wo, resources); 
             if(is_black(weight)) continue;
 
-            const bool reflect = wo.dot(intersect->surface.normal) > 0;
-            const Vec3f ray_pos = reflect ? intersect->surface.front_position : intersect->surface.back_position;
-            Ray ray(ray_pos, wo, 0.f, (light_samples[i].position - ray_pos).length() - RAY_OFFSET);
+            const bool front = wo.dot(surface->normal) > 0;
+            const bool transmit = front ^ surface->facing;
+            const Vec3f& ray_position = front ? surface->front_position : surface->back_position;
+            Ray ray(ray_position, wo, 0.f, (light_samples[i].position - ray_position).length() - RAY_OFFSET);
+
             samples.emplace_back();
             SurfaceSample& sample = samples.back();
 
-            sample.intersects = resources.intersector->intersect(ray, &next_path, resources);
+            sample.intersects = resources.intersector->intersect(ray, &next_path, resources,
+                InteriorMedium::pre_intersect_callback, transmit ? &transmit_interiors : &interiors);
 
             Transmittance transmittance = Integrator::shadow(sample.intersects, resources);
             Vec3f shadow = transmittance.shadow(ray.tmax);

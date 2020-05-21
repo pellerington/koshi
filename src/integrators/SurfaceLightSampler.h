@@ -12,7 +12,7 @@ public:
     std::vector<SurfaceSample> integrate_surface(
         const MaterialInstance& material_instance,
         const Intersect * intersect, const GeometrySurface * surface, 
-        Resources& resources) const;
+        InteriorMedium& interiors, Resources& resources) const;
 
     float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,

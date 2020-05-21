@@ -20,29 +20,31 @@ public:
     // Perform the integration of an intersection. Eg. Direct sampling would generate light paths here.
     virtual Vec3f integrate(const Intersect * intersect, Transmittance& transmittance, Resources &resources) const = 0;
 
-    virtual Vec3f shadow(const float& t, const Intersect * intersect)
-    {
-        return (t > intersect->t) ? VEC3F_ZERO : VEC3F_ONES;
-    }
+    // Given a point on the intersect t, how much shadowing should be applied.
+    virtual Vec3f shadow(const float& t, const Intersect * intersect) const = 0;
 
     // Todo: move this function somewhere else. Shader::shade ???
     static Vec3f shade(const IntersectList * intersects, Resources &resources);
     static Transmittance shadow(const IntersectList * intersects, Resources &resources);
 };
 
+// TODO: Maybe we don't need to store an integrator AND an intersect list.
 struct IntegratorList
 {
     IntegratorList(IntegratorList * next = nullptr) : next(next) {}
     const Intersect * intersect;
-    Integrator * integrator;
+    Integrator * integrator; // Remove me as this is already inside intersect.
     //IntegratorData * data;
     IntegratorList * next;
 };
 
+// TODO: Rename Transmittance to something else + find better way to store integrators data.
 class Transmittance
 {
 public:
-    Transmittance(IntegratorList * integrators) : integrators(integrators) {}
+    Transmittance(const IntersectList * intersects, IntegratorList * integrators) 
+    : intersects(intersects), integrators(integrators) {}
+
     Vec3f shadow(const float& t)
     {
         Vec3f opacity = VEC3F_ONES;
@@ -53,6 +55,10 @@ public:
         }
         return opacity;
     }
+
+    inline const IntersectList * get_intersects() { return intersects; }
+
 private:
+    const IntersectList * intersects;
     IntegratorList * integrators;
 };

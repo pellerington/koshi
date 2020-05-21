@@ -4,13 +4,14 @@
 #include <Util/Color.h>
 #include <cmath>
 #include <iostream>
+#include <integrators/AbsorptionMedium.h>
 
-MaterialGGXRefract::MaterialGGXRefract(const AttributeVec3f &refractive_color_attribute, const AttributeFloat &roughness_attribute, const float &ior)
-: refractive_color_attribute(refractive_color_attribute), roughness_attribute(roughness_attribute), ior(ior)
+MaterialGGXRefract::MaterialGGXRefract(const AttributeVec3f& color_attribute, const AttributeFloat& roughness_attribute, const float& ior, const float& color_depth)
+: color_attribute(color_attribute), color_depth(color_depth), roughness_attribute(roughness_attribute), ior(ior)
 {
 }
 
-MaterialInstance MaterialGGXRefract::instance(const GeometrySurface * surface, Resources &resources)
+MaterialInstance MaterialGGXRefract::instance(const GeometrySurface * surface, Resources& resources)
 {
     MaterialInstance instance;
     MaterialLobeGGXRefract * lobe = resources.memory.create<MaterialLobeGGXRefract>();
@@ -18,11 +19,16 @@ MaterialInstance MaterialGGXRefract::instance(const GeometrySurface * surface, R
     lobe->rng = resources.random_number_service.get_random_2D();
     lobe->ior_in = surface->facing ? 1.f : ior;
     lobe->ior_out = surface->facing ? ior : 1.f;
-    lobe->color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
+    lobe->color = color_attribute.get_value(surface->u, surface->v, 0.f, resources);
     lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
     lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);
     lobe->roughness_sqr = lobe->roughness * lobe->roughness;
     lobe->fresnel = resources.memory.create<FresnelDielectric>(lobe->ior_in, lobe->ior_out);
+    if(color_depth > EPSILON_F)
+    {
+        lobe->interior = surface->facing ? resources.memory.create<AbsorbtionMedium>(lobe->color, color_depth) : nullptr;
+        lobe->color = VEC3F_ONES;
+    }
     instance.push(lobe);
     return instance;
 }

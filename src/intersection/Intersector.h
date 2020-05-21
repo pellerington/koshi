@@ -2,14 +2,18 @@
 
 #include <intersection/Intersect.h>
 #include <intersection/Ray.h>
+#include <intersection/InteriorMedium.h>
 class Scene;
+
+typedef void (PreIntersectionCallback)(IntersectList * intersects, Resources& resources, void * data);
 
 class Intersector
 {
 public:
     Intersector(Scene * scene);
 
-    virtual IntersectList * intersect(const Ray& ray, const PathData * path, Resources& resouces) = 0;
+    virtual IntersectList * intersect(const Ray& ray, const PathData * path, Resources& resouces, 
+        PreIntersectionCallback * pre_intersect_callback = nullptr, void * pre_intersect_data = nullptr) = 0;
     
     void null_intersection_callbacks(IntersectList * intersects, Resources& resources)
     {
