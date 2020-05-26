@@ -2,7 +2,7 @@
 
 #include <intersection/Intersect.h>
 #include <intersection/Ray.h>
-#include <intersection/InteriorMedium.h>
+#include <intersection/Interiors.h>
 class Scene;
 
 typedef void (PreIntersectionCallback)(IntersectList * intersects, Resources& resources, void * data);

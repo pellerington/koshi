@@ -71,7 +71,7 @@ bool MaterialLobeGGXRefract::sample(MaterialSample& sample, Resources& resources
 
 Vec3f MaterialLobeGGXRefract::weight(const Vec3f& wo, Resources& resources) const
 {
-    // Currently see little reason to evalualte this. Prehaps on the condition that we are exiting the object.
+    // TODO: evalualte this. Prehaps on the condition that we are exiting the object.
     return VEC3F_ZERO;
 
     if(wo.dot(surface->wi) > 0.f)
@@ -101,7 +101,7 @@ Vec3f MaterialLobeGGXRefract::weight(const Vec3f& wo, Resources& resources) cons
 
 float MaterialLobeGGXRefract::pdf(const Vec3f& wo, Resources& resources) const
 {
-    // Currently see little reason to evalualte this. Prehaps on the condition that we are exiting the object.
+    // TODO: evalualte this. Prehaps on the condition that we are exiting the object.
     return 0.f;
 
     if(wo.dot(surface->wi) > 0.f)

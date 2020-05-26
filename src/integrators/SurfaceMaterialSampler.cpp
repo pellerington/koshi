@@ -4,7 +4,7 @@
 std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
     const MaterialInstance& material_instance,
     const Intersect * intersect, const GeometrySurface * surface, 
-    InteriorMedium& interiors, Resources& resources) const
+    Interiors& interiors, Resources& resources) const
 {
     const PathData * prev_path = intersect->path;
     const uint depth = prev_path ? prev_path->depth : 0;
@@ -28,7 +28,7 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
         uint num_samples = std::max(1.f, num_unreduced_samples * quality * resources.settings->sampling_quality);
 
         // transmit interiors
-        InteriorMedium transmit_interiors = surface->facing 
+        Interiors transmit_interiors = surface->facing 
             ? interiors.push(intersect->geometry, lobe->interior)
             : interiors.pop(intersect->geometry);
 
@@ -53,7 +53,7 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
             SurfaceSample& sample = samples.back();
 
             sample.intersects = resources.intersector->intersect(ray, &next_path, resources, 
-                InteriorMedium::pre_intersect_callback, transmit ? &transmit_interiors : &interiors);
+                Interiors::pre_intersect_callback, transmit ? &transmit_interiors : &interiors);
             sample.weight = material_sample.weight * inv_num_samples;
             sample.pdf = material_sample.pdf;
 

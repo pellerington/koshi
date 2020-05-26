@@ -6,15 +6,15 @@
 
 // TODO: Move this file somewhere else, should not be part of the core intersects.
 
-class InteriorMedium
+class Interiors
 {
 public:
-    InteriorMedium(const float& t, const IntersectList * prev_intersects)
+    Interiors(const float& t, const IntersectList * prev_intersects)
     : t(t), prev_intersects(prev_intersects), change(NONE), geometry(nullptr), integrator(nullptr) {}
 
-    InteriorMedium push(Geometry * geometry, Integrator * integrator)
+    Interiors push(Geometry * geometry, Integrator * integrator)
     {
-        InteriorMedium interiors = *this;
+        Interiors interiors = *this;
         if(integrator)
         {
             interiors.change = PUSH;
@@ -24,9 +24,9 @@ public:
         return interiors;
     }
 
-    InteriorMedium pop(Geometry * geometry)
+    Interiors pop(Geometry * geometry)
     {
-        InteriorMedium interiors = *this;
+        Interiors interiors = *this;
         interiors.change = POP;
         interiors.geometry = geometry;
         return interiors;
@@ -34,26 +34,27 @@ public:
 
     static void pre_intersect_callback(IntersectList * intersects, Resources& resources, void * data)
     {
-        InteriorMedium * interiors = (InteriorMedium*)data;
+        Interiors * interiors = (Interiors*)data;
 
         for(const Intersect * prev_intersect = interiors->prev_intersects->get(0); 
             prev_intersect; prev_intersect = prev_intersect->next)
         {
-            if(prev_intersect->t_len > 0.f 
+            if(prev_intersect->interior 
+            && prev_intersect->t_len > 0.f
             && prev_intersect->t <= interiors->t 
             && interiors->t <= prev_intersect->t + prev_intersect->t_len)
             {
-                if(interiors->change != POP || prev_intersect->geometry != interiors->geometry)
-                {
-                    Intersect * intersect = intersects->push(resources);
-                    intersect->opacity = prev_intersect->opacity;
-                    intersect->geometry = prev_intersect->geometry;
-                    intersect->surface = prev_intersect->surface;
-                    intersect->integrator = prev_intersect->integrator;
+                if(interiors->change == POP && prev_intersect->geometry == interiors->geometry)
+                    continue;
 
-                    intersect->t = 0.f;
-                    intersect->t_len = FLT_MAX;
-                }
+                Intersect * intersect = intersects->push(resources);
+                intersect->geometry = prev_intersect->geometry;
+                // TODO: In the future we might need a copy with the new intersect information for geom_data.
+                intersect->geometry_data = prev_intersect->geometry_data;
+                intersect->integrator = prev_intersect->integrator;
+                intersect->t = 0.f;
+                intersect->t_len = FLT_MAX;
+                intersect->interior = true;
             }
         }
 
@@ -64,6 +65,7 @@ public:
             intersect->integrator = interiors->integrator;
             intersect->t = 0.f;
             intersect->t_len = FLT_MAX;
+            intersect->interior = true;
         }
     }
 

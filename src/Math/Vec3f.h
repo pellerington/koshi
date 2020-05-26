@@ -61,6 +61,7 @@ public:
     inline bool operator== (const Vec3f &v) const { return x == v.x && y == v.y && z == v.z; }
 
     inline bool operator< (const float &n) const { return x < n && y < n && z < n; }
+    inline bool operator>= (const float &n) const { return x >= n && y >= n && z >= n; }
 
     inline bool null() const { return x == 0.f && y == 0.f && z == 0.f; }
     inline bool operator!() const { return x == 0.f && y == 0.f && z == 0.f; }

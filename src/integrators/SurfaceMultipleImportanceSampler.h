@@ -1,8 +1,8 @@
 #pragma once
 
-#include <integrators/IntegratorSurface.h>
+#include <integrators/SurfaceSampler.h>
 
-class SurfaceMultipleImportanceSampler : public IntegratorSurface
+class SurfaceMultipleImportanceSampler : public SurfaceSampler
 {
 public:
     void pre_render(Scene * scene);
@@ -10,7 +10,7 @@ public:
     std::vector<SurfaceSample> integrate_surface(
         const MaterialInstance& material_instance, 
         const Intersect * intersect, const GeometrySurface * surface,
-        InteriorMedium& interiors, Resources& resources) const;
+        Interiors& interiors, Resources& resources) const;
 
     float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,
@@ -18,5 +18,5 @@ public:
         Resources& resources) const;
 
 private:
-    std::vector<IntegratorSurface*> integrators;
+    std::vector<SurfaceSampler*> integrators;
 };

@@ -49,10 +49,8 @@ public:
     {
         Vec3f opacity = VEC3F_ONES;
         for(IntegratorList * integrator = integrators; integrator; integrator = integrator->next)
-        {
             if(t > integrator->intersect->t)
-                opacity *= 1.f - ((1.f - integrator->integrator->shadow(t, integrator->intersect)) * integrator->intersect->opacity);
-        }
+                opacity *= integrator->integrator->shadow(t, integrator->intersect); //1.f - ((1.f - integrator->integrator->shadow(t, integrator->intersect)) * integrator->intersect->opacity);
         return opacity;
     }
 

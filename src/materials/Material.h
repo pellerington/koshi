@@ -9,8 +9,8 @@
 
 #include <Util/Attribute.h>
 #include <Util/Resources.h>
-#include <intersection/GeometrySurface.h>
-#include <intersection/InteriorMedium.h>
+#include <geometry/GeometrySurface.h>
+#include <intersection/Interiors.h>
 
 #define UNIFORM_SAMPLE false
 

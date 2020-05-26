@@ -10,7 +10,7 @@
 
 #include <lights/LightSamplerArea.h>
 #include <lights/LightSamplerSphere.h>
-#include <lights/LightSamplerDistant.h>
+#include <lights/LightSamplerDirectional.h>
 
 struct LightSceneFile
 {
@@ -31,11 +31,11 @@ struct LightSceneFile
         types.add(light_environment);
 
         // Light Environment
-        Type light_distant("light_distant");
-        GeometrySceneFile::set_geometry_type(light_distant);
-        set_light_type(light_distant);
-        light_distant.create_object_cb = create_light_distant;
-        types.add(light_distant);
+        Type light_directional("light_directional");
+        GeometrySceneFile::set_geometry_type(light_directional);
+        set_light_type(light_directional);
+        light_directional.create_object_cb = create_light_directional;
+        types.add(light_directional);
 
         // Light Area
         Type light_area("light_area");
@@ -68,7 +68,7 @@ struct LightSceneFile
         return environment;
     }
 
-    static Object * create_light_distant(AttributeAccessor& accessor, Object * parent)
+    static Object * create_light_directional(AttributeAccessor& accessor, Object * parent)
     {
         Transform3f transform = GeometrySceneFile::get_transform(accessor);
         Geometry * geometry = new Geometry(transform);
@@ -79,7 +79,7 @@ struct LightSceneFile
         accessor.add_object("light", light);
         geometry->set_attribute("light", light);
 
-        LightSamplerDistant * light_sampler = new LightSamplerDistant(geometry);
+        LightSamplerDirectional * light_sampler = new LightSamplerDirectional(geometry);
         accessor.add_object("light_sampler", light_sampler);
         geometry->set_attribute("light_sampler", light_sampler);
 

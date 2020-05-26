@@ -8,7 +8,7 @@ void SurfaceMultipleImportanceSampler::pre_render(Scene * scene)
 
     for(uint i = 0; i < input_group->size(); i++)
     {
-        IntegratorSurface * integrator = input_group->get<IntegratorSurface>(i);
+        SurfaceSampler * integrator = input_group->get<SurfaceSampler>(i);
         if(!integrator) continue;
 
         integrator->pre_render(scene);
@@ -19,7 +19,7 @@ void SurfaceMultipleImportanceSampler::pre_render(Scene * scene)
 std::vector<SurfaceSample> SurfaceMultipleImportanceSampler::integrate_surface(
     const MaterialInstance& material_instance, 
     const Intersect * intersect, const GeometrySurface * surface,
-    InteriorMedium& interiors, Resources& resources) const
+    Interiors& interiors, Resources& resources) const
 {
     std::vector<SurfaceSample> samples;
     for(uint i = 0; i < integrators.size(); i++)

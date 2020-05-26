@@ -5,7 +5,7 @@
 #include <base/Object.h>
 #include <Util/Resources.h>
 #include <intersection/Ray.h>
-#include <intersection/GeometrySurface.h>
+#include <geometry/GeometrySurface.h>
 class Geometry;
 class Integrator;
 
@@ -20,7 +20,7 @@ struct PathData
     uint depth;
     double quality;
     // LPE
-    // InteriorMedium
+    // Interiors
     const PathData * prev_path;
 };
 
@@ -34,19 +34,17 @@ class IntersectList;
 struct Intersect
 {
     Intersect(const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), t(0.f), t_len(0.f), opacity(VEC3F_ONES), geometry(nullptr), integrator(nullptr), path(path), next(nullptr)
+    : ray(ray), t(0.f), t_len(0.f), interior(false), geometry(nullptr), geometry_data(nullptr), integrator(nullptr), path(path), next(nullptr)
     {}
 
     const Ray ray;
     float t, t_len;
-    Vec3f opacity;
+    bool interior;
+
+    // Vec3f opacity;
 
     Geometry * geometry;
-    GeometrySurface surface;
-    // TODO: Make this a DATA type so we can have a GeometrySurface and GeometryVolume?
-    // GeometryData * data;
-    // <class T>
-    // T * get_data() { return (T*)data; }
+    GeometryData * geometry_data;
 
     Integrator * integrator;
 
