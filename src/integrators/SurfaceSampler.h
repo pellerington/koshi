@@ -27,7 +27,7 @@ public:
 
         // Add light contribution.
         Light * light = intersect->geometry->get_attribute<Light>("light");
-        if(light) color += light->get_intensity(surface->u, surface->v, 0.f, intersect, resources);
+        if(light && surface->facing) color += light->get_intensity(surface->u, surface->v, 0.f, intersect, resources);
 
         // TODO: put this in the pre_render step (no need to recalculate every time)
         const float min_quality = std::pow(1.f / SAMPLES_PER_SA, resources.settings->depth);

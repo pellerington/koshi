@@ -4,7 +4,7 @@
 #include <intersection/Intersect.h>
 #include <Util/Attribute.h>
 
-// TODO: Replace this with an "Evaluatable" attribute which is just name "light".
+// TODO: Replace this with an "Evaluatable" attribute which is just name "light" ?
 class Light : public Object
 {
 public:

@@ -55,7 +55,7 @@ float LightSamplerArea::evaluate_light(const Intersect * intersect, const Geomet
     const Vec3f& world_normal = geometry->get_world_normal();
     const Vec3f dir = surface->position - light_surface->position;
     const float sqr_len = dir.sqr_length();
-    const float cos_theta = fabs(world_normal.dot(dir / sqrtf(sqr_len)));
+    const float cos_theta = world_normal.dot(dir / sqrtf(sqr_len));
 
-    return sqr_len / (area * cos_theta);
+    return sqr_len / (area * (fabs(cos_theta) + EPSILON_F));
 }
