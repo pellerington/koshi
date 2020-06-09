@@ -36,9 +36,10 @@ public:
     {
         Interiors * interiors = (Interiors*)data;
 
-        for(const Intersect * prev_intersect = interiors->prev_intersects->get(0); 
-            prev_intersect; prev_intersect = prev_intersect->next)
+        for(uint i = 0; i < intersects->size(); i++)
         {
+            const Intersect * prev_intersect = intersects->get(i);
+
             if(prev_intersect->interior 
             && prev_intersect->t_len > 0.f
             && prev_intersect->t <= interiors->t 

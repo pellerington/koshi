@@ -15,13 +15,9 @@ class Material;
 class Geometry : public Object
 {
 public:
-    Geometry(const Transform3f &obj_to_world = Transform3f(),
-             const bool &hide_camera = false)
+    Geometry(const Transform3f &obj_to_world = Transform3f())
     : obj_to_world(obj_to_world), 
-      world_to_obj(Transform3f::inverse(obj_to_world)),
-      hide_camera(hide_camera) 
-    {
-    }
+      world_to_obj(Transform3f::inverse(obj_to_world)) {}
 
     inline const Box3f& get_bbox() { return bbox; }
     inline const Transform3f& get_obj_to_world() { return obj_to_world; }
@@ -31,6 +27,4 @@ protected:
     Box3f bbox;
     Transform3f obj_to_world;
     Transform3f world_to_obj;
-
-    bool hide_camera;
 };

@@ -16,8 +16,8 @@ class LightSampler : public Object
 {
 public:
     // virtual bool sample_light(LightSample& sample, LightData??? * data, Resources& resources) { return false; }
-    // virtual bool sample_light(LightSample& sample, const GeometrySurface * surface, LightData??? * data, Resources& resources) { return false; }
+    // virtual bool sample_light(LightSample& sample, const Surface * surface, LightData??? * data, Resources& resources) { return false; }
     
-    virtual bool sample_light(const uint num_samples, const GeometrySurface * surface, std::vector<LightSample>& light_samples, Resources& resources) = 0;
-    virtual float evaluate_light(const Intersect * intersect, const GeometrySurface * surface, Resources& resources) = 0;
+    virtual bool sample_light(const uint num_samples, const Surface * surface, std::vector<LightSample>& light_samples, Resources& resources) = 0;
+    virtual float evaluate_light(const Intersect * intersect, const Surface * surface, Resources& resources) = 0;
 };

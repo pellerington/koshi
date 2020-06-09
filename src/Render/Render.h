@@ -11,7 +11,7 @@
 
 struct Pixel
 {
-    Pixel(const uint x, const uint y, const uint required_samples, const uint seed, const RandomNumberGen2D& rng)
+    Pixel(const uint x, const uint y, const uint required_samples, const uint seed, const Random2D& rng)
     : pixel(x, y), color(VEC3F_ZERO), required_samples(required_samples), current_sample(0), seed(seed), rng(rng)
     {
     }
@@ -21,7 +21,7 @@ struct Pixel
     uint required_samples;
     uint current_sample;
     std::mt19937 seed;
-    RandomNumberGen2D rng;
+    Random2D rng;
 };
 
 class Render

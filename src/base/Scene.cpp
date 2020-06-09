@@ -1,9 +1,9 @@
 #include <base/Scene.h>
 
-void Scene::pre_render()
+void Scene::pre_render(Resources& resources)
 {
     for(auto it = objects.begin(); it != objects.end(); it++)
-        it->second->pre_render(this);
+        it->second->pre_render(resources);
 }
 
 bool Scene::add_object(const std::string& name, Object * object)

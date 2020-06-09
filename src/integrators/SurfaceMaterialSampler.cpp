@@ -3,7 +3,7 @@
 
 std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
     const MaterialInstance& material_instance,
-    const Intersect * intersect, const GeometrySurface * surface, 
+    const Intersect * intersect, const Surface * surface, 
     Interiors& interiors, Resources& resources) const
 {
     const PathData * prev_path = intersect->path;
@@ -68,7 +68,7 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
 
 float SurfaceMaterialSampler::evaluate(const SurfaceSample& sample, 
     const MaterialInstance& material_instance,
-    const Intersect * intersect, const GeometrySurface * surface, 
+    const Intersect * intersect, const Surface * surface, 
     Resources& resources) const
 {
     float pdf = 0.f;

@@ -7,38 +7,19 @@ Vec3f Integrator::shade(const IntersectList * intersects, Resources &resources)
 
     Vec3f color = VEC3F_ZERO;
 
-    IntegratorList * integrators = nullptr;
-    for(const Intersect * intersect = intersects->get(0); intersect; intersect = intersect->next)
-    {
-        if(intersect->integrator)
-        {
-            // TODO: also add pre_render here;
-            integrators = resources.memory.create<IntegratorList>(integrators);
-            integrators->intersect = intersect;
-            integrators->integrator = intersect->integrator;
-        }
-    }
+    // TODO: also add pre_render here;
 
-    Transmittance transmittance(intersects, integrators);
-    for(const IntegratorList * integrator = integrators; integrator; integrator = integrator->next)
-        color += integrator->integrator->integrate(integrator->intersect, transmittance, resources);
+    Transmittance transmittance(intersects);
+    for(uint i = 0; i < intersects->size(); i++)
+        if(intersects->get(i)->integrator)
+            color += intersects->get(i)->integrator->integrate(intersects->get(i), transmittance, resources);
 
     return color;
 }
 
 Transmittance Integrator::shadow(const IntersectList * intersects, Resources &resources)
 {
-    IntegratorList * integrators = nullptr;
-    for(const Intersect * intersect = intersects->get(0); intersect; intersect = intersect->next)
-    {
-        if(intersect->integrator)
-        {
-            // TODO: also add pre_render here;
-            integrators = resources.memory.create<IntegratorList>(integrators);
-            integrators->intersect = intersect;
-            integrators->integrator = intersect->integrator;
-        }
-    }
+    // TODO: also add pre_render here;
 
-    return Transmittance(intersects, integrators);   
+    return Transmittance(intersects);
 }

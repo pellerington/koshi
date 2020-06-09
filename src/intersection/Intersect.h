@@ -4,8 +4,9 @@
 #include <vector>
 #include <base/Object.h>
 #include <Util/Resources.h>
+#include <Util/Array.h>
 #include <intersection/Ray.h>
-#include <geometry/GeometrySurface.h>
+#include <geometry/Surface.h>
 class Geometry;
 class Integrator;
 
@@ -26,100 +27,77 @@ struct PathData
 
 class IntersectList;
 
-// Intersect should be an array of hits
-// Intersect should hold core details like Ray ect.
-// Hits should store the actualy surface/geometry of all hits
-// Use the [] operator to get a single hit.
-// Maybe call them Intersect and IntersectList? Or do something clever where Intersect[i] returns an intersect where only i's things are acceible?
 struct Intersect
 {
     Intersect(const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), t(0.f), t_len(0.f), interior(false), geometry(nullptr), geometry_data(nullptr), integrator(nullptr), path(path), next(nullptr)
+    : ray(ray), t(0.f), t_len(0.f), interior(false), geometry(nullptr), geometry_data(nullptr), integrator(nullptr), path(path)
     {}
 
     const Ray ray;
     float t, t_len;
     bool interior;
 
-    // Vec3f opacity;
-
     Geometry * geometry;
     GeometryData * geometry_data;
 
     Integrator * integrator;
 
-    // TODO: Cleanup these.
+    // TODO: Cleanup this.
     const PathData * path;
-    Intersect * next;
 };
 
 class IntersectList
 {
 public:
-    IntersectList(const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), intersect0(nullptr), num_intersects(0), path(path)
+    IntersectList(Resources& resources, const Ray& ray, const PathData * path = nullptr)
+    : ray(ray), intersects(resources.memory), path(path)
     {}
 
     const Ray ray;
 
-    inline size_t size() const { return num_intersects; }
-    inline bool empty() const { return !num_intersects; }
-    inline bool hit() const { return num_intersects > 0; }
+    inline size_t size() const { return intersects.size(); }
+    inline bool empty() const { return !intersects.size(); }
+    inline bool hit() const { return intersects.size() > 0; }
 
-    inline Intersect * get(const size_t& index) 
-    { 
-        Intersect * intersect = intersect0;
-        for(uint i = 0; i < index; i++)
-            intersect = intersect->next;
-        return intersect;
-    }
-    inline const Intersect * get(const size_t& index) const 
-    { 
-        Intersect * intersect = intersect0;
-        for(uint i = 0; i < index; i++)
-            intersect = intersect->next;
-        return intersect;
-    }
+    inline Intersect * get(const uint& i) { return intersects[i]; }
+    inline const Intersect * get(const uint& i) const { return intersects[i]; }
 
     inline Intersect * push(Resources& resources) 
     {
-        num_intersects++;
-        Intersect * intersect1 = intersect0;
-        intersect0 = resources.memory.create<Intersect>(ray, path);
-        intersect0->next = intersect1;
-        return intersect0;
+        Intersect * intersect = resources.memory->create<Intersect>(ray, path);
+        intersects.push(intersect);
+        return intersect;
     }
 
     inline void pop() 
     {
-        if(!num_intersects) return;
-        intersect0 = intersect0->next;
-        num_intersects--;
+        if(!intersects.size()) return;
+        intersects.resize(intersects.size() - 1);
     }
 
     inline void finalize(const float& tmax)
     {
-        Intersect ** intersect = &intersect0;
-        while(*intersect)
+        uint curr_size = intersects.size();
+        for(uint i = 0; i < curr_size;)
         {
-            if((*intersect)->t > tmax)
+            if(intersects[i]->t > tmax)
             {
-                *intersect = (*intersect)->next;
-                num_intersects--;
+                curr_size--;
+                if(curr_size) intersects[i] = intersects[curr_size];
+                intersects.resize(curr_size);
             }
             else
             {
-                if((*intersect)->t + (*intersect)->t_len > tmax)
-                    (*intersect)->t_len = tmax - (*intersect)->t;
-                intersect = &((*intersect)->next);
+                if(intersects[i]->t + intersects[i]->t_len > tmax)
+                    intersects[i]->t_len = tmax - intersects[i]->t;
+                i++;
             }
         }
     }
 
 
 private:
-    Intersect * intersect0;
-    uint num_intersects;
+    Array<Intersect*> intersects;
     const PathData * path;
 };
 

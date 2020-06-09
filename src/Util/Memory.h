@@ -50,6 +50,36 @@ public:
         return new(pages[curr_page].memory_address + object_address) T(std::forward<Args>(args)...);
     }
 
+    template <class T>
+    T * create_array(const uint& length)
+    {
+        uint size = 2 * ((sizeof(T[length]) + 15) & (~15));
+        uint object_address = curr_memory;
+        curr_memory = object_address + size;
+
+        if(curr_memory >= pages[curr_page].max_memory)
+        {
+            curr_page++;
+            if(curr_page >= pages.size())
+            {
+                pages.emplace_back();
+                uint page_size = std::max(MIN_PAGE_SIZE, size);
+                pages[curr_page].memory_address = (uint8_t*)malloc(page_size);
+                pages[curr_page].max_memory = page_size;
+            }
+            else if(size > pages[curr_page].max_memory)
+            {
+                free(pages[curr_page].memory_address);
+                pages[curr_page].memory_address = (uint8_t*)malloc(size);
+                pages[curr_page].max_memory = size;
+            }
+            object_address = 0;
+            curr_memory = size;
+        }
+        
+        return new(pages[curr_page].memory_address + object_address) T[length];
+    }
+
     void clear() { curr_page = 0; curr_memory = 0; }
 
 private:

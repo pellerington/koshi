@@ -2,13 +2,13 @@
 
 #include <string>
 #include <unordered_map>
-class Scene;
+class Resources;
 
 class Object
 {
 public:
 
-    virtual void pre_render(Scene * scene) {}
+    virtual void pre_render(Resources& resources) {}
 
     void set_attribute(const std::string &attribute_name, Object * object)
     {

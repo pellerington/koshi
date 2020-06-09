@@ -1,5 +1,5 @@
 #include <Math/Random.h>
 
-Vec2f ** RandomNumberGen2D::maps = nullptr;
-uint RandomNumberGen2D::num_maps = 0;
-uint RandomNumberGen2D::num_points = 0;
+Vec2f ** Random2D::maps = nullptr;
+uint Random2D::num_maps = 0;
+uint Random2D::num_points = 0;

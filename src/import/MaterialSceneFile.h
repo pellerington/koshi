@@ -1,11 +1,12 @@
 #pragma once
 
-#include "import/SceneFile.h"
+#include <import/SceneFile.h>
 
-#include "materials/MaterialLambert.h"
-#include "materials/MaterialGGXReflect.h"
-#include "materials/MaterialGGXRefract.h"
-#include "materials/MaterialDielectric.h"
+#include <material/MaterialLambert.h>
+#include <material/MaterialGGXReflect.h>
+#include <material/MaterialGGXRefract.h>
+#include <material/MaterialDielectric.h>
+#include <material/MaterialVolume.h>
 
 struct MaterialSceneFile
 {
@@ -53,6 +54,22 @@ struct MaterialSceneFile
         material_dielectric.reserved_attributes.push_back("ior");
         material_dielectric.create_object_cb = create_material_dielectric;
         types.add(material_dielectric);
+
+        // Material Volume
+        Type material_volume("material_volume");
+        material_volume.reserved_attributes.push_back("density");
+        material_volume.reserved_attributes.push_back("density_texture");
+        material_volume.reserved_attributes.push_back("density_attribute");
+        material_volume.reserved_attributes.push_back("scatter");
+        material_volume.reserved_attributes.push_back("scatter_texture");
+        material_volume.reserved_attributes.push_back("scatter_attribute");
+        material_volume.reserved_attributes.push_back("emission");
+        material_volume.reserved_attributes.push_back("emission_texture");
+        material_volume.reserved_attributes.push_back("emission_attribute");
+        material_volume.reserved_attributes.push_back("anistropy");
+        material_volume.reserved_attributes.push_back("anistropy_texture");
+        material_volume.create_object_cb = create_material_volume;
+        types.add(material_volume);
     }
 
     static Object * create_material_lambert(AttributeAccessor& accessor, Object * parent)
@@ -110,6 +127,28 @@ struct MaterialSceneFile
             AttributeVec3f(refract_color_texture, refract_color),
             refract_color_depth,
             AttributeFloat(roughness_texture, roughness), ior
+        );
+    }
+
+    static Object * create_material_volume(AttributeAccessor& accessor, Object * parent)
+    {
+        const Vec3f density = accessor.get_vec3f("density");
+        Texture * density_texture = dynamic_cast<Texture*>(accessor.get_object("density_texture"));
+        const std::string density_attribute = accessor.get_string("density_attribute");
+        const Vec3f scatter = accessor.get_vec3f("scatter");
+        Texture * scatter_texture = dynamic_cast<Texture*>(accessor.get_object("scatter_texture"));
+        const std::string scatter_attribute = accessor.get_string("scatter_attribute");
+        const Vec3f emission = accessor.get_vec3f("emission");
+        Texture * emission_texture = dynamic_cast<Texture*>(accessor.get_object("emission_texture"));
+        const std::string emission_attribute = accessor.get_string("emission_attribute");
+        const float anistropy = accessor.get_float("anistropy");
+        Texture * anistropy_texture = dynamic_cast<Texture*>(accessor.get_object("anistropy_texture"));
+
+        return new MaterialVolume(
+            AttributeVec3f(density_texture, density), density_attribute,
+            AttributeVec3f(scatter_texture, scatter), scatter_attribute,
+            AttributeVec3f(emission_texture, emission), emission_attribute,
+            AttributeFloat(anistropy_texture, anistropy)
         );
     }
 };

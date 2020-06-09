@@ -1,14 +1,14 @@
 #pragma once
 
 #include <integrators/Integrator.h>
-#include <geometry/GeometryDistant.h>
+#include <geometry/SurfaceDistant.h>
 
 class DistantLightEvaluator : public Integrator
 {
 public:
     Vec3f integrate(const Intersect * intersect, Transmittance& transmittance, Resources &resources) const
     {
-        const GeometryDistant * distant = (const GeometryDistant*)intersect->geometry_data;
+        const SurfaceDistant * distant = (const SurfaceDistant*)intersect->geometry_data;
 
         // Add light contribution.
         Light * light = intersect->geometry->get_attribute<Light>("light");
@@ -17,7 +17,7 @@ public:
 
     virtual Vec3f shadow(const float& t, const Intersect * intersect) const
     {
-        // TODO: Treat geometry_surface and geometry_distant seperatly?
+        // TODO: Treat surface and distant seperatly?
         return VEC3F_ONES;
     }
 

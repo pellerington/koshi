@@ -1,7 +1,7 @@
 // #pragma once
 
 // #include <Math/Vec3f.h>
-// #include <materials/Material.h>
+// #include <material/Material.h>
 // #include <Math/RNG.h>
 // class Volume;
 

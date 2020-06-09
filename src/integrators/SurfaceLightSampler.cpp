@@ -2,9 +2,9 @@
 #include <base/Scene.h>
 #include <intersection/Intersector.h>
 
-void SurfaceLightSampler::pre_render(Scene * scene)
+void SurfaceLightSampler::pre_render(Resources& resources)
 {
-    for(auto object = scene->begin(); object != scene->end(); ++object)
+    for(auto object = resources.scene->begin(); object != resources.scene->end(); ++object)
     {
         Geometry * geometry = dynamic_cast<Geometry*>(object->second);
         if(geometry)
@@ -17,7 +17,7 @@ void SurfaceLightSampler::pre_render(Scene * scene)
 
 std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
     const MaterialInstance& material_instance,
-    const Intersect * intersect, const GeometrySurface * surface, 
+    const Intersect * intersect, const Surface * surface, 
     Interiors& interiors, Resources& resources) const
 {
     const PathData * prev_path = intersect->path;
@@ -43,7 +43,10 @@ std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
             next_path.prev_path = prev_path;
 
             Vec3f wo = (light_samples[i].position - surface->position).normalized();
-            Vec3f weight = material_instance.weight(wo, resources); 
+            Vec3f weight;
+            for(size_t i = 0; i < material_instance.size(); i++)
+                weight += material_instance[i]->weight(wo, resources);
+
             if(is_black(weight)) continue;
 
             const bool front = wo.dot(surface->normal) > 0;
@@ -71,13 +74,13 @@ std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
 
 float SurfaceLightSampler::evaluate(const SurfaceSample& sample, 
     const MaterialInstance& material_instance,
-    const Intersect * intersect, const GeometrySurface * surface, 
+    const Intersect * intersect, const Surface * surface, 
     Resources& resources) const
 {
     float pdf = 0.f;
     for(uint i = 0; i < sample.intersects->size(); i++)
-    for(const Intersect * light_intersect = sample.intersects->get(0); light_intersect; light_intersect = light_intersect->next)
     {
+        const Intersect * light_intersect = sample.intersects->get(i);
         auto light = lights.find(light_intersect->geometry);
         if(light == lights.end()) continue;
         pdf += light->second->evaluate_light(light_intersect, surface, resources);

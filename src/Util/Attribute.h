@@ -3,6 +3,8 @@
 #include <Textures/Texture.h>
 #include <Math/Types.h>
 
+// TODO: Turn this into a texture so it is more generable.
+
 class AttributeVec3f
 {
 public:
@@ -17,6 +19,9 @@ public:
             return value * texture->get_vec3f(u, v, w, resources);
         return value;
     }
+
+    inline bool null() const { return value.null() && !texture; }
+    inline bool constant() const { return !texture; }
 
 private:
     const Vec3f value;
@@ -37,6 +42,8 @@ public:
             return value * texture->get_float(u, v, w, resources);
         return value;
     }
+
+    inline bool null() const { return value == 0.f && !texture; } 
 
 private:
     const float value;

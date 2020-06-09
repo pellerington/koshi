@@ -1,8 +1,8 @@
-#include <materials/MaterialDielectric.h>
+#include <material/MaterialDielectric.h>
 
-#include <materials/MaterialGGXReflect.h>
-#include <materials/MaterialGGXRefract.h>
-#include <integrators/AbsorptionMedium.h>
+#include <material/MaterialGGXReflect.h>
+#include <material/MaterialGGXRefract.h>
+#include <integrators/AbsorbtionMedium.h>
 
 #include <Math/Helpers.h>
 #include <Util/Color.h>
@@ -21,30 +21,30 @@ MaterialDielectric::MaterialDielectric(const AttributeVec3f &reflective_color_at
 {
 }
 
-MaterialInstance MaterialDielectric::instance(const GeometrySurface * surface, Resources &resources)
+MaterialInstance MaterialDielectric::instance(const Surface * surface, Resources &resources)
 {
-    MaterialInstance instance;
+    MaterialInstance instance(resources.memory);
 
-    MaterialLobeGGXRefract * refract_lobe = resources.memory.create<MaterialLobeGGXRefract>();
+    MaterialLobeGGXRefract * refract_lobe = resources.memory->create<MaterialLobeGGXRefract>();
     refract_lobe->surface = surface;
-    refract_lobe->rng = resources.random_number_service.get_random_2D();
+    refract_lobe->rng = resources.random_service->get_random_2D();
     refract_lobe->ior_in = 1.f;  //surface->facing ? surface->curr_ior : ior;
     refract_lobe->ior_out = ior; //surface->facing ? ior : surface->prev_ior;
-    refract_lobe->color = refractive_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
-    refract_lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
+    refract_lobe->color = refractive_color_attribute.get_value(surface->u, surface->v, surface->w, resources);
+    refract_lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, surface->w, resources);
     refract_lobe->roughness = clamp(refract_lobe->roughness * refract_lobe->roughness, 0.01f, 0.99f);
     refract_lobe->roughness_sqr = refract_lobe->roughness * refract_lobe->roughness;
-    refract_lobe->fresnel = resources.memory.create<FresnelDielectric>(refract_lobe->ior_in, refract_lobe->ior_out);
+    refract_lobe->fresnel = resources.memory->create<FresnelDielectric>(refract_lobe->ior_in, refract_lobe->ior_out);
     if(refractive_color_depth > EPSILON_F)
     {
-        refract_lobe->interior = surface->facing ? resources.memory.create<AbsorbtionMedium>(refract_lobe->color, refractive_color_depth) : nullptr;
+        refract_lobe->interior = surface->facing ? resources.memory->create<AbsorbtionMedium>(refract_lobe->color, refractive_color_depth) : nullptr;
         refract_lobe->color = VEC3F_ONES;
     }
 
-    MaterialLobeGGXReflect * reflect_lobe = resources.memory.create<MaterialLobeGGXReflect>();
+    MaterialLobeGGXReflect * reflect_lobe = resources.memory->create<MaterialLobeGGXReflect>();
     reflect_lobe->surface = surface;
-    reflect_lobe->rng = resources.random_number_service.get_random_2D();
-    reflect_lobe->color = reflective_color_attribute.get_value(surface->u, surface->v, 0.f, resources);
+    reflect_lobe->rng = resources.random_service->get_random_2D();
+    reflect_lobe->color = reflective_color_attribute.get_value(surface->u, surface->v, surface->w, resources);
     reflect_lobe->roughness = refract_lobe->roughness;
     reflect_lobe->roughness_sqr = refract_lobe->roughness_sqr;
     reflect_lobe->fresnel = refract_lobe->fresnel;

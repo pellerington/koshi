@@ -18,36 +18,46 @@ Render::Render(Scene& scene, Settings& settings)
 {
     // TODO: Perform checks (eg. does the camera exist.)
 
-    scene.pre_render();
-
-    // TODO: this should be passed in as an argument to the Render
-    intersector = new EmbreeIntersector(&scene);
-
-    RandomNumberService random_number_service;
-    random_number_service.pre_render();
-
+    // Generate and seed our pixels.
+    RandomService random_service;
+    random_service.pre_render();
     std::mt19937 seed_generator;
-    pixels = (Pixel ***)malloc(resolution.x * sizeof(Pixel**));
+    pixels = (Pixel ***)malloc(resolution.x * sizeof(Pixel**)); // TODO: Move to file output?
     for(uint x = 0; x < resolution.x; x++)
     {
         pixels[x] = (Pixel **)malloc(resolution.y * sizeof(Pixel*));
         for(uint y = 0; y < resolution.y; y++)
-            pixels[x][y] = new Pixel(x, y, camera->get_pixel_samples(Vec2u(x, y)), seed_generator(), random_number_service.get_random_2D());
+            pixels[x][y] = new Pixel(x, y, camera->get_pixel_samples(Vec2u(x, y)), seed_generator(), random_service.get_random_2D());
     }
 }
 
 void Render::start_render()
 {
-    const auto start = std::chrono::system_clock::now();
+    RandomService random_service;
 
-    RandomNumberService random_number_service;
+    // Pre Render: Make multithreaded or on demand.
+    Resources resources;
+    resources.thread_id = 0;
+    resources.settings = &settings;
+    resources.scene = &scene;
+    resources.random_service = &random_service;
+
+    // TODO: pre_render on demand!
+    scene.pre_render(resources);
+
+    // TODO: this should be passed in as an argument to the Render
+    intersector = new EmbreeIntersector(&scene);
+
+    // Start Rendering
+
+    const auto start = std::chrono::system_clock::now();
 
     std::vector<Vec2i> work;
     work.reserve(resolution.x * resolution.y);
     for(size_t x = 0; x < resolution.x; x++)
         for(size_t y = 0; y < resolution.y; y++)
             work.push_back(Vec2i(x,y));
-    random_number_service.shuffle<Vec2i>(work);
+    random_service.shuffle<Vec2i>(work);
 
     std::thread workers[settings.num_threads];
     for(uint i = 0; i < settings.num_threads; i++)
@@ -67,6 +77,7 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
     resources.settings = &settings;
     resources.thread_id = id;
     resources.intersector = intersector;
+    resources.memory = new Memory;
 
     bool completed = false;
     while(!completed && !kill_signal)
@@ -78,9 +89,10 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
             if(pixels[x][y]->current_sample < pixels[x][y]->required_samples)
             {
                 Ray ray = camera->sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.rand());
-                resources.random_number_service = RandomNumberService(pixels[x][y]->seed());
+                RandomService random_service(pixels[x][y]->seed());
+                resources.random_service = &random_service;
 
-                PathData path; // CAMERA
+                PathData path; // CAMERA Path data.
                 path.depth = 0;
                 path.quality = 1.f;
                 path.prev_path = nullptr;
@@ -89,7 +101,7 @@ void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
                 pixels[x][y]->color += Integrator::shade(intersects, resources);
                 pixels[x][y]->current_sample++;
 
-                resources.memory.clear();
+                resources.memory->clear();
                 completed = false;
             }
         }

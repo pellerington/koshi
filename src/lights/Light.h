@@ -5,6 +5,7 @@
 #include <Util/Attribute.h>
 
 // TODO: Replace this with an "Evaluatable" attribute which is just name "light" ?
+// TODO: Include light in the material like we have done with Volumes!
 class Light : public Object
 {
 public:

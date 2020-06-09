@@ -9,12 +9,13 @@
 
 #include <Util/Attribute.h>
 #include <Util/Resources.h>
-#include <geometry/GeometrySurface.h>
+#include <Util/Array.h>
+#include <geometry/Surface.h>
 #include <intersection/Interiors.h>
 
 #define UNIFORM_SAMPLE false
 
-// TODO: Max lobes could be templatable.
+// TODO: Remove max lobes?
 #define MAX_LOBES 16
 
 class Integrator;
@@ -30,11 +31,14 @@ struct MaterialLobe
 {
     // TODO: Add a constructor which takes resources and surface. This way we can instansiate our stuff easier.
 
-    const GeometrySurface * surface;
-    RandomNumberGen2D rng;
+    const Surface * surface;
+    Random2D rng;
+
+    // TODO: Make these virtual functions?
     Vec3f color;
     float roughness;
 
+    // TODO: Make this a virtual function, so we can return an integrator/geometry data, AND save memory->
     Integrator * interior = nullptr;
 
     virtual bool sample(MaterialSample& sample, Resources& resources) const = 0;
@@ -50,26 +54,15 @@ struct MaterialLobe
     virtual ~MaterialLobe() = default;
 };
 
-class MaterialInstance
-{
-public:
-    inline void push(MaterialLobe * lobe) { lobes[num_lobes++] = lobe; }
-    inline size_t size() const { return num_lobes; }
-    inline const MaterialLobe * operator[](const size_t& i) const { return lobes[i]; }
-    inline Vec3f weight(const Vec3f& wo, Resources& resources) const
-    {
-        Vec3f weight;
-        for(size_t i = 0; i < num_lobes; i++)
-            weight += lobes[i]->weight(wo, resources);
-        return weight;
-    }
-private:
-    uint num_lobes = 0;
-    MaterialLobe * lobes[MAX_LOBES];
-};
+// TODO: Remove this typdef and rename everything as lobes instead of material_instance
+typedef Array<MaterialLobe*> MaterialInstance;
 
 class Material : public Object
 {
 public:
-    virtual MaterialInstance instance(const GeometrySurface * surface, Resources &resources) = 0;
+    virtual MaterialInstance instance(const Surface * surface, Resources &resources) = 0;
+
+    // inline virtual Vec3f emission() const { return VEC3_ZERO; }
+
+    // inline virtual Opacity???
 };

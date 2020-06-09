@@ -4,11 +4,12 @@
 #include <base/Object.h>
 
 #include <map>
+class Resources;
 
 class Scene
 {
 public:
-    void pre_render();
+    void pre_render(Resources& resources);
 
     bool add_object(const std::string& name, Object * object);
 

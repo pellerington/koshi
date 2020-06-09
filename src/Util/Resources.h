@@ -4,12 +4,17 @@
 #include <Math/Random.h>
 #include <base/Settings.h>
 class Intersector;
+class Scene;
 
 struct Resources
 {
+    // TODO: Maket this const
     uint thread_id;
+
     const Settings * settings;
+    Scene * scene;
     Intersector * intersector;
-    Memory memory;
-    RandomNumberService random_number_service;
+
+    RandomService * random_service;
+    Memory * memory;
 };

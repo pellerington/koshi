@@ -1,8 +1,8 @@
 #pragma once
 
-#include <materials/Material.h>
-#include <materials/Fresnel.h>
-#include <materials/GGX.h>
+#include <material/Material.h>
+#include <material/Fresnel.h>
+#include <material/GGX.h>
 
 struct MaterialLobeGGXReflect : public MaterialLobe
 {
@@ -20,7 +20,7 @@ class MaterialGGXReflect : public Material
 {
 public:
     MaterialGGXReflect(const AttributeVec3f &color_attribute, const AttributeFloat &roughness_attribute);
-    MaterialInstance instance(const GeometrySurface * surface, Resources &resources);
+    MaterialInstance instance(const Surface * surface, Resources &resources);
 
 private:
     const AttributeVec3f color_attribute;

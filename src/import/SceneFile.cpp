@@ -44,8 +44,6 @@ void SceneFile::Import(const std::string& filename, Scene& scene, /*Render*/Sett
         settings.sampling_quality = accessor.get_float("sampling_quality");
         settings.depth = accessor.get_uint("depth", 2);
         settings.max_depth = accessor.get_uint("max_depth", 32);
-        settings.sample_lights = accessor.get_bool("sample_lights", true);
-        settings.sample_material = accessor.get_bool("sample_material", true);
         scene_file.erase("settings");
     }
 

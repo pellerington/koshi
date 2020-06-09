@@ -11,12 +11,12 @@
 #define NUM_MAPS 2048
 #define NUM_POINTS 128
 
-class RandomNumberService;
+class RandomService;
 
-class RandomNumberGen2D
+class Random2D
 {
 public:
-    RandomNumberGen2D(const uint& seed = 0) : i(seed % num_maps)
+    Random2D(const uint& seed = 0) : i(seed % num_maps)
     {        
     }
 
@@ -37,26 +37,26 @@ private:
     static uint num_maps;
     static uint num_points;
 
-    friend RandomNumberService;
+    friend RandomService;
 };
 
-class RandomNumberService
+class RandomService
 {
 public:
-    RandomNumberService(const uint& seed = 0) : random_generator(seed)
+    RandomService(const uint& seed = 0) : random_generator(seed)
     {
     }
 
     void pre_render()
     {
-        RandomNumberGen2D::num_maps = NUM_MAPS;
-        RandomNumberGen2D::num_points = NUM_POINTS;
-        RandomNumberGen2D::maps = BlueNoiseGenerator::GenerateMaps2D(RandomNumberGen2D::num_points, RandomNumberGen2D::num_maps);
+        Random2D::num_maps = NUM_MAPS;
+        Random2D::num_points = NUM_POINTS;
+        Random2D::maps = BlueNoiseGenerator::GenerateMaps2D(Random2D::num_points, Random2D::num_maps);
     }
 
-    RandomNumberGen2D get_random_2D()
+    Random2D get_random_2D()
     {
-        return RandomNumberGen2D(random_generator());
+        return Random2D(random_generator());
     }
 
     template <class T>
@@ -68,4 +68,4 @@ private:
     std::mt19937 random_generator;
 };
 
-// class RandomNumberGenerator1D
+// class Random1D or Random<2> Random<1> ect.

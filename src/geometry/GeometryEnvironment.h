@@ -1,7 +1,7 @@
 #pragma once
 
 #include <geometry/Geometry.h>
-#include <geometry/GeometryDistant.h>
+#include <geometry/SurfaceDistant.h>
 #include <intersection/Opacity.h>
 #include <integrators/Integrator.h>
 #include <integrators/DistantLightEvaluator.h>
@@ -17,7 +17,7 @@ public:
         set_attribute("intersection_callbacks", intersection_cb);
     }
 
-    void pre_render(Scene * scene)
+    void pre_render(Resources& resources)
     {
         integrator = get_attribute<Integrator>("integrator");
         delete_integrator = false;
@@ -62,13 +62,12 @@ private:
         const float u = phi * INV_TWO_PI;
         const float v = theta * INV_PI;
 
-        GeometryDistant * geometry_distant = resources.memory.create<GeometryDistant>(u, v, intersect->ray.dir.normalized());
-        intersect->geometry_data = geometry_distant;
+        SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(u, v, intersect->ray.dir.normalized());
+        intersect->geometry_data = distant;
     
         Opacity * opacity = geometry->get_attribute<Opacity>("opacity");
-        if(opacity) geometry_distant->set_opacity(opacity->get_opacity(geometry_distant->u, geometry_distant->v, 0.f, intersect, resources));
+        if(opacity) distant->set_opacity(opacity->get_opacity(distant->u, distant->v, 0.f, intersect, resources));
 
-        // TODO: Replace this with a specific distant integrator.
         intersect->integrator = environment_geometry->integrator;
     }
 };

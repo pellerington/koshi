@@ -7,16 +7,16 @@
 class SurfaceLightSampler : public SurfaceSampler
 {
 public:
-    void pre_render(Scene * scene) override;
+    void pre_render(Resources& resources) override;
 
     std::vector<SurfaceSample> integrate_surface(
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const GeometrySurface * surface, 
+        const Intersect * intersect, const Surface * surface, 
         Interiors& interiors, Resources& resources) const;
 
     float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const GeometrySurface * surface, 
+        const Intersect * intersect, const Surface * surface, 
         Resources& resources) const;
 
 private:

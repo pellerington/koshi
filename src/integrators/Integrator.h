@@ -28,29 +28,23 @@ public:
     static Transmittance shadow(const IntersectList * intersects, Resources &resources);
 };
 
-// TODO: Maybe we don't need to store an integrator AND an intersect list.
-struct IntegratorList
-{
-    IntegratorList(IntegratorList * next = nullptr) : next(next) {}
-    const Intersect * intersect;
-    Integrator * integrator; // Remove me as this is already inside intersect.
-    //IntegratorData * data;
-    IntegratorList * next;
-};
-
 // TODO: Rename Transmittance to something else + find better way to store integrators data.
 class Transmittance
 {
 public:
-    Transmittance(const IntersectList * intersects, IntegratorList * integrators) 
-    : intersects(intersects), integrators(integrators) {}
+    Transmittance(const IntersectList * intersects) 
+    : intersects(intersects) 
+    {}
 
     Vec3f shadow(const float& t)
     {
         Vec3f opacity = VEC3F_ONES;
-        for(IntegratorList * integrator = integrators; integrator; integrator = integrator->next)
-            if(t > integrator->intersect->t)
-                opacity *= integrator->integrator->shadow(t, integrator->intersect); //1.f - ((1.f - integrator->integrator->shadow(t, integrator->intersect)) * integrator->intersect->opacity);
+        for(uint i = 0; i < intersects->size(); i++)
+        {
+            const Intersect * intersect = intersects->get(i);
+            if(intersect->integrator && t > intersect->t)
+                opacity *= intersect->integrator->shadow(t, intersect);
+        }
         return opacity;
     }
 
@@ -58,5 +52,4 @@ public:
 
 private:
     const IntersectList * intersects;
-    IntegratorList * integrators;
 };

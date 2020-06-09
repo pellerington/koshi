@@ -1,6 +1,6 @@
 #pragma once
 
-#include <materials/Material.h>
+#include <material/Material.h>
 
 template<bool FRONT>
 struct MaterialLobeLambert : public MaterialLobe
@@ -17,7 +17,7 @@ class MaterialLambert : public Material
 {
 public:
     MaterialLambert(const AttributeVec3f &color_attr);
-    MaterialInstance instance(const GeometrySurface * surface, Resources &resources);
+    MaterialInstance instance(const Surface * surface, Resources &resources);
 private:
     const AttributeVec3f color_attr;
 };

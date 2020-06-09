@@ -6,12 +6,14 @@
 #include <geometry/GeometryBox.h>
 #include <geometry/GeometrySphere.h>
 #include <geometry/GeometryArea.h>
+#include <geometry/GeometryVolume.h>
 
 // TODO: Add defaults so we can add these in seperatly.
 #include <embree/EmbreeGeometryMesh.h>
 #include <embree/EmbreeGeometryBox.h>
 #include <embree/EmbreeGeometrySphere.h>
 #include <embree/EmbreeGeometryArea.h>
+#include <embree/EmbreeGeometryVolume.h>
 
 #include <intersection/Opacity.h>
 
@@ -58,6 +60,12 @@ struct GeometrySceneFile
         set_geometry_type(geometry_area);
         geometry_area.create_object_cb = create_geometry_area;
         types.add(geometry_area);
+
+        // Geometry Volume
+        Type geometry_volume("geometry_volume");
+        set_geometry_type(geometry_volume);
+        geometry_volume.create_object_cb = create_geometry_volume;
+        types.add(geometry_volume);
     }
 
     static Transform3f get_transform(AttributeAccessor& accessor)
@@ -150,6 +158,20 @@ struct GeometrySceneFile
         get_opacity(accessor, geometry);
 
         EmbreeGeometryArea * embree = new EmbreeGeometryArea(geometry);
+        geometry->set_attribute("embree_geometry", embree);
+        accessor.add_object("embree_geometry", embree);
+
+        return geometry;
+    }
+
+    static Object * create_geometry_volume(AttributeAccessor& accessor, Object * parent)
+    {
+        Transform3f transform = get_transform(accessor);
+        GeometryVolume * geometry = new GeometryVolume(transform);
+
+        // get_opacity(accessor, geometry);
+
+        EmbreeGeometryVolume * embree = new EmbreeGeometryVolume(geometry);
         geometry->set_attribute("embree_geometry", embree);
         accessor.add_object("embree_geometry", embree);
 

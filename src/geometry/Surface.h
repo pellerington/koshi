@@ -6,10 +6,10 @@
 #include <Math/Transform3f.h>
 #include <geometry/GeometryData.h>
 
-struct GeometrySurface : public GeometryData
+struct Surface : public GeometryData
 {
-    GeometrySurface(const Vec3f& position, const Vec3f& normal, const float& u, const float& v, const Vec3f& wi = VEC3F_ZERO)
-    : opacity(VEC3F_ONES), position(position), normal(normal), u(u), v(v), wi(wi)
+    Surface(const Vec3f& position, const Vec3f& normal, const float& u, const float& v, const float& w, const Vec3f& wi = VEC3F_ZERO)
+    : opacity(VEC3F_ONES), position(position), normal(normal), u(u), v(v), w(w), wi(wi)
     {
         front_position = position + normal *  RAY_OFFSET;
         back_position  = position + normal * -RAY_OFFSET;
@@ -29,8 +29,11 @@ struct GeometrySurface : public GeometryData
     Transform3f transform;
     bool facing;
 
-    float u, v;
+    float u, v, w;
 
     Vec3f wi;
     float n_dot_wi;
+
+    //TODO: Add this in, so we can override it.
+    // Material * material;
 };

@@ -1,32 +1,32 @@
-#include <materials/MaterialGGXRefract.h>
+#include <material/MaterialGGXRefract.h>
 
 #include <Math/Helpers.h>
 #include <Util/Color.h>
 #include <cmath>
 #include <iostream>
-#include <integrators/AbsorptionMedium.h>
+#include <integrators/AbsorbtionMedium.h>
 
 MaterialGGXRefract::MaterialGGXRefract(const AttributeVec3f& color_attribute, const AttributeFloat& roughness_attribute, const float& ior, const float& color_depth)
 : color_attribute(color_attribute), color_depth(color_depth), roughness_attribute(roughness_attribute), ior(ior)
 {
 }
 
-MaterialInstance MaterialGGXRefract::instance(const GeometrySurface * surface, Resources& resources)
+MaterialInstance MaterialGGXRefract::instance(const Surface * surface, Resources& resources)
 {
-    MaterialInstance instance;
-    MaterialLobeGGXRefract * lobe = resources.memory.create<MaterialLobeGGXRefract>();
+    MaterialInstance instance(resources.memory);
+    MaterialLobeGGXRefract * lobe = resources.memory->create<MaterialLobeGGXRefract>();
     lobe->surface = surface;
-    lobe->rng = resources.random_number_service.get_random_2D();
+    lobe->rng = resources.random_service->get_random_2D();
     lobe->ior_in = surface->facing ? 1.f : ior;
     lobe->ior_out = surface->facing ? ior : 1.f;
-    lobe->color = color_attribute.get_value(surface->u, surface->v, 0.f, resources);
-    lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
+    lobe->color = color_attribute.get_value(surface->u, surface->v, surface->w, resources);
+    lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, surface->w, resources);
     lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);
     lobe->roughness_sqr = lobe->roughness * lobe->roughness;
-    lobe->fresnel = resources.memory.create<FresnelDielectric>(lobe->ior_in, lobe->ior_out);
+    lobe->fresnel = resources.memory->create<FresnelDielectric>(lobe->ior_in, lobe->ior_out);
     if(color_depth > EPSILON_F)
     {
-        lobe->interior = surface->facing ? resources.memory.create<AbsorbtionMedium>(lobe->color, color_depth) : nullptr;
+        lobe->interior = surface->facing ? resources.memory->create<AbsorbtionMedium>(lobe->color, color_depth) : nullptr;
         lobe->color = VEC3F_ONES;
     }
     instance.push(lobe);

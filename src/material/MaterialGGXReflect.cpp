@@ -1,4 +1,4 @@
-#include <materials/MaterialGGXReflect.h>
+#include <material/MaterialGGXReflect.h>
 
 #include <Math/Helpers.h>
 #include <Util/Color.h>
@@ -10,17 +10,17 @@ MaterialGGXReflect::MaterialGGXReflect(const AttributeVec3f &color_attribute, co
 {
 }
 
-MaterialInstance MaterialGGXReflect::instance(const GeometrySurface * surface, Resources &resources)
+MaterialInstance MaterialGGXReflect::instance(const Surface * surface, Resources &resources)
 {
-    MaterialInstance instance;
-    MaterialLobeGGXReflect * lobe = resources.memory.create<MaterialLobeGGXReflect>();
+    MaterialInstance instance(resources.memory);
+    MaterialLobeGGXReflect * lobe = resources.memory->create<MaterialLobeGGXReflect>();
     lobe->surface = surface;
-    lobe->rng = resources.random_number_service.get_random_2D();
-    lobe->color = color_attribute.get_value(surface->u, surface->v, 0.f, resources);
-    lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, 0.f, resources);
+    lobe->rng = resources.random_service->get_random_2D();
+    lobe->color = color_attribute.get_value(surface->u, surface->v, surface->w, resources);
+    lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, surface->w, resources);
     lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);
     lobe->roughness_sqr = lobe->roughness * lobe->roughness;
-    lobe->fresnel = resources.memory.create<FresnelMetalic>(lobe->color);
+    lobe->fresnel = resources.memory->create<FresnelMetalic>(lobe->color);
     instance.push(lobe);
     return instance;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <integrators/Integrator.h>
-#include <materials/Material.h>
+#include <material/Material.h>
 #include <Util/Color.h>
 
 #define SAMPLES_PER_SA 64
@@ -22,7 +22,7 @@ public:
         Vec3f color = VEC3F_ZERO;
 
         // Check it is geometry surface.
-        const GeometrySurface * surface = dynamic_cast<const GeometrySurface*>(intersect->geometry_data);
+        const Surface * surface = dynamic_cast<const Surface*>(intersect->geometry_data);
         if(!surface) return color;
 
         // Add light contribution.
@@ -57,17 +57,17 @@ public:
     {
         // TODO: Calculate shadow and get surface in the pre_integrate step!
         // TODO: Have an optional "shadow" and opacity.
-        const GeometrySurface * surface = dynamic_cast<const GeometrySurface*>(intersect->geometry_data);
+        const Surface * surface = dynamic_cast<const Surface*>(intersect->geometry_data);
         return (t > intersect->t) ? ((surface) ? (VEC3F_ONES - surface->opacity) : VEC3F_ZERO) : VEC3F_ONES;
     }
 
     virtual std::vector<SurfaceSample> integrate_surface(
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const GeometrySurface * surface, 
+        const Intersect * intersect, const Surface * surface, 
         Interiors& interiors, Resources& resources) const = 0;
 
     virtual float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const GeometrySurface * surface, 
+        const Intersect * intersect, const Surface * surface, 
         Resources& resources) const = 0;
 };

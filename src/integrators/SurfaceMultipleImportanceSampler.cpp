@@ -1,7 +1,7 @@
 #include <integrators/SurfaceMultipleImportanceSampler.h>
 #include <base/ObjectGroup.h>
 
-void SurfaceMultipleImportanceSampler::pre_render(Scene * scene)
+void SurfaceMultipleImportanceSampler::pre_render(Resources& resources)
 {
     ObjectGroup * input_group = get_attribute<ObjectGroup>("integrators");
     if(!input_group) return;
@@ -11,14 +11,14 @@ void SurfaceMultipleImportanceSampler::pre_render(Scene * scene)
         SurfaceSampler * integrator = input_group->get<SurfaceSampler>(i);
         if(!integrator) continue;
 
-        integrator->pre_render(scene);
+        // integrator->pre_render(scene);
         integrators.push_back(integrator);
     }
 }
 
 std::vector<SurfaceSample> SurfaceMultipleImportanceSampler::integrate_surface(
     const MaterialInstance& material_instance, 
-    const Intersect * intersect, const GeometrySurface * surface,
+    const Intersect * intersect, const Surface * surface,
     Interiors& interiors, Resources& resources) const
 {
     std::vector<SurfaceSample> samples;
@@ -49,7 +49,7 @@ std::vector<SurfaceSample> SurfaceMultipleImportanceSampler::integrate_surface(
 
 float SurfaceMultipleImportanceSampler::evaluate(const SurfaceSample& sample, 
     const MaterialInstance& material_instance,
-    const Intersect * intersect, const GeometrySurface * surface, 
+    const Intersect * intersect, const Surface * surface, 
     Resources& resources) const
 {
     float pdf = 0.f;

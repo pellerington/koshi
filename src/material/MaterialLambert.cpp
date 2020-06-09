@@ -1,4 +1,4 @@
-#include <materials/MaterialLambert.h>
+#include <material/MaterialLambert.h>
 
 #include <Math/Helpers.h>
 #include <Util/Color.h>
@@ -12,13 +12,13 @@ MaterialLambert<FRONT>::MaterialLambert(const AttributeVec3f &color_attr)
 }
 
 template<bool FRONT>
-MaterialInstance MaterialLambert<FRONT>::instance(const GeometrySurface * surface, Resources &resources)
+MaterialInstance MaterialLambert<FRONT>::instance(const Surface * surface, Resources &resources)
 {
-    MaterialInstance instance;
-    MaterialLobeLambert<FRONT> * lobe = resources.memory.create<MaterialLobeLambert<FRONT>>();
+    MaterialInstance instance(resources.memory);
+    MaterialLobeLambert<FRONT> * lobe = resources.memory->create<MaterialLobeLambert<FRONT>>();
     lobe->surface = surface;
-    lobe->rng = resources.random_number_service.get_random_2D();
-    lobe->color = color_attr.get_value(surface->u, surface->v, 0.f, resources);
+    lobe->rng = resources.random_service->get_random_2D();
+    lobe->color = color_attr.get_value(surface->u, surface->v, surface->w, resources);
     instance.push(lobe);
     return instance;
 }
