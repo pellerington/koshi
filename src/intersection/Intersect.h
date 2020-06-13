@@ -30,11 +30,11 @@ class IntersectList;
 struct Intersect
 {
     Intersect(const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), t(0.f), t_len(0.f), interior(false), geometry(nullptr), geometry_data(nullptr), integrator(nullptr), path(path)
+    : ray(ray), t(0.f), tlen(0.f), interior(false), geometry(nullptr), geometry_data(nullptr), integrator(nullptr), path(path)
     {}
 
     const Ray ray;
-    float t, t_len;
+    float t, tlen;
     bool interior;
 
     Geometry * geometry;
@@ -88,8 +88,8 @@ public:
             }
             else
             {
-                if(intersects[i]->t + intersects[i]->t_len > tmax)
-                    intersects[i]->t_len = tmax - intersects[i]->t;
+                if(intersects[i]->t + intersects[i]->tlen > tmax)
+                    intersects[i]->tlen = tmax - intersects[i]->t;
                 i++;
             }
         }

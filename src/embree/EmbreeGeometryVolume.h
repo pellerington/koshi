@@ -44,9 +44,12 @@ public:
         Intersect * intersect = context->intersects->push(*context->resources);
 
         intersect->t = t0;
-        intersect->t_len = t1 - t0;
+        intersect->tlen = t1 - t0;
         intersect->geometry = geometry;
         Volume * volume = context->resources->memory->create<Volume>();
+
+        volume->uvw0 = (obj_ray.get_position(t0) - geometry->get_obj_bbox().min()) / geometry->get_obj_bbox().length();
+        volume->uvw1 = (obj_ray.get_position(t1) - geometry->get_obj_bbox().min()) / geometry->get_obj_bbox().length();
 
         for(auto bound = geometry->get_bound().begin(); bound != geometry->get_bound().end(); ++bound)
         {
@@ -67,13 +70,10 @@ public:
             }
         }
 
-        // volume->uvw0 = 
-        // volume->uvw1 =
-
-        // volume->material = 
-
         intersect->geometry_data = volume;
 
+        // TODO: Put these in pre-render.
+        volume->material = geometry->get_attribute<MaterialVolume>("material");
         intersect->integrator = geometry->get_attribute<Integrator>("integrator");
 
     }

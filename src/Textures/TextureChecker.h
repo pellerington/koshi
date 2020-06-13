@@ -8,7 +8,7 @@ public:
     TextureChecker(const Vec3f scale = VEC3F_ONES)
     : scale(scale) {}
 
-    const Vec3f get_vec3f(const float &u, const float &v, const float &w, Resources &resources)
+    Vec3f get_vec3f(const float &u, const float &v, const float &w, Resources &resources)
     {
         int i = 1;
         Vec3f uvw = scale * Vec3f(u, v, w);
@@ -19,10 +19,12 @@ public:
         return (i > 0) ? VEC3F_ONES : VEC3F_ZERO;
     }
 
-    const float get_float(const float &u, const float &v, const float &w, Resources &resources)
+    float get_float(const float &u, const float &v, const float &w, Resources &resources)
     {
         return get_vec3f(u, v, w, resources)[0];
     }
+
+    virtual Vec3f delta() const { return 1.f / (scale * Vec3f(2.f, 2.f, 2.f)); };
 
 private:
     const Vec3f scale;

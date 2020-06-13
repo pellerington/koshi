@@ -20,11 +20,29 @@ void GeometryVolume::pre_render(Resources& resources)
     {
         VolumeBound b;
         b.bbox = obj_bbox;
-        b.max_density = b.min_density = material->get_density(VEC3F_ZERO, nullptr, nullptr, resources);
+        b.max_density = b.min_density = material->get_density(VEC3F_ZERO, nullptr, resources);
         bounds.push_back(b);
     }
     else
     {
-        
+        Vec3f delta = material->get_density_delta();
+        if(!(delta > 0.f)) delta = 0.03125f; // Delta for procedurals.
+
+        VolumeBound b;
+        b.bbox = obj_bbox;
+        b.max_density = FLT_MIN;
+        b.min_density = FLT_MAX;
+
+        Vec3f uvw;
+        for(uvw.u = delta.u * 0.5f; uvw.u < 1.f; uvw.u += delta.u)
+        for(uvw.v = delta.v * 0.5f; uvw.v < 1.f; uvw.v += delta.v)
+        for(uvw.z = delta.w * 0.5f; uvw.w < 1.f; uvw.w += delta.w)
+        {
+            const Vec3f density = material->get_density(uvw, nullptr, resources);
+            b.max_density.max(density);
+            b.min_density.max(density);
+        }
+
+        bounds.push_back(b);
     }
 }

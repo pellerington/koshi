@@ -37,7 +37,7 @@ public:
 
         if(is_saturated(color) || intersect->path->depth > resources.settings->max_depth || intersect->path->quality < min_quality || !material)
         {
-            return color * transmittance.shadow(intersect->t) * surface->opacity;
+            return color * transmittance.shadow(intersect->t, resources) * surface->opacity;
         }
 
         MaterialInstance material_instance = material->instance(surface, resources);
@@ -50,10 +50,10 @@ public:
             color += scatter[i].li * scatter[i].weight / scatter[i].pdf;
         }
 
-        return color * transmittance.shadow(intersect->t) * surface->opacity;
+        return color * transmittance.shadow(intersect->t, resources) * surface->opacity;
     }
 
-    virtual Vec3f shadow(const float& t, const Intersect * intersect) const
+    virtual Vec3f shadow(const float& t, const Intersect * intersect, Resources &resources) const
     {
         // TODO: Calculate shadow and get surface in the pre_integrate step!
         // TODO: Have an optional "shadow" and opacity.

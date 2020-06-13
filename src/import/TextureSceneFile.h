@@ -5,6 +5,7 @@
 #include <Textures/TextureImage.h>
 #include <Textures/TextureChecker.h>
 #include <Textures/TextureGradient.h>
+#include <Textures/TextureOpenVDB.h>
 
 struct TextureSceneFile
 {
@@ -30,6 +31,13 @@ struct TextureSceneFile
         texture_gradient.reserved_attributes.push_back("axis");
         texture_gradient.create_object_cb = create_texture_gradient;
         types.add(texture_gradient);
+
+        // Texture Openvdb
+        Type texture_openvdb("texture_openvdb");
+        texture_openvdb.reserved_attributes.push_back("filename");
+        texture_openvdb.reserved_attributes.push_back("gridname");
+        texture_openvdb.create_object_cb = create_texture_openvdb;
+        types.add(texture_openvdb);
     }
 
     static Object * create_texture_image(AttributeAccessor& accessor, Object * parent)
@@ -53,14 +61,11 @@ struct TextureSceneFile
         return new TextureGradient(min, max, axis);
     }
 
+    static Object * create_texture_openvdb(AttributeAccessor& accessor, Object * parent)
+    {
+        const std::string filename = accessor.get_string("filename");
+        const std::string gridname = accessor.get_string("gridname");
+        return new TexutreOpenVDB(filename, gridname);
+    }
+
 };
-
-    //                 if((*it)["type"] == "openvdb")
-    //                 {
-    //                     const std::string filename = (*it)["filename"];
-    //                     const std::string gridname = (*it)["gridname"];
-
-    //                     Texture * texture = new OpenVDB(filename, gridname, settings.num_threads);
-    //                     scene.add_object(texture);
-    //                     textures[(*it)["name"]] = texture;
-    //                 }

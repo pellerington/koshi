@@ -16,11 +16,11 @@ public:
     }
 
     // Given a point on the intersect t, how much shadowing should be applied.
-    virtual Vec3f shadow(const float& t, const Intersect * intersect) const
+    virtual Vec3f shadow(const float& t, const Intersect * intersect, Resources &resources) const
     {
         if(t < intersect->t)
             return VEC3F_ONES;
-        const float length = std::min(t - intersect->t, intersect->t_len);
+        const float length = std::min(t - intersect->t, intersect->tlen);
         return Vec3f::exp(-length * density);
     }
 

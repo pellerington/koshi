@@ -48,7 +48,7 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
     // Push intersect data
     Intersect * intersect = context->intersects->push(*context->resources);
     intersect->t = RTCRayN_tfar(args->ray, args->N, 0);
-    intersect->t_len = 0;
+    intersect->tlen = 0;
     intersect->geometry = geometry;
     Surface * surface = context->resources->memory->create<Surface>(
         ray.get_position(intersect->t),
@@ -71,8 +71,8 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
         for(uint i = 0; i < context->intersects->size(); i++)
         {
             Intersect * intersect = context->intersects->get(i);
-            if(intersect->geometry == geometry && intersect->t_len > 0.f)
-                intersect->t_len = RTCRayN_tfar(args->ray, args->N, 0) - intersect->t;
+            if(intersect->geometry == geometry && intersect->tlen > 0.f)
+                intersect->tlen = RTCRayN_tfar(args->ray, args->N, 0) - intersect->t;
         }
 
     // Is this hit solid?

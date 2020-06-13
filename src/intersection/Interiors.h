@@ -41,9 +41,9 @@ public:
             const Intersect * prev_intersect = intersects->get(i);
 
             if(prev_intersect->interior 
-            && prev_intersect->t_len > 0.f
+            && prev_intersect->tlen > 0.f
             && prev_intersect->t <= interiors->t 
-            && interiors->t <= prev_intersect->t + prev_intersect->t_len)
+            && interiors->t <= prev_intersect->t + prev_intersect->tlen)
             {
                 if(interiors->change == POP && prev_intersect->geometry == interiors->geometry)
                     continue;
@@ -54,7 +54,7 @@ public:
                 intersect->geometry_data = prev_intersect->geometry_data;
                 intersect->integrator = prev_intersect->integrator;
                 intersect->t = 0.f;
-                intersect->t_len = FLT_MAX;
+                intersect->tlen = FLT_MAX;
                 intersect->interior = true;
             }
         }
@@ -65,7 +65,7 @@ public:
             intersect->geometry = interiors->geometry;
             intersect->integrator = interiors->integrator;
             intersect->t = 0.f;
-            intersect->t_len = FLT_MAX;
+            intersect->tlen = FLT_MAX;
             intersect->interior = true;
         }
     }

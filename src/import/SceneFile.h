@@ -148,27 +148,3 @@ private:
     Scene& scene;
     SceneFile * scene_file;
 };
-
-    //     // if(scene_file["volumes"].is_array())
-    //     // {
-    //     //     for (auto it = scene_file["volumes"].begin(); it != scene_file["volumes"].end(); ++it)
-    //     //     {
-    //     //         if((*it)["type"].is_string() && (*it)["name"].is_string())
-    //     //         {
-    //     //             if((*it)["type"] == "volume")
-    //     //             {
-    //     //                 const float density = get_float(*it, "density");
-    //     //                 const Vec3f transparency = get_vec3f(*it, "transparency");
-    //     //                 const Vec3f density_gain = Vec3f::clamp(VEC3F_ONES-transparency, 0.f, 1.f)*density;
-    //     //                 Texture * density_texture = ((*it)["density_texture"].is_string()) ? textures[(*it)["density_texture"]] : nullptr;
-
-    //     //                 const float g = get_float(*it, "anistropy");
-    //     //                 const Vec3f scattering = get_vec3f(*it, "scattering");
-    //     //                 const Vec3f emission = get_vec3f(*it, "emission");
-
-    //     //                 std::shared_ptr<Volume> volume = new Volume(density_gain, density_texture, scattering, g, emission));
-    //     //                 volumes[(*it)["name"]] = volume;
-    //     //             }
-    //     //         }
-    //     //     }
-    //     // }

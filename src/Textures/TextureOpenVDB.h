@@ -7,7 +7,7 @@
 class TexutreOpenVDB : public Texture
 {
 public:
-    TexutreOpenVDB(const std::string filename, const std::string gridname, const uint num_threads) : num_threads(num_threads)
+    TexutreOpenVDB(const std::string& filename, const std::string& gridname)
     {
         openvdb::initialize(); // call this static somehow?
 
@@ -16,11 +16,13 @@ public:
         file.open();
         openvdb::GridBase::Ptr base_grid;
         for (openvdb::io::File::NameIterator nameIter = file.beginName(); nameIter != file.endName(); ++nameIter)
+        {
             if(nameIter.gridName() == gridname)
             {
                 base_grid = file.readGrid(nameIter.gridName());
                 grid_ptr = openvdb::gridPtrCast<openvdb::FloatGrid>(base_grid);
             }
+        }
         file.close();
 
         openvdb::CoordBBox bbox = grid_ptr->evalActiveVoxelBoundingBox();
@@ -31,19 +33,35 @@ public:
         }
 
         openvdb::Coord coord = grid_ptr->evalActiveVoxelDim();
-        std::cout << coord  << " " << len[0] << " " << len[1] << " " << len[2] << "\n";
+        std::cout << "openvdb size: "  << " " << len[0] << " " << len[1] << " " << len[2] << "\n";
+
+        inv_len = 1.f / len;
 
     }
 
-    const float get_float(const float &u, const float &v, const float &w, Resources &resources)
+    void pre_render(Resources& resources)
     {
-        openvdb::tools::GridSampler<openvdb::FloatGrid, openvdb::tools::BoxSampler> sampler(*grid_ptr);
-        return sampler.isSample(openvdb::Vec3f(u * len[0] + min[0], v * len[1] + min[1], w * len[2] + min[2]));
+        num_threads = resources.settings->num_threads;
     }
+
+    float get_float(const float& u, const float& v, const float& w, Resources& resources)
+    {
+        // TODO: Use threads to do this fasterer.
+        openvdb::tools::GridSampler<openvdb::FloatGrid, openvdb::tools::BoxSampler> sampler(*grid_ptr);
+        return sampler.isSample(openvdb::Vec3f(u * len.x + min.x, v * len.y + min.y, w * len.z + min.z));
+    }
+
+    Vec3f get_vec3f(const float &u, const float &v, const float &w, Resources &resources)
+    {
+        return get_float(u, v, w, resources);
+    }
+
+    virtual Vec3f delta() const { return inv_len; }
 
 private:
-    const uint num_threads;
+    uint num_threads;
     openvdb::FloatGrid::Ptr grid_ptr;
-    float min[3];
-    float len[3];
+    Vec3f min;
+    Vec3f len;
+    Vec3f inv_len;
 };

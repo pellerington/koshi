@@ -12,10 +12,10 @@ public:
 
         // Add light contribution.
         Light * light = intersect->geometry->get_attribute<Light>("light");
-        return light->get_intensity(distant->u, distant->v, 0.f, intersect, resources) *  transmittance.shadow(intersect->t) * distant->opacity;
+        return light->get_intensity(distant->u, distant->v, 0.f, intersect, resources) *  transmittance.shadow(intersect->t, resources) * distant->opacity;
     }
 
-    virtual Vec3f shadow(const float& t, const Intersect * intersect) const
+    virtual Vec3f shadow(const float& t, const Intersect * intersect, Resources &resources) const
     {
         // TODO: Treat surface and distant seperatly?
         return VEC3F_ONES;

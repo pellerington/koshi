@@ -61,7 +61,7 @@ std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
                 Interiors::pre_intersect_callback, transmit ? &transmit_interiors : &interiors);
 
             Transmittance transmittance = Integrator::shadow(sample.intersects, resources);
-            Vec3f shadow = transmittance.shadow(ray.tmax);
+            Vec3f shadow = transmittance.shadow(ray.tmax, resources);
 
             sample.li = shadow * light_samples[i].intensity;
             sample.weight = weight * inv_num_samples;

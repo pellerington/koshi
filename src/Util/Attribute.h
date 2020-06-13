@@ -22,6 +22,7 @@ public:
 
     inline bool null() const { return value.null() && !texture; }
     inline bool constant() const { return !texture; }
+    inline Vec3f delta() const { return !texture ? VEC3F_ONES : texture->delta(); }
 
 private:
     const Vec3f value;
