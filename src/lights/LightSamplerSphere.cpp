@@ -3,14 +3,14 @@
 LightSamplerSphere::LightSamplerSphere(GeometrySphere * geometry)
 : geometry(geometry)
 {
-    // TODO: No Guarentee we will get this, do it in pre_render()
+    // TODO: No Guarentee we will get this, do it in pre_render() or combine into Light ??
     light = geometry->get_attribute<Light>("light");
 
     // Approximate area
     const Transform3f& obj_to_world = geometry->get_obj_to_world();
-    const float x_len = obj_to_world.multiply(Vec3f(1.f, 0.f, 0.f), false).length();
-    const float y_len = obj_to_world.multiply(Vec3f(0.f, 1.f, 0.f), false).length();
-    const float z_len = obj_to_world.multiply(Vec3f(0.f, 0.f, 1.f), false).length();
+    const float x_len = obj_to_world.multiply(Vec3f(SPHERE_RADIUS, 0.f, 0.f), false).length();
+    const float y_len = obj_to_world.multiply(Vec3f(0.f, SPHERE_RADIUS, 0.f), false).length();
+    const float z_len = obj_to_world.multiply(Vec3f(0.f, 0.f, SPHERE_RADIUS), false).length();
     const float p = 8.f / 5.f;
     area = FOUR_PI * pow((pow(x_len*y_len, p) + pow(x_len*z_len, p) + pow(y_len*z_len, p)) / 3.f, 1.f / p);
 }

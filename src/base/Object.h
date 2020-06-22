@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 class Resources;
+class Intersect;
 
 class Object
 {

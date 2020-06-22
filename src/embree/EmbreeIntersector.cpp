@@ -19,9 +19,26 @@ EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
             {
                 RTCGeometry geom = embree_geometry->get_rtc_geometry();
                 rtcSetGeometryIntersectFilterFunction(geom, &EmbreeIntersector::intersect_callback);
-                rtcCommitGeometry(geom);
-                rtcAttachGeometry(rtc_scene, geom);
                 rtcSetGeometryUserData(geom, geometry);
+                rtcCommitGeometry(geom);
+
+                // TODO: Store this so we can update / delete this as we update a progressive render.
+                RTCScene geom_scene = rtcNewScene(Embree::rtc_device);
+                rtcAttachGeometry(geom_scene, geom); 
+                rtcSetSceneBuildQuality(geom_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
+                rtcCommitScene(geom_scene);
+
+                // TODO: Do instanceing ourselves so we can load in and out.
+                RTCGeometry instance = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_INSTANCE);
+                // TODO: Transform needs to be cleaned up somewhere or will cause memory leak.
+                const float * transform = geometry->get_obj_to_world().get_array();
+                rtcSetGeometryTransform(instance, 0, RTC_FORMAT_FLOAT3X4_ROW_MAJOR, transform);
+                rtcSetGeometryInstancedScene(instance, geom_scene);
+                // TODO: Add a seperate object intersect filter?
+                //rtcSetGeometryIntersectFilterFunction(geom, &EmbreeIntersector::intersect_callback);
+                rtcSetGeometryUserData(instance, geometry); 
+                rtcCommitGeometry(instance);
+                rtcAttachGeometry(rtc_scene, instance);
             }
         }
     }
@@ -52,9 +69,7 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
     intersect->geometry = geometry;
     Surface * surface = context->resources->memory->create<Surface>(
         ray.get_position(intersect->t),
-        Vec3f(RTCHitN_Ng_x(args->hit, args->N, 0), 
-              RTCHitN_Ng_y(args->hit, args->N, 0), 
-              RTCHitN_Ng_z(args->hit, args->N, 0)).normalized(),
+        geometry->get_obj_to_world().multiply(Embree::normal(args), false).normalized(),
         RTCHitN_u(args->hit, args->N, 0),
         RTCHitN_v(args->hit, args->N, 0),
         0.f,

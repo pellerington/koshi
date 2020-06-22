@@ -2,11 +2,13 @@
 
 #include <material/MaterialVolume.h>
 
+const Box3f GeometryVolume::bbox = Box3f(Vec3f(-VOLUME_LENGTH*0.5f), Vec3f(VOLUME_LENGTH*0.5f));
+
 GeometryVolume::GeometryVolume(const Transform3f &obj_to_world)
 : Geometry(obj_to_world)
 {
-    obj_bbox = Box3f(Vec3f(-0.5), Vec3f(0.5));
-    bbox = obj_to_world * obj_bbox;
+    obj_bbox = bbox;
+    world_bbox = obj_to_world * obj_bbox;
 }
 
 void GeometryVolume::pre_render(Resources& resources)

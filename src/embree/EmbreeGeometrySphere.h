@@ -17,7 +17,7 @@ public:
     static void bounds_callback(const RTCBoundsFunctionArguments * args)
     {
         GeometrySphere * sphere = (GeometrySphere*)args->geometryUserPtr;
-        const Box3f& bbox = sphere->get_bbox();
+        const Box3f& bbox = sphere->get_obj_bbox();
         args->bounds_o->lower_x = bbox.min().x; args->bounds_o->upper_x = bbox.max().x;
         args->bounds_o->lower_y = bbox.min().y; args->bounds_o->upper_y = bbox.max().y;
         args->bounds_o->lower_z = bbox.min().z; args->bounds_o->upper_z = bbox.max().z;
@@ -25,115 +25,57 @@ public:
 
     static void intersect_callback(const RTCIntersectFunctionNArguments* args)
     {
-        GeometrySphere * sphere = (GeometrySphere*)args->geometryUserPtr;
-        EmbreeIntersectContext * context = (EmbreeIntersectContext*)args->context;
-        const Ray& ray = context->intersects->ray;
         args->valid[0] = 0;
 
-        // TODO: Change all this when we switch to an object intersection model.
-        const Transform3f& world_to_obj = sphere->get_world_to_obj();
-        const Vec3f& center = sphere->get_world_center();
-        const float& radius_sqr = sphere->get_world_radius_sqr();
+        RTCRayN * ray = RTCRayHitN_RayN(args->rayhit, 0);
+        const Vec3f pos(RTCRayN_org_x(ray, args->N, 0), RTCRayN_org_y(ray, args->N, 0), RTCRayN_org_z(ray, args->N, 0));
+        const Vec3f dir(RTCRayN_dir_x(ray, args->N, 0), RTCRayN_dir_y(ray, args->N, 0), RTCRayN_dir_z(ray, args->N, 0));
 
-        float t0, t1;
-        if(!sphere->is_elliptoid())
-        {
-            const Vec3f v = ray.pos - center;
-            const float a = ray.dir.dot(ray.dir);
-            const float b = 2.f * v.dot(ray.dir);
-            const float c = v.dot(v) - radius_sqr;
-            const float discriminant = b*b - 4.f*a*c;
-            if(discriminant < 0.f) return;
-            const float inv_a = 0.5f / a;
-            const float sqrt_d = sqrtf(discriminant);
-            t0 = (-b - sqrt_d) * inv_a;
-            t1 = (-b + sqrt_d) * inv_a;
-        }
-        else
-        {
-            const Vec3f ray_pos_object = world_to_obj * ray.pos;
-            Vec3f ray_dir_object = world_to_obj.multiply(ray.dir, false);
-            const float inv_obj_dir_len = 1.f / ray_dir_object.length();
-            ray_dir_object *= inv_obj_dir_len;
+        float t[2];
+        const float a = dir.dot(dir);
+        const float b = 2.f * pos.dot(dir);
+        const float c = pos.dot(pos) - SPHERE_RADIUS;
+        const float discriminant = b*b - 4.f*a*c;
+        if(discriminant < 0.f) return;
+        const float inv_a = 0.5f / a;
+        const float sqrt_d = sqrtf(discriminant);
+        t[0] = (-b - sqrt_d) * inv_a;
+        t[1] = (-b + sqrt_d) * inv_a;
 
-            const float a = ray_dir_object.dot(ray_dir_object);
-            const float b = 2.f * ray_pos_object.dot(ray_dir_object);
-            const float c = ray_pos_object.dot(ray_pos_object) - 1.f;
-            const float discriminant = b*b - 4.f*a*c;
-            if(discriminant < 0.f) return;
-            const float inv_a = 0.5f / a;
-            const float sqrt_d = sqrtf(discriminant);
-            t0 = inv_obj_dir_len * (-b - sqrt_d) * inv_a;
-            t1 = inv_obj_dir_len * (-b + sqrt_d) * inv_a;
-        }
+        float& tfar = RTCRayN_tfar(ray, args->N, 0);
+        const float tnear = 1e-5f + RTCRayN_tnear(ray, args->N, 0);
 
-        RTCRayN * rays = RTCRayHitN_RayN(args->rayhit, args->N);
-        float& ray_tfar = RTCRayN_tfar(rays, args->N, 0);
-        const float ray_tnear = 0.00001f + RTCRayN_tnear(rays, args->N, 0);
+        for(uint i = 0; i < 2; i++)
+            if(t[i] < tfar && t[i] > tnear)
+            {
+                const Vec3f normal = (pos + dir * t[i]).normalized();
+                args->valid[0] = -1;
+                const float tfar_prev = tfar;
+                tfar = t[i];
 
-        if(t0 < ray_tfar && t0 > ray_tnear)
-        {
-            const Vec3f sphere_position = ray.pos + ray.dir * t0;
-            const Vec3f normal = (sphere_position - center).normalized();
-            args->valid[0] = -1;
-            const float tfar_prev = ray_tfar;
-            ray_tfar = t0;
+                RTCHit potentialhit;
+                // potentialhit.u = 0.0f;
+                // potentialhit.v = 0.0f;
+                potentialhit.Ng_x = normal.x;
+                potentialhit.Ng_y = normal.y;
+                potentialhit.Ng_z = normal.z;
+                potentialhit.geomID = args->geomID;
 
-            RTCHit potentialhit;
-            // potentialhit.u = 0.0f;
-            // potentialhit.v = 0.0f;
-            potentialhit.Ng_x = normal.x;
-            potentialhit.Ng_y = normal.y;
-            potentialhit.Ng_z = normal.z;
-            potentialhit.geomID = args->geomID;
+                RTCFilterFunctionNArguments filter_args;
+                filter_args.valid = args->valid;
+                filter_args.geometryUserPtr = args->geometryUserPtr;
+                filter_args.context = args->context;
+                filter_args.ray = ray;
+                filter_args.hit = (RTCHitN*)&potentialhit;
+                filter_args.N = 1;
 
-            RTCFilterFunctionNArguments filter_args;
-            filter_args.valid = args->valid;
-            filter_args.geometryUserPtr = args->geometryUserPtr;
-            filter_args.context = args->context;
-            filter_args.ray = rays;
-            filter_args.hit = (RTCHitN*)&potentialhit;
-            filter_args.N = 1;
+                rtcFilterIntersection(args, &filter_args);
 
-            rtcFilterIntersection(args, &filter_args);
-
-            if(!args->valid[0])
-                ray_tfar = tfar_prev;
-            else
-                rtcCopyHitToHitN(RTCRayHitN_HitN(args->rayhit, args->N), &potentialhit, args->N, 0);
-        }
-
-        if(t1 < ray_tfar && t1 > ray_tnear)
-        {
-            const Vec3f sphere_position = ray.pos + ray.dir * t1;
-            const Vec3f normal = (sphere_position - center).normalized();
-            args->valid[0] = -1;
-            const float tfar_prev = ray_tfar;
-            ray_tfar = t1;
-
-            RTCHit potentialhit;
-            // potentialhit.u = 0.0f;
-            // potentialhit.v = 0.0f;
-            potentialhit.Ng_x = normal.x;
-            potentialhit.Ng_y = normal.y;
-            potentialhit.Ng_z = normal.z;
-            potentialhit.geomID = args->geomID;
-
-            RTCFilterFunctionNArguments filter_args;
-            filter_args.valid = args->valid;
-            filter_args.geometryUserPtr = args->geometryUserPtr;
-            filter_args.context = args->context;
-            filter_args.ray = rays;
-            filter_args.hit = (RTCHitN*)&potentialhit;
-            filter_args.N = 1;
-
-            rtcFilterIntersection(args, &filter_args);
-
-            if(!args->valid[0])
-                ray_tfar = tfar_prev;
-            else
-                rtcCopyHitToHitN(RTCRayHitN_HitN(args->rayhit, args->N), &potentialhit, args->N, 0);
-        }
+                if(!args->valid[0])
+                    tfar = tfar_prev;
+                else
+                    rtcCopyHitToHitN(RTCRayHitN_HitN(args->rayhit, args->N), &potentialhit, args->N, 0);
+            }
     }
 
 };

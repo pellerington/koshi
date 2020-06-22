@@ -17,8 +17,6 @@
 
 #include <intersection/Opacity.h>
 
-#include <import/MeshFile.h>
-
 struct GeometrySceneFile
 {
 
@@ -102,22 +100,17 @@ struct GeometrySceneFile
     static Object * create_geometry_mesh(AttributeAccessor& accessor, Object * parent)
     {
         Transform3f transform = get_transform(accessor);
-        GeometryMesh * geometry = nullptr;
 
         std::string filetype = accessor.get_string("filetype");
-        if(filetype == "obj")
-            geometry = MeshFile::ImportOBJ(accessor.get_string("filename"), transform);
+        std::string filename = accessor.get_string("filename");
 
+        GeometryMesh * geometry = new GeometryMesh(transform, filename);
 
-        // TODO: Move embree geometry somewhere else.
-        if(geometry) 
-        {
-            get_opacity(accessor, geometry);
+        get_opacity(accessor, geometry);
 
-            EmbreeGeometryMesh * embree = new EmbreeGeometryMesh(geometry);
-            geometry->set_attribute("embree_geometry", embree);
-            accessor.add_object("embree_geometry", embree);
-        }
+        EmbreeGeometryMesh * embree = new EmbreeGeometryMesh(geometry);
+        geometry->set_attribute("embree_geometry", embree);
+        accessor.add_object("embree_geometry", embree);
 
         return geometry;
     }

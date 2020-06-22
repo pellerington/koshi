@@ -2,6 +2,8 @@
 
 #include <geometry/Geometry.h>
 
+#define VOLUME_LENGTH 1.f
+
 class GeometryVolume : public Geometry
 {
 public:
@@ -19,8 +21,7 @@ public:
     inline const std::vector<VolumeBound>& get_bound() { return bounds; }
 
 private:
-
-    Box3f obj_bbox;
-
     std::vector<VolumeBound> bounds;
+
+    const static Box3f bbox;
 };
