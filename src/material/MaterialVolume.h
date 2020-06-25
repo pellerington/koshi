@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Math/Types.h>
+#include <texture/Texture.h>
 #include <material/Material.h>
 #include <geometry/Volume.h>
 
@@ -9,30 +10,32 @@ class MaterialVolume  : public Object
 public:
     MaterialVolume
     (
-        const AttributeVec3f& density,  const std::string& density_name,
-        const AttributeVec3f& scatter,  const std::string& scatter_name,
-        const AttributeVec3f& emission, const std::string& emission_name,
-        const AttributeFloat& anistropy
+        const Texture * density_texture,  const std::string& density_name,
+        const Texture * scatter_texture,  const std::string& scatter_name,
+        const Texture * emission_texture, const std::string& emission_name,
+        const Texture * anistropy_texture
     )
-    : density(density), scatter(scatter), emission(emission), 
-      density_name(density_name), scatter_name(scatter_name), emission_name(emission_name),
-      anistropy(anistropy)
+    : density_texture(density_texture), scatter_texture(scatter_texture), 
+      emission_texture(emission_texture), anistropy_texture(anistropy_texture),
+      density_name(density_name), scatter_name(scatter_name), emission_name(emission_name)
     {}
 
-    bool homogenous() const { return density_name == "" && density.constant(); }
-    bool has_scatter() const { return scatter_name == "" && scatter.null(); }
-    bool has_emission() const { return emission_name == "" && emission.null(); }
+    bool homogenous() const { return density_name == "" && density_texture->delta() == VEC3F_ONES; }
+    bool has_scatter() const { return scatter_name == "" && scatter_texture->null(); }
+    bool has_emission() const { return emission_name == "" && emission_texture->null(); }
 
-    Vec3f get_density_delta() { return density.delta() /*density_attribute.delta()*/; }
+    const Texture * get_density_texture() { return density_texture;}
 
     virtual Vec3f get_density(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
     virtual Vec3f get_scatter(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
     virtual Vec3f get_emission(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
 
-    virtual MaterialLobe * get_lobe(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
+    virtual MaterialInstance instance(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
 
 private:
-    const AttributeVec3f density, scatter, emission;
+    const Texture * density_texture;
+    const Texture * scatter_texture;
+    const Texture * emission_texture;
+    const Texture * anistropy_texture;
     const std::string density_name, scatter_name, emission_name;
-    const AttributeFloat anistropy;
 };

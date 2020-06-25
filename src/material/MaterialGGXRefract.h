@@ -22,12 +22,12 @@ struct MaterialLobeGGXRefract : public MaterialLobe
 class MaterialGGXRefract : public Material
 {
 public:
-    MaterialGGXRefract(const AttributeVec3f& color_attribute, const AttributeFloat& roughness_attribute, const float& ior, const float& color_depth = 0.f);
+    MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, const float& ior, const float& color_depth = 0.f);
     MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
 
 private:
-    const AttributeVec3f color_attribute;
+    const Texture * color_texture;
     const float color_depth;
-    const AttributeFloat roughness_attribute;
+    const Texture * roughness_texture;
     const float ior;
 };

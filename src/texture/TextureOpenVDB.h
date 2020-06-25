@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Textures/Texture.h>
+#include <texture/Texture.h>
 #include <openvdb/openvdb.h>
 #include <openvdb/tools/Interpolation.h>
 
@@ -44,19 +44,16 @@ public:
         num_threads = resources.settings->num_threads;
     }
 
-    float get_float(const float& u, const float& v, const float& w, Resources& resources)
+    Vec3f evaluate(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) const
     {
         // TODO: Use threads to do this fasterer.
         openvdb::tools::GridSampler<openvdb::FloatGrid, openvdb::tools::BoxSampler> sampler(*grid_ptr);
         return sampler.isSample(openvdb::Vec3f(u * len.x + min.x, v * len.y + min.y, w * len.z + min.z));
     }
 
-    Vec3f get_vec3f(const float &u, const float &v, const float &w, Resources &resources)
-    {
-        return get_float(u, v, w, resources);
-    }
+    Vec3f delta() const { return inv_len; }
 
-    virtual Vec3f delta() const { return inv_len; }
+    bool null() const { return !grid_ptr; }
 
 private:
     uint num_threads;

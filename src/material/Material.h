@@ -7,11 +7,11 @@
 #include <Math/Random.h>
 #include <base/Object.h>
 
-#include <Util/Attribute.h>
 #include <Util/Resources.h>
 #include <Util/Array.h>
 #include <geometry/Surface.h>
 #include <intersection/Interiors.h>
+#include <texture/Texture.h>
 
 #define UNIFORM_SAMPLE false
 

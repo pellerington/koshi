@@ -3,13 +3,13 @@
 #include <string>
 #include <OpenImageIO/texture.h>
 
-#include <Textures/Texture.h>
+#include <texture/Texture.h>
  
 // TODO: include more options such as MipMode and InterpMode
 class TextureImage : public Texture
 {
 public:
-    TextureImage(const std::string &filename, const bool smooth) : filename(filename)
+    TextureImage(const std::string& filename, const bool& smooth) : filename(filename)
     {
         texture_system = OIIO::TextureSystem::create();
         // texture_system->attribute("max_memory_MB", 1000.0f);
@@ -27,21 +27,24 @@ public:
         inv_resolution = 1.f / resolution;
     }
 
-    Vec3f get_vec3f(const float &u, const float &v, const float &w, Resources &resources)
+    Vec3f evaluate(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) const
     {
         float result[3];
         if(!texture_system->texture(filename, options, u, v, 0.f, 0.f, 0.f, 0.f, 3, result))
-            return Vec3f(0.0, 0.0, 0.0);
+            return Vec3f(0.f, 0.f, 0.f);
 
         return Vec3f(result[0], result[1], result[2]);
     }
 
-    virtual Vec3f delta() const { return inv_resolution; }
+    Vec3f delta() const { return inv_resolution; }
+
+    // TODO: Also include if we cannot read the file.
+    bool null() const { return (filename == ""); }
 
 private:
     OIIO::ustring filename;
     OIIO::TextureSystem * texture_system; // TODO: Have this be global
-    OIIO::TextureOpt options;
+    mutable OIIO::TextureOpt options;
 
     Vec3f resolution;
     Vec3f inv_resolution;

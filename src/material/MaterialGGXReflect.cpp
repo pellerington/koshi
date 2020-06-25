@@ -5,8 +5,8 @@
 #include <cmath>
 #include <iostream>
 
-MaterialGGXReflect::MaterialGGXReflect(const AttributeVec3f& color_attribute, const AttributeFloat& roughness_attribute)
-: color_attribute(color_attribute), roughness_attribute(roughness_attribute)
+MaterialGGXReflect::MaterialGGXReflect(const Texture * color_texture, const Texture * roughness_texture)
+: color_texture(color_texture), roughness_texture(roughness_texture)
 {
 }
 
@@ -22,8 +22,8 @@ MaterialInstance MaterialGGXReflect::instance(const Surface * surface, const Int
     lobe->normal = ((surface->facing) ? surface->normal : -surface->normal);
     lobe->transform = Transform3f::basis_transform(lobe->normal);
 
-    lobe->color = color_attribute.get_value(surface->u, surface->v, surface->w, resources);
-    lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, surface->w, resources);
+    lobe->color = color_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources);
+    lobe->roughness = roughness_texture->evaluate<float>(surface->u, surface->v, surface->w, intersect, resources);
     lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);
     lobe->roughness_sqr = lobe->roughness * lobe->roughness;
     lobe->fresnel = resources.memory->create<FresnelMetalic>(lobe->color);

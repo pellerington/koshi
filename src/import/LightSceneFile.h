@@ -59,7 +59,9 @@ struct LightSceneFile
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
-        Light * light = new Light(AttributeVec3f(intensity_texture, intensity));
+        TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
+        accessor.add_object("intensity_texture", intensity_multiply_texture);
+        Light * light = new Light(intensity_multiply_texture);
         accessor.add_object("light", light);
         environment->set_attribute("light", light);
 
@@ -75,7 +77,9 @@ struct LightSceneFile
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
-        Light * light = new Light(AttributeVec3f(intensity_texture, intensity));
+        TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
+        accessor.add_object("intensity_texture", intensity_multiply_texture);
+        Light * light = new Light(intensity_multiply_texture);
         accessor.add_object("light", light);
         geometry->set_attribute("light", light);
 
@@ -95,7 +99,9 @@ struct LightSceneFile
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
-        Light * light = new Light(AttributeVec3f(intensity_texture, intensity));
+        TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
+        accessor.add_object("intensity_texture", intensity_multiply_texture);
+        Light * light = new Light(intensity_multiply_texture);
         accessor.add_object("light", light);
         area_light->set_attribute("light", light);
 
@@ -119,7 +125,9 @@ struct LightSceneFile
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
-        Light * light = new Light(AttributeVec3f(intensity_texture, intensity));
+        TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
+        accessor.add_object("intensity_texture", intensity_multiply_texture);
+        Light * light = new Light(intensity_multiply_texture);
         accessor.add_object("light", light);
         sphere_light->set_attribute("light", light);
 

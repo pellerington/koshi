@@ -76,8 +76,9 @@ struct MaterialSceneFile
     {
         const Vec3f color = accessor.get_vec3f("color");
         Texture * color_texture = dynamic_cast<Texture*>(accessor.get_object("color_texture"));
-
-        return new MaterialLambert<true>(AttributeVec3f(color_texture, color));
+        TextureMultiply * color_multiply_texture = new TextureMultiply(color, color_texture);
+        accessor.add_object("color_texture", color_multiply_texture);
+        return new MaterialLambert<true>(color_multiply_texture);
     }
 
     //TODO : Combine lambert and back lambert
@@ -86,47 +87,60 @@ struct MaterialSceneFile
     {
         const Vec3f color = accessor.get_vec3f("color");
         Texture * color_texture = dynamic_cast<Texture*>(accessor.get_object("color_texture"));
+        TextureMultiply * color_multiply_texture = new TextureMultiply(color, color_texture);
+        accessor.add_object("color_texture", color_multiply_texture);
+
         const float roughness = accessor.get_float("roughness");
         Texture * roughness_texture = dynamic_cast<Texture*>(accessor.get_object("roughness_texture"));
+        TextureMultiply * roughness_multiply_texture = new TextureMultiply(roughness, roughness_texture);
+        accessor.add_object("roughness_texture", roughness_multiply_texture);
 
-        return new MaterialGGXReflect(
-            AttributeVec3f(color_texture, color),
-            AttributeFloat(roughness_texture, roughness)
-        );
+        return new MaterialGGXReflect(color_multiply_texture, roughness_multiply_texture);
     }
 
     static Object * create_material_ggx_refract(AttributeAccessor& accessor, Object * parent)
     {
         const Vec3f color = accessor.get_vec3f("color");
         Texture * color_texture = dynamic_cast<Texture*>(accessor.get_object("color_texture"));
+        TextureMultiply * color_multiply_texture = new TextureMultiply(color, color_texture);
+        accessor.add_object("color_texture", color_multiply_texture);
+
         const float color_depth = accessor.get_float("color_depth");
+
         const float roughness = accessor.get_float("roughness");
         Texture * roughness_texture = dynamic_cast<Texture*>(accessor.get_object("roughness_texture"));
+        TextureMultiply * roughness_multiply_texture = new TextureMultiply(roughness, roughness_texture);
+        accessor.add_object("roughness_texture", roughness_multiply_texture);
+
         const float ior = accessor.get_float("ior");
 
-        return new MaterialGGXRefract(
-            AttributeVec3f(color_texture, color),
-            AttributeFloat(roughness_texture, roughness), 
-            ior, color_depth
-        );
+        return new MaterialGGXRefract(color_multiply_texture, roughness_multiply_texture, ior, color_depth);
     }
 
     static Object * create_material_dielectric(AttributeAccessor& accessor, Object * parent)
     {
         const Vec3f reflect_color = accessor.get_vec3f("reflect_color");
         Texture * reflect_color_texture = dynamic_cast<Texture*>(accessor.get_object("reflect_color_texture"));
+        TextureMultiply * reflect_color_multiply_texture = new TextureMultiply(reflect_color, reflect_color_texture);
+        accessor.add_object("reflect_color_texture", reflect_color_multiply_texture);
+
         const Vec3f refract_color = accessor.get_vec3f("refract_color");
         Texture * refract_color_texture = dynamic_cast<Texture*>(accessor.get_object("refract_color_texture"));
+        TextureMultiply * refract_color_multiply_texture = new TextureMultiply(refract_color, refract_color_texture);
+        accessor.add_object("refract_color_texture", refract_color_multiply_texture);
+  
         const float refract_color_depth = accessor.get_float("refract_color_depth");
+        
         const float roughness = accessor.get_float("roughness");
         Texture * roughness_texture = dynamic_cast<Texture*>(accessor.get_object("roughness_texture"));
+        TextureMultiply * roughness_multiply_texture = new TextureMultiply(roughness, roughness_texture);
+        accessor.add_object("roughness_texture", roughness_multiply_texture);
+
         const float ior = accessor.get_float("ior");
 
         return new MaterialDielectric(
-            AttributeVec3f(reflect_color_texture, reflect_color),
-            AttributeVec3f(refract_color_texture, refract_color),
-            refract_color_depth,
-            AttributeFloat(roughness_texture, roughness), ior
+            reflect_color_multiply_texture, refract_color_multiply_texture,
+            refract_color_depth, roughness_multiply_texture, ior
         );
     }
 
@@ -134,21 +148,32 @@ struct MaterialSceneFile
     {
         const Vec3f density = accessor.get_vec3f("density");
         Texture * density_texture = dynamic_cast<Texture*>(accessor.get_object("density_texture"));
+        TextureMultiply * density_multiply_texture = new TextureMultiply(density, density_texture);
+        accessor.add_object("density_texture", density_multiply_texture);
         const std::string density_attribute = accessor.get_string("density_attribute");
+
         const Vec3f scatter = accessor.get_vec3f("scatter");
         Texture * scatter_texture = dynamic_cast<Texture*>(accessor.get_object("scatter_texture"));
+        TextureMultiply * scatter_multiply_texture = new TextureMultiply(scatter, scatter_texture);
+        accessor.add_object("scatter_texture", scatter_multiply_texture);
         const std::string scatter_attribute = accessor.get_string("scatter_attribute");
+
         const Vec3f emission = accessor.get_vec3f("emission");
         Texture * emission_texture = dynamic_cast<Texture*>(accessor.get_object("emission_texture"));
+        TextureMultiply * emission_multiply_texture = new TextureMultiply(emission, emission_texture);
+        accessor.add_object("emission_texture", emission_multiply_texture);
         const std::string emission_attribute = accessor.get_string("emission_attribute");
+
         const float anistropy = accessor.get_float("anistropy");
         Texture * anistropy_texture = dynamic_cast<Texture*>(accessor.get_object("anistropy_texture"));
+        TextureMultiply * anistropy_multiply_texture = new TextureMultiply(anistropy, anistropy_texture);
+        accessor.add_object("anistropy_texture", anistropy_multiply_texture);
 
         return new MaterialVolume(
-            AttributeVec3f(density_texture, density), density_attribute,
-            AttributeVec3f(scatter_texture, scatter), scatter_attribute,
-            AttributeVec3f(emission_texture, emission), emission_attribute,
-            AttributeFloat(anistropy_texture, anistropy)
+            density_multiply_texture, density_attribute,
+            scatter_multiply_texture, scatter_attribute,
+            emission_multiply_texture, emission_attribute,
+            anistropy_multiply_texture
         );
     }
 };

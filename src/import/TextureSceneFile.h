@@ -2,10 +2,10 @@
 
 #include <import/SceneFile.h>
 
-#include <Textures/TextureImage.h>
-#include <Textures/TextureChecker.h>
-#include <Textures/TextureGradient.h>
-#include <Textures/TextureOpenVDB.h>
+#include <texture/TextureImage.h>
+#include <texture/TextureChecker.h>
+#include <texture/TextureGradient.h>
+#include <texture/TextureOpenVDB.h>
 
 struct TextureSceneFile
 {

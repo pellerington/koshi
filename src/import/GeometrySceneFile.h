@@ -15,6 +15,8 @@
 #include <embree/EmbreeGeometryArea.h>
 #include <embree/EmbreeGeometryVolume.h>
 
+#include <texture/TextureMultiply.h>
+
 #include <intersection/Opacity.h>
 
 struct GeometrySceneFile
@@ -89,8 +91,10 @@ struct GeometrySceneFile
         const bool hide_camera = accessor.get_bool("hide_camera");
         if(opacity == 1.f && !opacity_texture && !hide_camera)
             return nullptr;
-            
-        Opacity * object = new Opacity(AttributeVec3f(opacity_texture, opacity), hide_camera);
+        
+        TextureMultiply * opacity_multiply_texture = new TextureMultiply(opacity, opacity_texture);
+        accessor.add_object("opacity_texture", opacity_multiply_texture);
+        Opacity * object = new Opacity(opacity_multiply_texture, hide_camera);
         accessor.add_object("opacity", object);
         geometry->set_attribute("opacity", object);
 

@@ -6,18 +6,18 @@
 class MaterialDielectric : public Material
 {
 public:
-    MaterialDielectric(const AttributeVec3f& reflective_color_attribute,
-                       const AttributeVec3f& refractive_color_attribute,
+    MaterialDielectric(const Texture * reflective_color_texture,
+                       const Texture * refractive_color_texture,
                        const float& refractive_color_depth, 
-                       const AttributeFloat& roughness_attribute,
+                       const Texture * roughness_texture,
                        const float& ior);
 
     MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
 
 private:
-    const AttributeVec3f reflective_color_attribute;
-    const AttributeVec3f refractive_color_attribute;
+    const Texture * reflective_color_texture;
+    const Texture * refractive_color_texture;
     const float refractive_color_depth;
-    const AttributeFloat roughness_attribute;
+    const Texture * roughness_texture;
     const float ior;
 };

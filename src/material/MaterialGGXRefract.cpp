@@ -6,8 +6,8 @@
 #include <iostream>
 #include <integrators/AbsorbtionMedium.h>
 
-MaterialGGXRefract::MaterialGGXRefract(const AttributeVec3f& color_attribute, const AttributeFloat& roughness_attribute, const float& ior, const float& color_depth)
-: color_attribute(color_attribute), color_depth(color_depth), roughness_attribute(roughness_attribute), ior(ior)
+MaterialGGXRefract::MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, const float& ior, const float& color_depth)
+: color_texture(color_texture), color_depth(color_depth), roughness_texture(roughness_texture), ior(ior)
 {
 }
 
@@ -27,8 +27,8 @@ MaterialInstance MaterialGGXRefract::instance(const Surface * surface, const Int
     lobe->rng = resources.random_service->get_random_2D();
     lobe->ior_in = surface->facing ? 1.f : ior;
     lobe->ior_out = surface->facing ? ior : 1.f;
-    lobe->color = color_attribute.get_value(surface->u, surface->v, surface->w, resources);
-    lobe->roughness = roughness_attribute.get_value(surface->u, surface->v, surface->w, resources);
+    lobe->color = color_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources);
+    lobe->roughness = roughness_texture->evaluate<float>(surface->u, surface->v, surface->w, intersect, resources);
     lobe->roughness = clamp(lobe->roughness * lobe->roughness, 0.01f, 0.99f);
     lobe->roughness_sqr = lobe->roughness * lobe->roughness;
     lobe->fresnel = resources.memory->create<FresnelDielectric>(lobe->ior_in, lobe->ior_out);

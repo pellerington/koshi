@@ -8,8 +8,8 @@
 #include <geometry/Geometry.h>
 
 template<bool REFLECT>
-MaterialLambert<REFLECT>::MaterialLambert(const AttributeVec3f& color_attr)
-: color_attr(color_attr)
+MaterialLambert<REFLECT>::MaterialLambert(const Texture * color_texture)
+: color_texture(color_texture)
 {
 }
 
@@ -29,7 +29,7 @@ MaterialInstance MaterialLambert<REFLECT>::instance(const Surface * surface, con
         lobe->normal = (intersect->geometry->get_obj_to_world() * lobe->normal).normalized();
     lobe->transform = Transform3f::basis_transform(lobe->normal);
 
-    lobe->color = color_attr.get_value(surface->u, surface->v, surface->w, resources);
+    lobe->color = color_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources);
     instance.push(lobe);
     return instance;
 }

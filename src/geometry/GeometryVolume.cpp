@@ -27,7 +27,7 @@ void GeometryVolume::pre_render(Resources& resources)
     }
     else
     {
-        Vec3f delta = material->get_density_delta();
+        Vec3f delta = material->get_density_texture()->delta();
         if(!(delta > 0.f)) delta = 0.03125f; // Delta for procedurals.
 
         VolumeBound b;
