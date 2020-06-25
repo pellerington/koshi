@@ -12,7 +12,7 @@ public:
                        const AttributeFloat& roughness_attribute,
                        const float& ior);
 
-    MaterialInstance instance(const Surface * surface, Resources& resources);
+    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
 
 private:
     const AttributeVec3f reflective_color_attribute;

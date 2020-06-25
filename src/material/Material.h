@@ -15,9 +15,6 @@
 
 #define UNIFORM_SAMPLE false
 
-// TODO: Remove max lobes?
-#define MAX_LOBES 16
-
 class Integrator;
 
 struct MaterialSample
@@ -29,29 +26,30 @@ struct MaterialSample
 
 struct MaterialLobe
 {
-    // TODO: Add a constructor which takes resources and surface. This way we can instansiate our stuff easier.
-
-    const Surface * surface;
     Random2D rng;
+
+    // TODO: Add a contructor for this stuff.
+    const Surface * surface;
+    Vec3f wi;
+    Vec3f normal;
+    Transform3f transform;
 
     // TODO: Make these virtual functions?
     Vec3f color;
-    float roughness;
+    float roughness;    
+
+    virtual bool sample(MaterialSample& sample, Resources& resources) const = 0;
+    virtual Vec3f weight(const Vec3f& wo, Resources& resources) const = 0;
+    virtual float pdf(const Vec3f& wo, Resources& resources) const = 0;
 
     // TODO: Make this a virtual function, so we can return an integrator/geometry data, AND save memory->
     Integrator * interior = nullptr;
 
-    virtual bool sample(MaterialSample& sample, Resources& resources) const = 0;
+    enum ScatterType { DIFFUSE, GLOSSY, SPECULAR };
+    virtual ScatterType get_scatter_type() const = 0;
 
-    virtual Vec3f weight(const Vec3f& wo, Resources& resources) const = 0;
-    virtual float pdf(const Vec3f& wo, Resources& resources) const = 0;
-
-    enum Type { Diffuse, Glossy, Specular };
-    virtual Type type() const = 0;
-
-    // Hemisphere : FRONT / BACK / BOTH?
-
-    virtual ~MaterialLobe() = default;
+    enum Hemisphere { FRONT, BACK, SPHERE };
+    virtual Hemisphere get_hemisphere() const = 0;
 };
 
 // TODO: Remove this typdef and rename everything as lobes instead of material_instance
@@ -60,7 +58,7 @@ typedef Array<MaterialLobe*> MaterialInstance;
 class Material : public Object
 {
 public:
-    virtual MaterialInstance instance(const Surface * surface, Resources &resources) = 0;
+    virtual MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources) = 0;
 
     // inline virtual Vec3f emission() const { return VEC3_ZERO; }
 

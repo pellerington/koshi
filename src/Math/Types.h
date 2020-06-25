@@ -26,9 +26,3 @@ static const Vec3f VEC3F_ONES = 1.f;
 static const Box3f BOX3F_UNIT = Box3f(VEC3F_ZERO, VEC3F_ONES);
 
 typedef unsigned int uint;
-
-struct float2 { float v0, v1; };
-struct float3 { float v0, v1, v2; };
-struct float4 { float v0, v1, v2, v3; };
-struct uint3 { uint v0, v1, v2; };
-struct uint4 { uint v0, v1, v2, v3; };

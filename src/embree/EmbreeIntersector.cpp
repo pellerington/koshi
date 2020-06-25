@@ -67,13 +67,15 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
     intersect->t = RTCRayN_tfar(args->ray, args->N, 0);
     intersect->tlen = 0;
     intersect->geometry = geometry;
+    intersect->geometry_primitive = RTCHitN_primID(args->hit, args->N, 0);
+    Vec3f normal = geometry->get_obj_to_world().multiply(Embree::normal(args), false).normalized();
     Surface * surface = context->resources->memory->create<Surface>(
         ray.get_position(intersect->t),
-        geometry->get_obj_to_world().multiply(Embree::normal(args), false).normalized(),
+        normal,
         RTCHitN_u(args->hit, args->N, 0),
         RTCHitN_v(args->hit, args->N, 0),
         0.f,
-        ray.dir
+        ray.dir.dot(normal) < 0.f
     );
     intersect->geometry_data = surface;
 

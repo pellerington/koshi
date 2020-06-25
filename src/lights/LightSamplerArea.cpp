@@ -33,7 +33,7 @@ bool LightSamplerArea::sample_light(const uint num_samples, const Surface * surf
 
         Intersect light_intersect(Ray(surface->position, -dir));
         light_intersect.geometry = geometry;
-        Surface * light_surface = resources.memory->create<Surface>(light_sample.position, world_normal, rnd[0], rnd[1], 0.f, -dir);
+        Surface * light_surface = resources.memory->create<Surface>(light_sample.position, world_normal, rnd[0], rnd[1], 0.f, -dir.dot(world_normal) < 0.f);
         light_intersect.geometry_data = light_surface;
 
         light_sample.intensity = light->get_intensity(light_surface->u, light_surface->v, 0.f, &light_intersect, resources);

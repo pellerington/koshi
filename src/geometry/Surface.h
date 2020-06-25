@@ -8,14 +8,11 @@
 
 struct Surface : public GeometryData
 {
-    Surface(const Vec3f& position, const Vec3f& normal, const float& u, const float& v, const float& w, const Vec3f& wi = VEC3F_ZERO)
-    : opacity(VEC3F_ONES), position(position), normal(normal), u(u), v(v), w(w), wi(wi)
+    Surface(const Vec3f& position, const Vec3f& normal, const float& u, const float& v, const float& w, const bool& facing)
+    : opacity(VEC3F_ONES), position(position), normal(normal), facing(facing), u(u), v(v), w(w)
     {
         front_position = position + normal *  RAY_OFFSET;
         back_position  = position + normal * -RAY_OFFSET;
-        transform = Transform3f::basis_transform(normal);
-        n_dot_wi = normal.dot(-wi);
-        facing = (n_dot_wi >= 0.f);
     }
 
     Vec3f opacity;
@@ -26,14 +23,7 @@ struct Surface : public GeometryData
     Vec3f back_position;
 
     Vec3f normal;
-    Transform3f transform;
     bool facing;
 
     float u, v, w;
-
-    Vec3f wi;
-    float n_dot_wi;
-
-    //TODO: Add this in, so we can override it.
-    // Material * material;
 };

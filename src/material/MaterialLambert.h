@@ -2,25 +2,28 @@
 
 #include <material/Material.h>
 
-template<bool FRONT>
+template<bool REFLECT>
 struct MaterialLobeLambert : public MaterialLobe
 {
     bool sample(MaterialSample& sample, Resources& resources) const;
     Vec3f weight(const Vec3f& wo, Resources& resources) const;
     float pdf(const Vec3f& wo, Resources& resources) const;
-
-    Type type() const { return Type::Diffuse; }
+    ScatterType get_scatter_type() const { return ScatterType::DIFFUSE; }
+    Hemisphere get_hemisphere() const { return REFLECT ? Hemisphere::FRONT : Hemisphere::BACK; }
 };
 
-template<bool FRONT>
+template<bool REFLECT>
 class MaterialLambert : public Material
 {
 public:
     MaterialLambert(const AttributeVec3f &color_attr);
-    MaterialInstance instance(const Surface * surface, Resources &resources);
+    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
 private:
     const AttributeVec3f color_attr;
 };
+
+template struct MaterialLobeLambert<true>;
+template struct MaterialLobeLambert<false>;
 
 template class MaterialLambert<true>;
 template class MaterialLambert<false>;

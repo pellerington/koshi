@@ -40,7 +40,7 @@ public:
             return color * transmittance.shadow(intersect->t, resources) * surface->opacity;
         }
 
-        MaterialInstance material_instance = material->instance(surface, resources);
+        MaterialInstance material_instance = material->instance(surface, intersect, resources);
 
         Interiors interiors(intersect->t, transmittance.get_intersects());
 

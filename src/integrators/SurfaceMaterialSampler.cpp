@@ -17,16 +17,18 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
         const MaterialLobe * lobe = material_instance[l];
 
         float next_quality = quality;
-
         float num_unreduced_samples = 1.f;
-        MaterialLobe::Type lobe_type = lobe->type();
-        if(lobe_type == MaterialLobe::Diffuse)
+        MaterialLobe::ScatterType scatter_type = lobe->get_scatter_type();
+        if(scatter_type == MaterialLobe::DIFFUSE)
             num_unreduced_samples = SAMPLES_PER_SA;
-        else if(lobe_type == MaterialLobe::Glossy)
+        else if(scatter_type == MaterialLobe::GLOSSY)
             num_unreduced_samples = SAMPLES_PER_SA * sqrtf(lobe->roughness);
         next_quality *= 1.f / num_unreduced_samples;
         uint num_samples = std::max(1.f, num_unreduced_samples * quality * resources.settings->sampling_quality);
 
+        MaterialLobe::Hemisphere hemisphere = lobe->get_hemisphere();
+
+        // TODO: Make interiors better! Use hemisphere knowledge to decide if we want to do this.
         // transmit interiors
         Interiors transmit_interiors = surface->facing 
             ? interiors.push(intersect->geometry, lobe->interior)
@@ -39,19 +41,24 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
             if(!lobe->sample(material_sample, resources))
                 continue;
 
+            const bool front = material_sample.wo.dot(surface->normal) > 0;
+            const bool transmit = front ^ surface->facing;
+
+            if((transmit && hemisphere == MaterialLobe::FRONT) || (!transmit && hemisphere == MaterialLobe::BACK))
+                continue;
+
             PathData next_path;
             next_path.depth = depth + 1;
             next_path.quality = next_quality;
             next_path.prev_path = prev_path;
 
-            const bool front = material_sample.wo.dot(surface->normal) > 0;
-            const bool transmit = front ^ surface->facing;
             const Vec3f& ray_position = front ? surface->front_position : surface->back_position;
             Ray ray(ray_position, material_sample.wo);
 
             samples.emplace_back();
             SurfaceSample& sample = samples.back();
 
+            // TODO: Make this pre_intersect callback nicer
             sample.intersects = resources.intersector->intersect(ray, &next_path, resources, 
                 Interiors::pre_intersect_callback, transmit ? &transmit_interiors : &interiors);
             sample.weight = material_sample.weight * inv_num_samples;

@@ -71,7 +71,7 @@ bool LightSamplerSphere::sample_sa(const uint num_samples, const Surface * surfa
         const Vec3f direction = (light_sample.position - surface->position).normalized();
         Intersect light_intersect(Ray(light_sample.position, direction));
         light_intersect.geometry = geometry;
-        Surface * light_surface = resources.memory->create<Surface>(light_sample.position, normal, 0.f, 0.f, 0.f, direction);
+        Surface * light_surface = resources.memory->create<Surface>(light_sample.position, normal, 0.f, 0.f, 0.f, true);
         light_intersect.geometry_data = light_surface;
 
         light_sample.intensity = light->get_intensity(light_surface->u, light_surface->v, 0.f, &light_intersect, resources);

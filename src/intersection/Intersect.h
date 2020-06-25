@@ -30,7 +30,7 @@ class IntersectList;
 struct Intersect
 {
     Intersect(const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), t(0.f), tlen(0.f), interior(false), geometry(nullptr), geometry_data(nullptr), integrator(nullptr), path(path)
+    : ray(ray), t(0.f), tlen(0.f), interior(false), geometry(nullptr), geometry_data(nullptr), geometry_primitive(0), integrator(nullptr), path(path)
     {}
 
     const Ray ray;
@@ -39,6 +39,7 @@ struct Intersect
 
     Geometry * geometry;
     GeometryData * geometry_data;
+    uint geometry_primitive;
 
     Integrator * integrator;
 

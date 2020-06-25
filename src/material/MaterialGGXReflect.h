@@ -13,14 +13,15 @@ struct MaterialLobeGGXReflect : public MaterialLobe
     Vec3f weight(const Vec3f& wo, Resources& resources) const;
     float pdf(const Vec3f& wo, Resources& resources) const;
 
-    Type type() const { return (roughness > EPSILON_F) ? Type::Glossy : Type::Specular; }
+    ScatterType get_scatter_type() const { return (roughness > EPSILON_F) ? ScatterType::GLOSSY : ScatterType::SPECULAR; }
+    Hemisphere get_hemisphere() const { return Hemisphere::FRONT; }
 };
 
 class MaterialGGXReflect : public Material
 {
 public:
     MaterialGGXReflect(const AttributeVec3f &color_attribute, const AttributeFloat &roughness_attribute);
-    MaterialInstance instance(const Surface * surface, Resources &resources);
+    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
 
 private:
     const AttributeVec3f color_attribute;

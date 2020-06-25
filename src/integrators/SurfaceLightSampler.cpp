@@ -43,14 +43,19 @@ std::vector<SurfaceSample> SurfaceLightSampler::integrate_surface(
             next_path.prev_path = prev_path;
 
             Vec3f wo = (light_samples[i].position - surface->position).normalized();
+            const bool front = wo.dot(surface->normal) > 0;
+            const bool transmit = front ^ surface->facing;
+
             Vec3f weight;
             for(size_t i = 0; i < material_instance.size(); i++)
-                weight += material_instance[i]->weight(wo, resources);
+            {
+                MaterialLobe::Hemisphere hemisphere = material_instance[i]->get_hemisphere();
+                if(hemisphere == MaterialLobe::SPHERE || (!transmit && hemisphere == MaterialLobe::FRONT) || (transmit && hemisphere == MaterialLobe::BACK))
+                    weight += material_instance[i]->weight(wo, resources);
+            }
 
             if(is_black(weight)) continue;
 
-            const bool front = wo.dot(surface->normal) > 0;
-            const bool transmit = front ^ surface->facing;
             const Vec3f& ray_position = front ? surface->front_position : surface->back_position;
             Ray ray(ray_position, wo, 0.f, (light_samples[i].position - ray_position).length() - 2.f*RAY_OFFSET);
 
