@@ -16,10 +16,11 @@ template<bool REFLECT>
 class MaterialLambert : public Material
 {
 public:
-    MaterialLambert(const Texture * color_attr);
+    MaterialLambert(const Texture * color_texture, const Texture * normal_texture);
     MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
 private:
     const Texture * color_texture;
+    const Texture * normal_texture;
 };
 
 template struct MaterialLobeLambert<true>;

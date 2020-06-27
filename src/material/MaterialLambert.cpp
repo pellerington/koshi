@@ -8,8 +8,8 @@
 #include <geometry/Geometry.h>
 
 template<bool REFLECT>
-MaterialLambert<REFLECT>::MaterialLambert(const Texture * color_texture)
-: color_texture(color_texture)
+MaterialLambert<REFLECT>::MaterialLambert(const Texture * color_texture, const Texture * normal_texture)
+: color_texture(color_texture), normal_texture(normal_texture)
 {
 }
 
@@ -23,10 +23,7 @@ MaterialInstance MaterialLambert<REFLECT>::instance(const Surface * surface, con
 
     lobe->surface = surface;
     lobe->wi = intersect->ray.dir;
-    if(!intersect->geometry->eval_geometry_attribute(lobe->normal, "normals", surface->u, surface->v, surface->w, intersect->geometry_primitive, resources))
-        lobe->normal = surface->normal;
-    else
-        lobe->normal = (intersect->geometry->get_obj_to_world() * lobe->normal).normalized();
+    lobe->normal = (normal_texture) ? (intersect->geometry->get_obj_to_world() * normal_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources)).normalized() : surface->normal;
     lobe->transform = Transform3f::basis_transform(lobe->normal);
 
     lobe->color = color_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources);
@@ -37,8 +34,7 @@ MaterialInstance MaterialLambert<REFLECT>::instance(const Surface * surface, con
 template<bool REFLECT>
 bool MaterialLobeLambert<REFLECT>::sample(MaterialSample& sample, Resources &resources) const
 {
-    if(REFLECT && !surface->facing)
-        return false;
+    if(REFLECT && !surface->facing) return false;
 
     const Vec2f rnd = rng.rand();
     const float theta = TWO_PI * rnd[0];
@@ -52,10 +48,8 @@ bool MaterialLobeLambert<REFLECT>::sample(MaterialSample& sample, Resources &res
     sample.wo = transform * Vec3f(x, y, z);
     sample.pdf = y * INV_PI;
 #endif
-
     sample.weight = color * INV_PI * sample.wo.dot(normal);
-    if(!REFLECT && surface->facing)
-        sample.wo = -sample.wo; 
+    if(!REFLECT && surface->facing) sample.wo = -sample.wo; 
 
     return true;
 }

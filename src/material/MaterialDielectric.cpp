@@ -13,11 +13,13 @@ MaterialDielectric::MaterialDielectric(const Texture * reflective_color_texture,
                                        const Texture * refractive_color_texture,
                                        const float& refractive_color_depth,
                                        const Texture * roughness_texture,
-                                       const float &ior)
+                                       const float &ior,
+                                       const Texture * normal_texture)
 : reflective_color_texture(reflective_color_texture), 
   refractive_color_texture(refractive_color_texture),
   refractive_color_depth(refractive_color_depth),
-  roughness_texture(roughness_texture), ior(ior)
+  roughness_texture(roughness_texture), ior(ior),
+  normal_texture(normal_texture)
 {
 }
 
@@ -30,7 +32,8 @@ MaterialInstance MaterialDielectric::instance(const Surface * surface, const Int
     
     refract_lobe->surface = surface;
     refract_lobe->wi = intersect->ray.dir;
-    refract_lobe->normal = ((surface->facing) ? surface->normal : -surface->normal);
+    refract_lobe->normal = normal_texture ? (intersect->geometry->get_obj_to_world() * normal_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources)).normalized() : surface->normal;
+    refract_lobe->normal = surface->facing ? refract_lobe->normal : -refract_lobe->normal;
     refract_lobe->transform = Transform3f::basis_transform(refract_lobe->normal);
 
     refract_lobe->ior_in = 1.f;  //surface->facing ? surface->curr_ior : ior;

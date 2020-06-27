@@ -20,10 +20,11 @@ struct MaterialLobeGGXReflect : public MaterialLobe
 class MaterialGGXReflect : public Material
 {
 public:
-    MaterialGGXReflect(const Texture * color_texture, const Texture * roughness_texture);
+    MaterialGGXReflect(const Texture * color_texture, const Texture * roughness_texture, const Texture * normal_texture);
     MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
 
 private:
     const Texture * color_texture;
     const Texture * roughness_texture;
+    const Texture * normal_texture;
 };

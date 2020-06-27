@@ -17,6 +17,7 @@ struct MaterialSceneFile
         Type material_lambert("material_lambert");
         material_lambert.reserved_attributes.push_back("color");
         material_lambert.reserved_attributes.push_back("color_texture");
+        material_lambert.reserved_attributes.push_back("normal_texture");
         material_lambert.create_object_cb = create_material_lambert;
         types.add(material_lambert);
 
@@ -28,6 +29,7 @@ struct MaterialSceneFile
         material_ggx.reserved_attributes.push_back("color_texture");
         material_ggx.reserved_attributes.push_back("roughness");
         material_ggx.reserved_attributes.push_back("roughness_texture");
+        material_ggx.reserved_attributes.push_back("normal_texture");
         material_ggx.create_object_cb = create_material_ggx;
         types.add(material_ggx);
 
@@ -39,6 +41,7 @@ struct MaterialSceneFile
         material_ggx_refract.reserved_attributes.push_back("roughness");
         material_ggx_refract.reserved_attributes.push_back("roughness_texture");
         material_ggx_refract.reserved_attributes.push_back("ior");
+        material_ggx_refract.reserved_attributes.push_back("normal_texture");
         material_ggx_refract.create_object_cb = create_material_ggx_refract;
         types.add(material_ggx_refract);
 
@@ -52,6 +55,7 @@ struct MaterialSceneFile
         material_dielectric.reserved_attributes.push_back("roughness");
         material_dielectric.reserved_attributes.push_back("roughness_texture");
         material_dielectric.reserved_attributes.push_back("ior");
+        material_dielectric.reserved_attributes.push_back("normal_texture");
         material_dielectric.create_object_cb = create_material_dielectric;
         types.add(material_dielectric);
 
@@ -78,10 +82,9 @@ struct MaterialSceneFile
         Texture * color_texture = dynamic_cast<Texture*>(accessor.get_object("color_texture"));
         TextureMultiply * color_multiply_texture = new TextureMultiply(color, color_texture);
         accessor.add_object("color_texture", color_multiply_texture);
-        return new MaterialLambert<true>(color_multiply_texture);
+        Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
+        return new MaterialLambert<true>(color_multiply_texture, normal_texture);
     }
-
-    //TODO : Combine lambert and back lambert
 
     static Object * create_material_ggx(AttributeAccessor& accessor, Object * parent)
     {
@@ -95,7 +98,9 @@ struct MaterialSceneFile
         TextureMultiply * roughness_multiply_texture = new TextureMultiply(roughness, roughness_texture);
         accessor.add_object("roughness_texture", roughness_multiply_texture);
 
-        return new MaterialGGXReflect(color_multiply_texture, roughness_multiply_texture);
+        Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
+
+        return new MaterialGGXReflect(color_multiply_texture, roughness_multiply_texture, normal_texture);
     }
 
     static Object * create_material_ggx_refract(AttributeAccessor& accessor, Object * parent)
@@ -114,7 +119,12 @@ struct MaterialSceneFile
 
         const float ior = accessor.get_float("ior");
 
-        return new MaterialGGXRefract(color_multiply_texture, roughness_multiply_texture, ior, color_depth);
+        Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
+
+        return new MaterialGGXRefract(
+            color_multiply_texture, roughness_multiply_texture, 
+            ior, color_depth, normal_texture
+        );
     }
 
     static Object * create_material_dielectric(AttributeAccessor& accessor, Object * parent)
@@ -138,9 +148,11 @@ struct MaterialSceneFile
 
         const float ior = accessor.get_float("ior");
 
+        Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
+
         return new MaterialDielectric(
             reflect_color_multiply_texture, refract_color_multiply_texture,
-            refract_color_depth, roughness_multiply_texture, ior
+            refract_color_depth, roughness_multiply_texture, ior, normal_texture
         );
     }
 

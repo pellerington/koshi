@@ -10,7 +10,7 @@ public:
     {
         geometry = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_TRIANGLE);
 
-        const GeometryMeshAttribute * vertices = mesh->get_mesh_attribute("vertices");
+        const GeometryMeshAttribute * vertices = dynamic_cast<const GeometryMeshAttribute *>(mesh->get_geometry_attribute("vertices"));
         if (!vertices)
             return;
 

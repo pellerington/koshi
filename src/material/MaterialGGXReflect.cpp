@@ -1,12 +1,14 @@
 #include <material/MaterialGGXReflect.h>
 
+#include <intersection/Intersect.h>
+#include <geometry/Geometry.h>
 #include <Math/Helpers.h>
 #include <Util/Color.h>
 #include <cmath>
 #include <iostream>
 
-MaterialGGXReflect::MaterialGGXReflect(const Texture * color_texture, const Texture * roughness_texture)
-: color_texture(color_texture), roughness_texture(roughness_texture)
+MaterialGGXReflect::MaterialGGXReflect(const Texture * color_texture, const Texture * roughness_texture, const Texture * normal_texture)
+: color_texture(color_texture), roughness_texture(roughness_texture), normal_texture(normal_texture)
 {
 }
 
@@ -19,7 +21,8 @@ MaterialInstance MaterialGGXReflect::instance(const Surface * surface, const Int
 
     lobe->surface = surface;
     lobe->wi = intersect->ray.dir;
-    lobe->normal = ((surface->facing) ? surface->normal : -surface->normal);
+    lobe->normal = normal_texture ? (intersect->geometry->get_obj_to_world() * normal_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources)).normalized() : surface->normal;
+    lobe->normal = surface->facing ? lobe->normal : -lobe->normal;
     lobe->transform = Transform3f::basis_transform(lobe->normal);
 
     lobe->color = color_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources);

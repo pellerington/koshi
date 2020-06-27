@@ -20,7 +20,7 @@ void GeometryVolume::pre_render(Resources& resources)
 
     if(material->homogenous())
     {
-        VolumeBound b;
+        VolumeBox3f b;
         b.bbox = obj_bbox;
         b.max_density = b.min_density = material->get_density(VEC3F_ZERO, nullptr, resources);
         bounds.push_back(b);
@@ -30,7 +30,7 @@ void GeometryVolume::pre_render(Resources& resources)
         Vec3f delta = material->get_density_texture()->delta();
         if(!(delta > 0.f)) delta = 0.03125f; // Delta for procedurals.
 
-        VolumeBound b;
+        VolumeBox3f b;
         b.bbox = obj_bbox;
         b.max_density = FLT_MIN;
         b.min_density = FLT_MAX;

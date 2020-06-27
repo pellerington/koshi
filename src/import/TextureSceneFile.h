@@ -6,6 +6,7 @@
 #include <texture/TextureChecker.h>
 #include <texture/TextureGradient.h>
 #include <texture/TextureOpenVDB.h>
+#include <texture/TextureGeometryAttribute.h>
 
 struct TextureSceneFile
 {
@@ -38,6 +39,12 @@ struct TextureSceneFile
         texture_openvdb.reserved_attributes.push_back("gridname");
         texture_openvdb.create_object_cb = create_texture_openvdb;
         types.add(texture_openvdb);
+
+        // Texture GeometryAttribute
+        Type texture_geometry_attribute("texture_geometry_attribute");
+        texture_geometry_attribute.reserved_attributes.push_back("attribute");
+        texture_geometry_attribute.create_object_cb = create_texture_geometry_attribute;
+        types.add(texture_geometry_attribute);
     }
 
     static Object * create_texture_image(AttributeAccessor& accessor, Object * parent)
@@ -66,6 +73,12 @@ struct TextureSceneFile
         const std::string filename = accessor.get_string("filename");
         const std::string gridname = accessor.get_string("gridname");
         return new TexutreOpenVDB(filename, gridname);
+    }
+
+    static Object * create_texture_geometry_attribute(AttributeAccessor& accessor, Object * parent)
+    {
+        const std::string attribute = accessor.get_string("attribute");
+        return new TextureGeometryAttribute(attribute);
     }
 
 };

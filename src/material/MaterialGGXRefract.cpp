@@ -6,8 +6,8 @@
 #include <iostream>
 #include <integrators/AbsorbtionMedium.h>
 
-MaterialGGXRefract::MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, const float& ior, const float& color_depth)
-: color_texture(color_texture), color_depth(color_depth), roughness_texture(roughness_texture), ior(ior)
+MaterialGGXRefract::MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, const float& ior, const float& color_depth, const Texture * normal_texture)
+: color_texture(color_texture), color_depth(color_depth), roughness_texture(roughness_texture), ior(ior), normal_texture(normal_texture)
 {
 }
 
@@ -20,8 +20,8 @@ MaterialInstance MaterialGGXRefract::instance(const Surface * surface, const Int
 
     lobe->surface = surface;
     lobe->wi = intersect->ray.dir;
-    //TODO: Do the normal flip in the contructor.
-    lobe->normal = ((surface->facing) ? surface->normal : -surface->normal);
+    lobe->normal = normal_texture ? (intersect->geometry->get_obj_to_world() * normal_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources)).normalized() : surface->normal;
+    lobe->normal = surface->facing ? lobe->normal : -lobe->normal;
     lobe->transform = Transform3f::basis_transform(lobe->normal);
 
     lobe->rng = resources.random_service->get_random_2D();
