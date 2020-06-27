@@ -1,4 +1,4 @@
-#include <integrators/Integrator.h>
+#include <integrator/Integrator.h>
 
 Vec3f Integrator::shade(const IntersectList * intersects, Resources &resources)
 {

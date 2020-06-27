@@ -8,7 +8,7 @@
 #include <Util/Color.h>
 #include <Util/Memory.h>
 
-#include <integrators/Integrator.h>
+#include <integrator/Integrator.h>
 #include <embree/EmbreeIntersector.h>
 
 #define NEAREST_NEIGHBOUR

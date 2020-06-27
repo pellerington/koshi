@@ -1,4 +1,4 @@
-#include <integrators/VolumeSingleScatter.h>
+#include <integrator/VolumeSingleScatter.h>
 
 #include <geometry/Volume.h>
 #include <material/MaterialVolume.h>

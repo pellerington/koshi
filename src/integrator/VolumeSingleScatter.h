@@ -1,6 +1,6 @@
 #pragma once
 
-#include <integrators/Integrator.h>
+#include <integrator/Integrator.h>
 
 class VolumeSingleScatter : public Integrator
 {

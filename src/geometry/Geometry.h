@@ -8,7 +8,7 @@
 
 #include <Util/Resources.h>
 #include <intersection/Ray.h>
-#include <lights/Light.h>
+#include <light/Light.h>
 
 class Material;
 

@@ -16,7 +16,7 @@ message(STATUS "openvdb library: ${OpenVDB_LIBRARIES}")
 
 find_package(SFML 2 COMPONENTS graphics window system)
 
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cc")
 add_executable(koshi ${SOURCES})
 
 set(CMAKE_CXX_FLAGS "-Wall -msse4.1 -O3")

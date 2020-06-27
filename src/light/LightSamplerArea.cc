@@ -1,4 +1,4 @@
-#include <lights/LightSamplerArea.h>
+#include <light/LightSamplerArea.h>
 
 LightSamplerArea::LightSamplerArea(GeometryArea * geometry) 
 : geometry(geometry)

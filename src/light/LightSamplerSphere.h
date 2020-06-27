@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lights/LightSampler.h>
+#include <light/LightSampler.h>
 #include <geometry/GeometrySphere.h>
 
 class LightSamplerSphere : public LightSampler

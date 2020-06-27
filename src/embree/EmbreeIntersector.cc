@@ -2,7 +2,7 @@
 #include <embree/EmbreeGeometry.h>
 #include <geometry/Geometry.h>
 #include <intersection/Opacity.h>
-#include <integrators/Integrator.h>
+#include <integrator/Integrator.h>
 #include <base/Scene.h>
 
 EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)

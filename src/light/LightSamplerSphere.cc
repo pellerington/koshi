@@ -1,4 +1,4 @@
-#include <lights/LightSamplerSphere.h>
+#include <light/LightSamplerSphere.h>
 
 LightSamplerSphere::LightSamplerSphere(GeometrySphere * geometry)
 : geometry(geometry)

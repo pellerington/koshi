@@ -1,6 +1,6 @@
 #pragma once
 
-#include <integrators/SurfaceSampler.h>
+#include <integrator/SurfaceSampler.h>
 
 class SurfaceMultipleImportanceSampler : public SurfaceSampler
 {

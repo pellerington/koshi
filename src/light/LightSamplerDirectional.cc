@@ -1,4 +1,4 @@
-#include <lights/LightSamplerDirectional.h>
+#include <light/LightSamplerDirectional.h>
 #include <geometry/SurfaceDistant.h>
 
 LightSamplerDirectional::LightSamplerDirectional(Geometry * geometry)

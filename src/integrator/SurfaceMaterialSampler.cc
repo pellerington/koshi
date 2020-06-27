@@ -1,4 +1,4 @@
-#include <integrators/SurfaceMaterialSampler.h>
+#include <integrator/SurfaceMaterialSampler.h>
 #include <intersection/Intersector.h>
 
 std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
@@ -25,6 +25,7 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
             num_unreduced_samples = SAMPLES_PER_SA * sqrtf(lobe->roughness);
         next_quality *= 1.f / num_unreduced_samples;
         uint num_samples = std::max(1.f, num_unreduced_samples * quality * resources.settings->sampling_quality);
+        // TODO: Only one sample after quality < 1
 
         MaterialLobe::Hemisphere hemisphere = lobe->get_hemisphere();
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <integrators/SurfaceSampler.h>
-#include <lights/LightSampler.h>
+#include <integrator/SurfaceSampler.h>
+#include <light/LightSampler.h>
 #include <map>
 
 class SurfaceLightSampler : public SurfaceSampler

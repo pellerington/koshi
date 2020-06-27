@@ -1,4 +1,4 @@
-#include <integrators/SurfaceLightSampler.h>
+#include <integrator/SurfaceLightSampler.h>
 #include <base/Scene.h>
 #include <intersection/Intersector.h>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <integrators/Integrator.h>
+#include <integrator/Integrator.h>
 #include <material/Material.h>
 #include <Util/Color.h>
 

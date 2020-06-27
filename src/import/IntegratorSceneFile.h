@@ -2,10 +2,10 @@
 
 #include "import/SceneFile.h"
 
-#include <integrators/SurfaceMaterialSampler.h>
-#include <integrators/SurfaceLightSampler.h>
-#include <integrators/SurfaceMultipleImportanceSampler.h>
-#include <integrators/VolumeSingleScatter.h>
+#include <integrator/SurfaceMaterialSampler.h>
+#include <integrator/SurfaceLightSampler.h>
+#include <integrator/SurfaceMultipleImportanceSampler.h>
+#include <integrator/VolumeSingleScatter.h>
 
 struct IntegratorSceneFile
 {

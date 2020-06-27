@@ -2,15 +2,15 @@
 
 #include "import/SceneFile.h"
 
-#include <lights/Light.h>
+#include <light/Light.h>
 
 #include <import/GeometrySceneFile.h>
 
 #include <geometry/GeometryEnvironment.h>
 
-#include <lights/LightSamplerArea.h>
-#include <lights/LightSamplerSphere.h>
-#include <lights/LightSamplerDirectional.h>
+#include <light/LightSamplerArea.h>
+#include <light/LightSamplerSphere.h>
+#include <light/LightSamplerDirectional.h>
 
 struct LightSceneFile
 {

@@ -3,8 +3,8 @@
 #include <geometry/Geometry.h>
 #include <geometry/SurfaceDistant.h>
 #include <intersection/Opacity.h>
-#include <integrators/Integrator.h>
-#include <integrators/DistantLightEvaluator.h>
+#include <integrator/Integrator.h>
+#include <integrator/DistantLightEvaluator.h>
 
 class GeometryEnvironment : public Geometry
 {

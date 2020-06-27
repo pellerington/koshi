@@ -1,6 +1,6 @@
 #pragma once
 
-#include <lights/LightSampler.h>
+#include <light/LightSampler.h>
 #include <geometry/Geometry.h>
 
 // TODO: Rename "Directional" light so we dont confuse with SurfaceDistant type.
