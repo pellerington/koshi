@@ -22,7 +22,7 @@ public:
 class Geometry : public Object
 {
 public:
-    Geometry(const Transform3f &obj_to_world = Transform3f())
+    Geometry(const Transform3f& obj_to_world = Transform3f())
     : obj_to_world(obj_to_world), 
       world_to_obj(Transform3f::inverse(obj_to_world)) {}
 

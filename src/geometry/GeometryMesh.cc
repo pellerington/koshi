@@ -2,7 +2,7 @@
 
 #include <import/MeshFile.h>
 
-GeometryMesh::GeometryMesh(const Transform3f &obj_to_world, const std::string& filename)
+GeometryMesh::GeometryMesh(const Transform3f& obj_to_world, const std::string& filename)
 : Geometry(obj_to_world)
 {
     // TODO: Check the filetype somehow

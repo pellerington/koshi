@@ -11,7 +11,7 @@ MaterialGGXRefract::MaterialGGXRefract(const Texture * color_texture, const Text
 {
 }
 
-MaterialInstance MaterialGGXRefract::instance(const Surface * surface, const Intersect * intersect, Resources &resources)
+MaterialInstance MaterialGGXRefract::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
 {
     MaterialInstance instance(resources.memory);
     MaterialLobeGGXRefract * lobe = resources.memory->create<MaterialLobeGGXRefract>();

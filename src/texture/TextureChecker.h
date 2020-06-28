@@ -8,7 +8,7 @@ public:
     TextureChecker(const Vec3f scale = VEC3F_ONES)
     : scale(scale) {}
 
-    Vec3f evaluate(const float& u, const float& v, const float& w, const Intersect * intersect, Resources &resources) const
+    Vec3f evaluate(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) const
     {
         int i = 1;
         Vec3f uvw = scale * Vec3f(u, v, w);

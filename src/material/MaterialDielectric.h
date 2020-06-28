@@ -12,7 +12,7 @@ public:
                        const Texture * roughness_texture,
                        const float& ior, const Texture * normal_texture);
 
-    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
+    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources);
 
 private:
     const Texture * reflective_color_texture;

@@ -1,6 +1,6 @@
 // #include <Volume/Volume.h>
 
-// Volume::Volume(const Vec3f &_density, const std::shared_ptr<Texture> _density_texture, const Vec3f &_scattering, const float &g, const Vec3f &_emission)
+// Volume::Volume(const Vec3f& _density, const std::shared_ptr<Texture> _density_texture, const Vec3f& _scattering, const float& g, const Vec3f& _emission)
 // : density(_density), density_texture(_density_texture), scattering(_scattering), emission(_emission), g(g), g_sqr(g*g), g_inv(1.f/g), g_abs(fabs(g))
 // {
 //     // if(!is_heterogeneous())
@@ -9,7 +9,7 @@
 //     // }
 // }
 
-// bool Volume::sample_volume(const Vec3f &wi, VolumeSample &sample, const Vec2f &rand)
+// bool Volume::sample_volume(const Vec3f& wi, VolumeSample &sample, const Vec2f &rand)
 // {
 //     const float theta = TWO_PI * rand[0];
 
@@ -24,23 +24,23 @@
 //     return true;
 // }
 
-// bool Volume::evaluate_volume(const Vec3f &wi, VolumeSample &sample)
+// bool Volume::evaluate_volume(const Vec3f& wi, VolumeSample &sample)
 // {
 //     return false;
 // }
 
-// Vec3f Volume::get_density(const Vec3f &uvw, Resources &resources)
+// Vec3f Volume::get_density(const Vec3f& uvw, Resources& resources)
 // {
 //     if(density_texture)
 //         return density * density_texture->get_float(uvw.u, uvw.v, uvw.w, resources);
 //     else
 //         return density;
 // }
-// Vec3f Volume::get_scattering(const Vec3f &uvw, Resources &resources)
+// Vec3f Volume::get_scattering(const Vec3f& uvw, Resources& resources)
 // {
 //     return scattering;
 // }
-// Vec3f Volume::get_emission(const Vec3f &uvw, Resources &resources)
+// Vec3f Volume::get_emission(const Vec3f& uvw, Resources& resources)
 // {
 //     return emission;
 // }

@@ -17,7 +17,7 @@ class MaterialLambert : public Material
 {
 public:
     MaterialLambert(const Texture * color_texture, const Texture * normal_texture);
-    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
+    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources);
 private:
     const Texture * color_texture;
     const Texture * normal_texture;

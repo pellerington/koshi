@@ -5,7 +5,7 @@
 class OIIOViewer
 {
 public:
-    static void FileOut(const Render &render, const char * filename)
+    static void FileOut(const Render& render, const char * filename)
     {
         const uint xres = render.get_image_resolution().x, yres = render.get_image_resolution().y;
         const uint channels = 3;

@@ -7,13 +7,8 @@
 class GeometryArea : public Geometry
 {
 public:
-    GeometryArea(const Transform3f &obj_to_world);    
-
-    inline const Vec3f& get_world_normal() { return world_normal; }
-
+    GeometryArea(const Transform3f& obj_to_world);
 private:
-    Vec3f world_normal;
-
     static const Box3f bbox;
 };
 

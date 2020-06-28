@@ -1,17 +1,17 @@
 #include <integrator/SurfaceMaterialSampler.h>
 #include <intersection/Intersector.h>
 
-std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
+void SurfaceMaterialSampler::scatter_surface(
+    Array<SurfaceSample>& samples,
     const MaterialInstance& material_instance,
-    const Intersect * intersect, const Surface * surface, 
+    const Intersect * intersect, SurfaceSamplerData * data,
     Interiors& interiors, Resources& resources) const
 {
+    const Surface * surface = data->surface;
     const PathData * prev_path = intersect->path;
     const uint depth = prev_path ? prev_path->depth : 0;
     const float quality = prev_path ? prev_path->quality : 1.f;
 
-    // TODO: vector uses malloc which we should be avoiding. create an allocator using resources, OR make our won vector class.
-    std::vector<SurfaceSample> samples;
     for(uint l = 0; l < material_instance.size(); l++)
     {
         const MaterialLobe * lobe = material_instance[l];
@@ -56,8 +56,7 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
             const Vec3f& ray_position = front ? surface->front_position : surface->back_position;
             Ray ray(ray_position, material_sample.wo);
 
-            samples.emplace_back();
-            SurfaceSample& sample = samples.back();
+            SurfaceSample& sample = samples.push();
 
             // TODO: Make this pre_intersect callback nicer
             sample.intersects = resources.intersector->intersect(ray, &next_path, resources, 
@@ -65,18 +64,17 @@ std::vector<SurfaceSample> SurfaceMaterialSampler::integrate_surface(
             sample.weight = material_sample.weight * inv_num_samples;
             sample.pdf = material_sample.pdf;
 
-            // TODO: Do we need to evaluate pdf and weight for all other lobes? Probably?
+            // TODO: Do we need to evaluate pdf and weight for all other lobes?
 
             sample.li = Integrator::shade(sample.intersects, resources);
         }
     }
-
-    return samples;
 }
 
-float SurfaceMaterialSampler::evaluate(const SurfaceSample& sample, 
+float SurfaceMaterialSampler::evaluate(
+    const SurfaceSample& sample, 
     const MaterialInstance& material_instance,
-    const Intersect * intersect, const Surface * surface, 
+    const Intersect * intersect, SurfaceSamplerData * data,
     Resources& resources) const
 {
     float pdf = 0.f;

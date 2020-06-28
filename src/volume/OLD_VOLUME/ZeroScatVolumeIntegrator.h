@@ -5,9 +5,9 @@
 // class ZeroScatVolumeIntegrator : public VolumeIntegrator
 // {
 // public:
-//     ZeroScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, Resources &resources) : VolumeIntegrator(scene, ray, volumes, resources) {}
+//     ZeroScatVolumeIntegrator(Scene * scene, Ray& ray, const VolumeStack& volumes, Resources& resources) : VolumeIntegrator(scene, ray, volumes, resources) {}
 
-//     Vec3f shadow(const float &t)
+//     Vec3f shadow(const float& t)
 //     {
 //         Vec3f tr = VEC3F_ONES;
 //         for(auto curr_volume = volumes.begin(); curr_volume != volumes.end(); curr_volume++)
@@ -29,7 +29,7 @@
 //         return VEC3F_ZERO;
 //     }
 
-//     void scatter(std::vector<VolumeSample> &samples)
+//     void scatter(std::vector<VolumeSample>& samples)
 //     {
 //     }
 // };

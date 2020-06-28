@@ -1,6 +1,6 @@
 // #include <Volume/VolumeStack.h>
 
-// void VolumeStack::build(const float &tend)
+// void VolumeStack::build(const float& tend)
 // {
 //     std::unordered_set<Volume*> volume_tracker;
 

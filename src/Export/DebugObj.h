@@ -7,7 +7,7 @@
 class DebugObj
 {
 public:
-    static void Points(const std::vector<Vec3f> &pts)
+    static void Points(const std::vector<Vec3f>& pts)
     {
         std::ofstream out("debug.obj");
 
@@ -24,7 +24,7 @@ public:
         out.close();
     }
 
-    static void Lines(const std::vector<Vec3f> &pts)
+    static void Lines(const std::vector<Vec3f>& pts)
     {
         std::ofstream out("debug.obj");
 

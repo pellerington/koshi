@@ -60,9 +60,9 @@ public:
     }
 
     template <class T>
-    void shuffle(std::vector<T> &samples) { std::shuffle(samples.begin(), samples.end(), random_generator); }
+    void shuffle(std::vector<T>& samples) { std::shuffle(samples.begin(), samples.end(), random_generator); }
     template <class T>
-    void shuffle(std::deque<T> &samples) { std::shuffle(samples.begin(), samples.end(), random_generator); }
+    void shuffle(std::deque<T>& samples) { std::shuffle(samples.begin(), samples.end(), random_generator); }
 
 private:
     std::mt19937 random_generator;

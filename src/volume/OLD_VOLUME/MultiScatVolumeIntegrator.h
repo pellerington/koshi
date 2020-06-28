@@ -10,13 +10,13 @@
 // class MultiScatVolumeIntegrator : public VolumeIntegrator
 // {
 // public:
-//     MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample, Resources &resources);
+//     MultiScatVolumeIntegrator(Scene * scene, Ray& ray, const VolumeStack& volumes, const VolumeSample * in_sample, Resources& resources);
 
-//     Vec3f shadow(const float &t);
+//     Vec3f shadow(const float& t);
 
 //     Vec3f emission(/* float pdf for direct sampling???*/);
 
-//     void scatter(std::vector<VolumeSample> &samples);
+//     void scatter(std::vector<VolumeSample>& samples);
 
 // private:
 //     Vec3f weight;

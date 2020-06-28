@@ -11,19 +11,19 @@ public:
                          _mm_setr_ps(0.f, 0.f, 1.f, 0.f),
                          _mm_setr_ps(0.f, 0.f, 0.f, 1.f)} {}
 
-    inline Vec3f operator* (const Vec3f &v) const
+    inline Vec3f operator* (const Vec3f& v) const
     {
         __m128 vt = v.data; vt[3] = 1.f;
         return Vec3f(_mm_dp_ps(rows[0], vt, 0xff)[0], _mm_dp_ps(rows[1], vt, 0xff)[0], _mm_dp_ps(rows[2], vt, 0xff)[0]);
     }
 
-    inline Vec3f multiply(const Vec3f &v, const bool translate = true) const
+    inline Vec3f multiply(const Vec3f& v, const bool translate = true) const
     {
         __m128 vt = v.data; vt[3] = (translate) ? 1.f : 0.f;
         return Vec3f(_mm_dp_ps(rows[0], vt, 0xff)[0], _mm_dp_ps(rows[1], vt, 0xff)[0], _mm_dp_ps(rows[2], vt, 0xff)[0]);
     }
 
-    inline Box3f operator* (const Box3f &box) const
+    inline Box3f operator* (const Box3f& box) const
     {
         Vec3f min = FLT_MAX, max = FLT_MIN;
         const Vec3f vs[2] = { box.min(), box.max() };
@@ -39,7 +39,7 @@ public:
         return Box3f(min, max);
     }
 
-    inline Transform3f operator* (const Transform3f &v) const
+    inline Transform3f operator* (const Transform3f& v) const
     {
         Transform3f transform;
 
@@ -58,7 +58,7 @@ public:
         return transform;
     }
 
-    static const Transform3f basis_transform(const Vec3f &n)
+    static const Transform3f basis_transform(const Vec3f& n)
     {
         Transform3f transform;
         const Vec3f nu = (std::fabs(n[0]) > std::fabs(n[1]))
@@ -72,7 +72,7 @@ public:
         return transform;
     }
 
-    static const Transform3f translation(const Vec3f &t)
+    static const Transform3f translation(const Vec3f& t)
     {
         Transform3f transform;
         transform.rows[0][3] = t[0];
@@ -81,7 +81,7 @@ public:
         return transform;
     }
 
-    static const Transform3f scale(const Vec3f &s)
+    static const Transform3f scale(const Vec3f& s)
     {
         Transform3f transform;
         transform.rows[0][0] = s[0];
@@ -120,9 +120,9 @@ public:
         return transform;
     }
 
-    static const Transform3f inverse(const Transform3f &v)
+    static const Transform3f inverse(const Transform3f& v)
     {
-        auto get_det = [&](const uint &i, const uint &j)
+        auto get_det = [&](const uint& i, const uint& j)
         {
             static const uint t[4][3] = { {1,2,3}, {0,2,3}, {0,1,3}, {0,1,2} };
             __m128 p =        _mm_setr_ps(v.rows[t[i][0]][t[j][0]], v.rows[t[i][1]][t[j][0]], v.rows[t[i][2]][t[j][0]], 0.f);

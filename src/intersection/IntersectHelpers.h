@@ -2,7 +2,7 @@
 
 #include <intersection/Ray.h>
 
-inline bool intersect_bbox(const Ray &ray, const Box3f &box)
+inline bool intersect_bbox(const Ray& ray, const Box3f& box)
 {
     const Vec3f a = (box.min() - ray.pos) * ray.inv_dir;
     const Vec3f b = (box.max() - ray.pos) * ray.inv_dir;
@@ -15,7 +15,7 @@ inline bool intersect_bbox(const Ray &ray, const Box3f &box)
     return true;
 }
 
-inline bool intersect_bbox(const Ray &ray, const Box3f &box, float &t0, float &t1)
+inline bool intersect_bbox(const Ray& ray, const Box3f& box, float& t0, float& t1)
 {
     const Vec3f a = (box.min() - ray.pos) * ray.inv_dir;
     const Vec3f b = (box.max() - ray.pos) * ray.inv_dir;

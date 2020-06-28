@@ -17,20 +17,34 @@ struct SurfaceSample
 class SurfaceSampler : public Integrator
 {
 public:
-    Vec3f integrate(const Intersect * intersect, Transmittance& transmittance, Resources &resources) const
+    void pre_render(Resources& resources)
+    {
+        min_quality = std::pow(1.f / SAMPLES_PER_SA, resources.settings->depth);
+    }
+
+    struct SurfaceSamplerData : public IntegratorData
+    {
+        const Surface * surface;
+    };
+    IntegratorData * pre_integrate(const Intersect * intersect, Resources& resources)
+    {
+        SurfaceSamplerData * data = resources.memory->create<SurfaceSamplerData>();
+        data->surface = dynamic_cast<const Surface *>(intersect->geometry_data);
+        return data;
+    }
+
+    Vec3f integrate(const Intersect * intersect, IntegratorData * data, Transmittance& transmittance, Resources& resources) const
     {
         Vec3f color = VEC3F_ZERO;
 
         // Check it is geometry surface.
-        const Surface * surface = dynamic_cast<const Surface*>(intersect->geometry_data);
+        SurfaceSamplerData * surface_data = (SurfaceSamplerData *)data;
+        const Surface * surface = surface_data->surface;
         if(!surface) return color;
 
         // Add light contribution.
         Light * light = intersect->geometry->get_attribute<Light>("light");
         if(light && surface->facing) color += light->get_intensity(surface->u, surface->v, 0.f, intersect, resources);
-
-        // TODO: put this in the pre_render step (no need to recalculate every time)
-        const float min_quality = std::pow(1.f / SAMPLES_PER_SA, resources.settings->depth);
 
         // TODO: Place the material on the geometry surface so it can be overidden.
         Material * material = intersect->geometry->get_attribute<Material>("material");
@@ -44,30 +58,33 @@ public:
 
         Interiors interiors(intersect->t, transmittance.get_intersects());
 
-        std::vector<SurfaceSample> scatter = integrate_surface(material_instance, intersect, surface, interiors, resources);
-        for(uint i = 0; i < scatter.size(); i++)
+        Array<SurfaceSample> samples(resources.memory);
+        scatter_surface(samples, material_instance, intersect, surface_data, interiors, resources);
+        for(uint i = 0; i < samples.size(); i++)
         {
-            color += scatter[i].li * scatter[i].weight / scatter[i].pdf;
+            color += samples[i].li * samples[i].weight / samples[i].pdf;
         }
 
         return color * transmittance.shadow(intersect->t, resources) * surface->opacity;
     }
 
-    virtual Vec3f shadow(const float& t, const Intersect * intersect, Resources &resources) const
+    virtual Vec3f shadow(const float& t, const Intersect * intersect, IntegratorData * data, Resources& resources) const
     {
-        // TODO: Calculate shadow and get surface in the pre_integrate step!
-        // TODO: Have an optional "shadow" and opacity.
-        const Surface * surface = dynamic_cast<const Surface*>(intersect->geometry_data);
-        return (t > intersect->t) ? ((surface) ? (VEC3F_ONES - surface->opacity) : VEC3F_ZERO) : VEC3F_ONES;
+        SurfaceSamplerData * surface_data = (SurfaceSamplerData *)data;
+        return (t > intersect->t) ? (VEC3F_ONES - surface_data->surface->opacity) : VEC3F_ONES;
     }
 
-    virtual std::vector<SurfaceSample> integrate_surface(
+    virtual void scatter_surface(
+        Array<SurfaceSample>& samples,
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const Surface * surface, 
+        const Intersect * intersect, SurfaceSamplerData * data, 
         Interiors& interiors, Resources& resources) const = 0;
 
     virtual float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const Surface * surface, 
+        const Intersect * intersect, SurfaceSamplerData * data, 
         Resources& resources) const = 0;
+
+private:
+    float min_quality;
 };

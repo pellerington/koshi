@@ -58,7 +58,7 @@ typedef Array<MaterialLobe*> MaterialInstance;
 class Material : public Object
 {
 public:
-    virtual MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources) = 0;
+    virtual MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources) = 0;
 
     // inline virtual Vec3f emission() const { return VEC3_ZERO; }
 

@@ -24,7 +24,7 @@
 // class VolumeStack
 // {
 // public:
-//     VolumeStack(const Ray &ray, const std::vector<Volume*> * _passthrough_volumes = nullptr)
+//     VolumeStack(const Ray& ray, const std::vector<Volume*> * _passthrough_volumes = nullptr)
 //     : ray(ray)
 //     {
 //         if(_passthrough_volumes)
@@ -32,26 +32,26 @@
 //             hits[0.f].push_back(VolumeHit(true, *it));
 //     }
 
-//     inline void add_intersect(const float &t, const std::shared_ptr<Volume> &volume, bool end = false) {
+//     inline void add_intersect(const float& t, const std::shared_ptr<Volume>& volume, bool end = false) {
 //         if(!end)
 //             hits[t].push_back(VolumeHit(true, volume.get()));
 //         else
 //             passthrough_transmission_volumes.push_back(volume.get());
 //     }
-//     inline void sub_intersect(const float &t, const std::shared_ptr<Volume> &volume) {
+//     inline void sub_intersect(const float& t, const std::shared_ptr<Volume>& volume) {
 //         hits[t].push_back(VolumeHit(false, volume.get()));
 //     }
 
-//     inline const auto operator[](const float &t) const {
+//     inline const auto operator[](const float& t) const {
 //         if(t < tmin || t > tmax)
 //             return volumes.end();
-//         return std::lower_bound(volumes.begin(), volumes.end(), t, [](const VolumeIntersect &v, const float &t) -> bool { return t < v.tmin; });
+//         return std::lower_bound(volumes.begin(), volumes.end(), t, [](const VolumeIntersect &v, const float& t) -> bool { return t < v.tmin; });
 //     }
 //     inline const auto begin() const { return volumes.begin(); }
 //     inline const auto end() const { return volumes.end(); }
 //     inline const uint num_volumes() const { return volumes.size(); }
 
-//     void build(const float &tend);
+//     void build(const float& tend);
 
 //     inline const std::vector<Volume*> * get_passthrough_volumes() const { return &passthrough_volumes; }
 //     inline const std::vector<Volume*> * get_passthrough_transmission_volumes() const { return &passthrough_transmission_volumes; }

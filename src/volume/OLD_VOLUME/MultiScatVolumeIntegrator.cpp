@@ -1,6 +1,6 @@
 // #include <Volume/MultiScatVolumeIntegrator.h>
 
-// MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray &ray, const VolumeStack& volumes, const VolumeSample * in_sample, Resources &resources)
+// MultiScatVolumeIntegrator::MultiScatVolumeIntegrator(Scene * scene, Ray& ray, const VolumeStack& volumes, const VolumeSample * in_sample, Resources& resources)
 // : VolumeIntegrator(scene, ray, volumes, resources)
 // {
 //     weight = VEC3F_ONES;
@@ -132,7 +132,7 @@
 //     return weighted_emission;
 // }
 
-// Vec3f MultiScatVolumeIntegrator::shadow(const float &t)
+// Vec3f MultiScatVolumeIntegrator::shadow(const float& t)
 // {
 //     // TODO: If we have lights between our sample then this is incorrect! We should store a stack of weights
 //     // Possible better soultion. Have lights be intersectable just like any other object in the scene.
@@ -144,7 +144,7 @@
 //     return VEC3F_ZERO;
 // }
 
-// void MultiScatVolumeIntegrator::scatter(std::vector<VolumeSample> &samples)
+// void MultiScatVolumeIntegrator::scatter(std::vector<VolumeSample>& samples)
 // {
 //     if(has_scatter)
 //         samples.push_back(sample);

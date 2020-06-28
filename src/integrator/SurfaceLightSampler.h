@@ -7,18 +7,27 @@
 class SurfaceLightSampler : public SurfaceSampler
 {
 public:
-    void pre_render(Resources& resources) override;
+    void pre_render(Resources& resources);
 
-    std::vector<SurfaceSample> integrate_surface(
+    struct SurfaceLightSamplerData : public SurfaceSamplerData
+    {
+        SurfaceLightSamplerData(Resources& resources) : light_data(resources.memory) {}
+        Array<const LightSamplerData *> light_data;
+    };
+    IntegratorData * pre_integrate(const Intersect * intersect, Resources& resources);
+
+    void scatter_surface(
+        Array<SurfaceSample>& samples,
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const Surface * surface, 
+        const Intersect * intersect, SurfaceSamplerData * data, 
         Interiors& interiors, Resources& resources) const;
 
     float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const Surface * surface, 
+        const Intersect * intersect, SurfaceSamplerData * data, 
         Resources& resources) const;
 
 private:
-    std::unordered_map<Geometry*, LightSampler*> lights;
+    std::vector<LightSampler*> lights;
+    std::unordered_map<Geometry*, uint> lights_map;
 };

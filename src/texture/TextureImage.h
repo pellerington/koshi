@@ -21,7 +21,7 @@ public:
         inv_resolution = VEC3F_ONES;
         auto in = OIIO::ImageInput::open(filename);
         if (!in) return;
-        const OIIO::ImageSpec &spec = in->spec();
+        const OIIO::ImageSpec& spec = in->spec();
         resolution.x = spec.width;
         resolution.y = spec.height;
         inv_resolution = 1.f / resolution;

@@ -4,13 +4,14 @@
 
 class SurfaceMaterialSampler : public SurfaceSampler
 {
-    std::vector<SurfaceSample> integrate_surface(
+    void scatter_surface(
+        Array<SurfaceSample>& samples,
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const Surface * surface, 
+        const Intersect * intersect, SurfaceSamplerData * data,
         Interiors& interiors, Resources& resources) const;
 
     float evaluate(const SurfaceSample& sample, 
         const MaterialInstance& material_instance,
-        const Intersect * intersect, const Surface * surface, 
+        const Intersect * intersect, SurfaceSamplerData * data,
         Resources& resources) const;
 };

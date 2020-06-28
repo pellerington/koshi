@@ -7,7 +7,7 @@
 class GeometryBox : public Geometry
 {
 public:
-    GeometryBox(const Transform3f &obj_to_world);
+    GeometryBox(const Transform3f& obj_to_world);
     
 private:
     static const Box3f bbox;

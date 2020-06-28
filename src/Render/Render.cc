@@ -71,7 +71,7 @@ void Render::start_render()
     std::cout << "Render Time: " << elapsed_seconds.count() << "\n";
 }
 
-void Render::render_worker(const uint id, const std::vector<Vec2i> &work)
+void Render::render_worker(const uint id, const std::vector<Vec2i>& work)
 {
     Resources resources;
     resources.settings = &settings;

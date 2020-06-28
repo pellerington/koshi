@@ -11,7 +11,7 @@ public:
 
     virtual void pre_render(Resources& resources) {}
 
-    void set_attribute(const std::string &attribute_name, Object * object)
+    void set_attribute(const std::string& attribute_name, Object * object)
     {
         if(!attributes)
             attributes = new std::unordered_map<std::string, Object *>();
@@ -19,7 +19,7 @@ public:
     }
 
     template<class T>
-    T * get_attribute(const std::string &attribute_name)
+    T * get_attribute(const std::string& attribute_name)
     {
         if(!attributes)
             return nullptr;

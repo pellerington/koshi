@@ -16,53 +16,53 @@ public:
     };
 
     Vec3f() : data(_mm_setzero_ps()) {}
-    Vec3f(const float &x, const float &y, const float &z, const float &t = 0.f) : data(_mm_setr_ps(x, y, z, t)) {}
-    Vec3f(const float &n) : data(_mm_setr_ps(n, n, n, 0.f)) {}
-    Vec3f(const __m128 &data) : data(data) {}
+    Vec3f(const float& x, const float& y, const float& z, const float& t = 0.f) : data(_mm_setr_ps(x, y, z, t)) {}
+    Vec3f(const float& n) : data(_mm_setr_ps(n, n, n, 0.f)) {}
+    Vec3f(const __m128& data) : data(data) {}
 
     inline float& operator[](const int i) { return data[i]; }
     inline const float& operator[](const int i) const { return data[i]; }
 
     // Assignement
     inline Vec3f& operator= (const Vec3f& other) { data = other.data; return *this; }
-    inline Vec3f& operator= (const float &n) { data = _mm_setr_ps(n, n, n, 0.f); return *this; }
+    inline Vec3f& operator= (const float& n) { data = _mm_setr_ps(n, n, n, 0.f); return *this; }
 
     // Negate
     inline Vec3f operator-() const { return Vec3f(_mm_sub_ps(_mm_setzero_ps(), data)); }
 
     // Addition
-    inline Vec3f& operator+= (const Vec3f &other) { data = _mm_add_ps(data, other.data); return *this; }
-    inline Vec3f operator+ (const Vec3f &other) const { return Vec3f(_mm_add_ps(data, other.data)); }
-    inline Vec3f& operator+= (const float &n) { data = _mm_add_ps(data, _mm_set_ps1(n)); return *this; }
-    inline Vec3f operator+ (const float &n) const { return Vec3f(_mm_add_ps(data, _mm_set_ps1(n))); }
-    friend inline Vec3f operator+ (const float &n, const Vec3f &other) { return Vec3f(_mm_add_ps(other.data, _mm_set_ps1(n))); }
+    inline Vec3f& operator+= (const Vec3f& other) { data = _mm_add_ps(data, other.data); return *this; }
+    inline Vec3f operator+ (const Vec3f& other) const { return Vec3f(_mm_add_ps(data, other.data)); }
+    inline Vec3f& operator+= (const float& n) { data = _mm_add_ps(data, _mm_set_ps1(n)); return *this; }
+    inline Vec3f operator+ (const float& n) const { return Vec3f(_mm_add_ps(data, _mm_set_ps1(n))); }
+    friend inline Vec3f operator+ (const float& n, const Vec3f& other) { return Vec3f(_mm_add_ps(other.data, _mm_set_ps1(n))); }
 
     // Multiply
-    inline Vec3f& operator*= (const Vec3f &other) { data = _mm_mul_ps(data, other.data); return *this; }
-    inline Vec3f operator* (const Vec3f &other) const { return Vec3f(_mm_mul_ps(data, other.data)); }
-    inline Vec3f& operator*= (const float &n) { data = _mm_mul_ps(data, _mm_set_ps1(n)); return *this; }
-    inline Vec3f operator* (const float &n) const { return Vec3f(_mm_mul_ps(data, _mm_set_ps1(n))); }
-    friend inline Vec3f operator* (const float &n, const Vec3f &other) { return Vec3f(_mm_mul_ps(other.data, _mm_set_ps1(n))); }
+    inline Vec3f& operator*= (const Vec3f& other) { data = _mm_mul_ps(data, other.data); return *this; }
+    inline Vec3f operator* (const Vec3f& other) const { return Vec3f(_mm_mul_ps(data, other.data)); }
+    inline Vec3f& operator*= (const float& n) { data = _mm_mul_ps(data, _mm_set_ps1(n)); return *this; }
+    inline Vec3f operator* (const float& n) const { return Vec3f(_mm_mul_ps(data, _mm_set_ps1(n))); }
+    friend inline Vec3f operator* (const float& n, const Vec3f& other) { return Vec3f(_mm_mul_ps(other.data, _mm_set_ps1(n))); }
 
     // Subtract
-    inline Vec3f& operator-= (const Vec3f &other) { data = _mm_sub_ps(data, other.data); return *this; }
-    inline Vec3f operator- (const Vec3f &other) const { return Vec3f(_mm_sub_ps(data, other.data)); }
-    inline Vec3f& operator-= (const float &n) { data = _mm_sub_ps(data, _mm_set_ps1(n)); return *this; }
-    inline Vec3f operator- (const float &n) const { return Vec3f(_mm_sub_ps(data, _mm_set_ps1(n))); }
-    friend inline Vec3f operator- (const float &n, const Vec3f &other) { return Vec3f(_mm_sub_ps(_mm_set_ps1(n), other.data)); }
+    inline Vec3f& operator-= (const Vec3f& other) { data = _mm_sub_ps(data, other.data); return *this; }
+    inline Vec3f operator- (const Vec3f& other) const { return Vec3f(_mm_sub_ps(data, other.data)); }
+    inline Vec3f& operator-= (const float& n) { data = _mm_sub_ps(data, _mm_set_ps1(n)); return *this; }
+    inline Vec3f operator- (const float& n) const { return Vec3f(_mm_sub_ps(data, _mm_set_ps1(n))); }
+    friend inline Vec3f operator- (const float& n, const Vec3f& other) { return Vec3f(_mm_sub_ps(_mm_set_ps1(n), other.data)); }
 
     // Divide
-    inline Vec3f& operator/= (const Vec3f &other) { data = _mm_div_ps(data, other.data); return *this; }
-    inline Vec3f operator/ (const Vec3f &other) const { return Vec3f(_mm_div_ps(data, other.data)); }
-    inline Vec3f& operator/= (const float &n) { data = _mm_div_ps(data, _mm_set_ps1(n)); return *this; }
-    inline Vec3f operator/ (const float &n) const { return Vec3f(_mm_div_ps(data, _mm_set_ps1(n))); }
-    friend inline Vec3f operator/ (const float &n, const Vec3f &other) { return Vec3f(_mm_div_ps(_mm_set_ps1(n), other.data)); }
+    inline Vec3f& operator/= (const Vec3f& other) { data = _mm_div_ps(data, other.data); return *this; }
+    inline Vec3f operator/ (const Vec3f& other) const { return Vec3f(_mm_div_ps(data, other.data)); }
+    inline Vec3f& operator/= (const float& n) { data = _mm_div_ps(data, _mm_set_ps1(n)); return *this; }
+    inline Vec3f operator/ (const float& n) const { return Vec3f(_mm_div_ps(data, _mm_set_ps1(n))); }
+    friend inline Vec3f operator/ (const float& n, const Vec3f& other) { return Vec3f(_mm_div_ps(_mm_set_ps1(n), other.data)); }
 
-    inline bool operator== (const Vec3f &v) const { return x == v.x && y == v.y && z == v.z; }
+    inline bool operator== (const Vec3f& v) const { return x == v.x && y == v.y && z == v.z; }
 
-    inline bool operator< (const float &n) const { return x < n && y < n && z < n; }
-    inline bool operator> (const float &n) const { return x > n && y > n && z > n; }
-    inline bool operator>= (const float &n) const { return x >= n && y >= n && z >= n; }
+    inline bool operator< (const float& n) const { return x < n && y < n && z < n; }
+    inline bool operator> (const float& n) const { return x > n && y > n && z > n; }
+    inline bool operator>= (const float& n) const { return x >= n && y >= n && z >= n; }
 
     inline bool null() const { return x == 0.f && y == 0.f && z == 0.f; }
     inline bool operator!() const { return x == 0.f && y == 0.f && z == 0.f; }
@@ -103,16 +103,16 @@ public:
         return v.normalized();
     }
 
-    inline static Vec3f clamp(const Vec3f &_v, const float min, const float max) {
+    inline static Vec3f clamp(const Vec3f& _v, const float min, const float max) {
         Vec3f v = _v; v.min(max); v.max(min); return v;
     }
 
-    inline static Vec3f min(const Vec3f &v0, const Vec3f &v1) { return Vec3f(_mm_min_ps(v0.data, v1.data)); }
-    inline void min(const Vec3f &other) { data = _mm_min_ps(data, other.data); }
+    inline static Vec3f min(const Vec3f& v0, const Vec3f& v1) { return Vec3f(_mm_min_ps(v0.data, v1.data)); }
+    inline void min(const Vec3f& other) { data = _mm_min_ps(data, other.data); }
     inline float min() const { return (x < y && x < z) ? x : ((y < z) ? y : z); }
 
-    inline static Vec3f max(const Vec3f &v0, const Vec3f &v1) { return Vec3f(_mm_max_ps(v0.data, v1.data)); }
-    inline void max(const Vec3f &other) { data = _mm_max_ps(data, other.data); }
+    inline static Vec3f max(const Vec3f& v0, const Vec3f& v1) { return Vec3f(_mm_max_ps(v0.data, v1.data)); }
+    inline void max(const Vec3f& other) { data = _mm_max_ps(data, other.data); }
     inline float max() const { return (x > y && x > z) ? x : ((y > z) ? y : z); }
 
     inline float avg() const { return (x + y + z) * 0.333333333f; }
@@ -120,7 +120,7 @@ public:
     inline void abs() { x = fabs(x); y = fabs(y); z = fabs(z); }
 
     // This is an approximation, switch to actual std::exp?
-    inline static Vec3f exp(const Vec3f &v) {
+    inline static Vec3f exp(const Vec3f& v) {
         Vec3f x(v);
         x = 1.f + x / 256.f;
         x *= x; x *= x; x *= x; x *= x;
@@ -128,14 +128,14 @@ public:
         return x;
     }
 
-    inline static Vec3f log(const Vec3f &v) {
+    inline static Vec3f log(const Vec3f& v) {
         return Vec3f(logf(v.x), logf(v.y), logf(v.z));
     }
 
     inline void floor() {
         x = std::floor(x); y = std::floor(y); z = std::floor(z);
     }
-    inline static Vec3f floor(const Vec3f &v) {
+    inline static Vec3f floor(const Vec3f& v) {
         return Vec3f(std::floor(v.x), std::floor(v.y), std::floor(v.z));
     }
 

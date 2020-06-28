@@ -23,7 +23,7 @@ class MaterialGGXRefract : public Material
 {
 public:
     MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, const float& ior, const float& color_depth, const Texture * normal_texture);
-    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources &resources);
+    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources);
 
 private:
     const Texture * color_texture;

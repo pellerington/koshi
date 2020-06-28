@@ -11,7 +11,7 @@ class Light : public Object
 public:
     Light(const Texture * intensity) : intensity(intensity) {}
 
-    Vec3f get_intensity(const float& u, const float& v, const float& w, const Intersect * intersect, Resources &resources)
+    Vec3f get_intensity(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources)
     {
         return intensity->evaluate<Vec3f>(u, v, w, intersect, resources);
     }
