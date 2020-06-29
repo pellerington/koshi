@@ -48,6 +48,9 @@ void Render::start_render()
     // Start Rendering
     const auto start = std::chrono::system_clock::now();
 
+    pass_resolution = std::vector<uint>(settings.num_threads, 1);
+    preview = true;
+
     std::thread workers[settings.num_threads];
     for(uint i = 0; i < settings.num_threads; i++)
         workers[i] = std::thread(&Render::render_worker, this, i);
@@ -101,11 +104,11 @@ void Render::render_worker(const uint& id)
         uint index = 1;
         for(uint curr_resolution = 1; curr_resolution < max_resolution; curr_resolution *= 2)
         {
+            uint m = max_resolution / (curr_resolution * 2);
             for(uint xr = 0; xr < curr_resolution && xr*max_resolution/curr_resolution < resolution.x; xr++)
             {
                 for(uint yr = 0; yr < curr_resolution && yr*max_resolution/curr_resolution < resolution.y; yr++)
                 {
-                    uint m = max_resolution / (curr_resolution * 2);
                     uint xi = 1, yi = 0;
                     for(uint i = 0; i < 3; i++)
                     {
@@ -113,31 +116,36 @@ void Render::render_worker(const uint& id)
                         uint x = (xr*2 + xi) * m, y = (yr*2 + yi) * m;
                         if(index % settings.num_threads == id)
                             render_pixel_sample(x, y);
-
                         yi = !yi ? 1 : 1;
                         xi = !xi ? 1 : 0;
                     }
                 }
             }
+
+            if(preview)
+            {
+                pass_resolution[id] = std::max(curr_resolution*2, pass_resolution[id]);
+                uint preview_resolution = pass_resolution[0];
+                for(uint i = 0; i < pass_resolution.size(); i++)
+                    preview_resolution = std::min(preview_resolution, pass_resolution[i]);
+                preview = (preview_resolution < max_resolution);
+            }
+
         }
     }
 }
 
 Vec3f Render::get_pixel_color(const uint& x, const uint& y) const
 {
-    if(pixels[x][y]->current_sample == 0)
+    uint xi = x, yi = y;
+    if(preview)
     {
         uint max_resolution = pow(2, ceil(log2(resolution.max())));
-        for(uint curr_resolution = max_resolution / 2; curr_resolution > 0; curr_resolution /= 2)
-        {
-            uint m = (max_resolution / curr_resolution);
-            uint xi = m * (x / m), yi = m * (y / m);
-            if(pixels[xi][yi]->current_sample > 0)
-                return pixels[xi][yi]->color / (float)pixels[xi][yi]->current_sample;
-        }
-
-        return VEC3F_ZERO;
+        uint min_resolution = max_resolution;
+        for(uint i = 0; i < pass_resolution.size(); i++)
+            min_resolution = std::min(min_resolution, pass_resolution[i]);
+        uint m = (max_resolution / min_resolution);
+        xi = m * (x / m), yi = m * (y / m);
     }
-
-    return pixels[x][y]->color / (float)pixels[x][y]->current_sample;
+    return (!pixels[xi][yi]->current_sample) ? VEC3F_ZERO : pixels[xi][yi]->color / (float)pixels[xi][yi]->current_sample;
 }

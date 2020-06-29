@@ -43,4 +43,7 @@ private:
     const Vec2u resolution;
     Pixel *** pixels; // <- Needs to be freed when renderer is killed.
     bool kill_render = false;
+
+    std::vector<uint> pass_resolution;
+    bool preview;
 };
