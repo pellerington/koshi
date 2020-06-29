@@ -11,8 +11,6 @@
 #include <integrator/Integrator.h>
 #include <embree/EmbreeIntersector.h>
 
-#define NEAREST_NEIGHBOUR
-
 Render::Render(Scene& scene, Settings& settings)
 : scene(scene), camera(scene.get_camera()), settings(settings), resolution(camera->get_image_resolution())
 {
@@ -35,7 +33,6 @@ void Render::start_render()
 {
     RandomService random_service;
 
-    // Pre Render: Make multithreaded or on demand.
     Resources resources;
     resources.thread_id = 0;
     resources.settings = &settings;
@@ -49,19 +46,11 @@ void Render::start_render()
     intersector = new EmbreeIntersector(&scene);
 
     // Start Rendering
-
     const auto start = std::chrono::system_clock::now();
-
-    std::vector<Vec2i> work;
-    work.reserve(resolution.x * resolution.y);
-    for(size_t x = 0; x < resolution.x; x++)
-        for(size_t y = 0; y < resolution.y; y++)
-            work.push_back(Vec2i(x,y));
-    random_service.shuffle<Vec2i>(work);
 
     std::thread workers[settings.num_threads];
     for(uint i = 0; i < settings.num_threads; i++)
-        workers[i] = std::thread(&Render::render_worker, this, i, work);
+        workers[i] = std::thread(&Render::render_worker, this, i);
 
     for(uint i = 0; i < settings.num_threads; i++)
         workers[i].join();
@@ -71,7 +60,7 @@ void Render::start_render()
     std::cout << "Render Time: " << elapsed_seconds.count() << "\n";
 }
 
-void Render::render_worker(const uint id, const std::vector<Vec2i>& work)
+void Render::render_worker(const uint& id)
 {
     Resources resources;
     resources.settings = &settings;
@@ -79,30 +68,56 @@ void Render::render_worker(const uint id, const std::vector<Vec2i>& work)
     resources.intersector = intersector;
     resources.memory = new Memory;
 
-    bool completed = false;
-    while(!completed && !kill_signal)
+    bool rendered = false;
+
+    auto render_pixel_sample = [&](const uint& x, const uint& y)
     {
-        completed = true;
-        for(size_t i = id * (work.size() / settings.num_threads); i < (id + 1) * (work.size() / settings.num_threads) && !kill_signal; i++)
+        if(pixels[x][y]->current_sample < pixels[x][y]->required_samples)
         {
-            const int &x = work[i][0], &y = work[i][1];
-            if(pixels[x][y]->current_sample < pixels[x][y]->required_samples)
+            Ray ray = camera->sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.rand());
+            RandomService random_service(pixels[x][y]->seed());
+            resources.random_service = &random_service;
+
+            PathData path;
+            path.depth = 0;
+            path.quality = 1.f;
+            path.prev_path = nullptr;
+
+            IntersectList * intersects = intersector->intersect(ray, &path, resources);
+            pixels[x][y]->color += Integrator::shade(intersects, resources);
+            pixels[x][y]->current_sample++;
+
+            resources.memory->clear();
+            rendered = false;
+        }
+    };
+
+    uint max_resolution = pow(2, ceil(log2(resolution.max())));
+
+    while(!rendered && !kill_render)
+    {
+        rendered = true;
+        if(id == 0) render_pixel_sample(0, 0);
+        uint index = 1;
+        for(uint curr_resolution = 1; curr_resolution < max_resolution; curr_resolution *= 2)
+        {
+            for(uint xr = 0; xr < curr_resolution && xr*max_resolution/curr_resolution < resolution.x; xr++)
             {
-                Ray ray = camera->sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.rand());
-                RandomService random_service(pixels[x][y]->seed());
-                resources.random_service = &random_service;
+                for(uint yr = 0; yr < curr_resolution && yr*max_resolution/curr_resolution < resolution.y; yr++)
+                {
+                    uint m = max_resolution / (curr_resolution * 2);
+                    uint xi = 1, yi = 0;
+                    for(uint i = 0; i < 3; i++)
+                    {
+                        index++;
+                        uint x = (xr*2 + xi) * m, y = (yr*2 + yi) * m;
+                        if(index % settings.num_threads == id)
+                            render_pixel_sample(x, y);
 
-                PathData path; // CAMERA Path data.
-                path.depth = 0;
-                path.quality = 1.f;
-                path.prev_path = nullptr;
-
-                IntersectList * intersects = intersector->intersect(ray, &path, resources);
-                pixels[x][y]->color += Integrator::shade(intersects, resources);
-                pixels[x][y]->current_sample++;
-
-                resources.memory->clear();
-                completed = false;
+                        yi = !yi ? 1 : 1;
+                        xi = !xi ? 1 : 0;
+                    }
+                }
             }
         }
     }
@@ -112,27 +127,15 @@ Vec3f Render::get_pixel_color(const uint& x, const uint& y) const
 {
     if(pixels[x][y]->current_sample == 0)
     {
-#ifdef NEAREST_NEIGHBOUR
-        const int xstr = x, ystr = y;
-        const int radmax = std::max(resolution.x, resolution.y);
-        const int xmax = (int)resolution.x, ymax = (int)resolution.y;
-        uint total = 0;
-        int rad = 1;
-        Vec3f color;
-        while(!total && rad < radmax)
+        uint max_resolution = pow(2, ceil(log2(resolution.max())));
+        for(uint curr_resolution = max_resolution / 2; curr_resolution > 0; curr_resolution /= 2)
         {
-            for(int ys = std::max(ystr - rad, 0); ys < ystr + rad && ys < ymax; ys++)
-                for(int xs = std::max(xstr - rad, 0); xs < xstr + rad && xs < xmax; (ys > ystr-rad && ys < ystr+rad-1) ? xs += rad-1 : xs++)
-                    if(pixels[xs][ys]->current_sample > 0)
-                    {
-                        total++;
-                        color += pixels[xs][ys]->color / (float)pixels[xs][ys]->current_sample;
-                    }
-            rad++;
+            uint m = (max_resolution / curr_resolution);
+            uint xi = m * (x / m), yi = m * (y / m);
+            if(pixels[xi][yi]->current_sample > 0)
+                return pixels[xi][yi]->color / (float)pixels[xi][yi]->current_sample;
         }
-        if(total > 0)
-            return color / total;
-#endif
+
         return VEC3F_ZERO;
     }
 

@@ -52,6 +52,9 @@ public:
     inline Vec2 operator/ (const T& n) const { return Vec2(x/n, y/n); }
     friend inline Vec2 operator/ (const T& n, const Vec2& other) { return Vec2(n/other.x, n/other.y); }
 
+    // Max
+    inline T max() const { return (x > y) ? x : y; }
+
     friend std::ostream& operator<<(std::ostream& os, const Vec2& v)
     {
         os << "(" << v.x << " " << v.y << ")";

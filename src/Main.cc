@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     {
         std::thread view_thread(SFMLViewer::RenderWindow, 1024, &render);
         view_thread.join();
-        render.kill_render();
+        render.kill();
     }
 
     render_thread.join();
