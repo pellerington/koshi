@@ -25,7 +25,7 @@ Render::Render(Scene& scene, Settings& settings)
     {
         pixels[x] = (Pixel **)malloc(resolution.y * sizeof(Pixel*));
         for(uint y = 0; y < resolution.y; y++)
-            pixels[x][y] = new Pixel(x, y, camera->get_pixel_samples(Vec2u(x, y)), seed_generator(), random_service.get_random_2D());
+            pixels[x][y] = new Pixel(x, y, seed_generator(), random_service.get_random_2D());
     }
 }
 
@@ -75,9 +75,10 @@ void Render::render_worker(const uint& id)
 
     auto render_pixel_sample = [&](const uint& x, const uint& y)
     {
-        if(pixels[x][y]->current_sample < pixels[x][y]->required_samples)
+        if(pixels[x][y]->samples < settings.max_samples_per_pixel 
+        && (pixels[x][y]->variance > 0.05f*0.05f || pixels[x][y]->samples < settings.min_samples_per_pixel))
         {
-            Ray ray = camera->sample_pixel(pixels[x][y]->pixel, pixels[x][y]->rng.rand());
+            Ray ray = camera->sample_pixel(Vec2u(x, y), pixels[x][y]->rng.rand());
             RandomService random_service(pixels[x][y]->seed());
             resources.random_service = &random_service;
 
@@ -87,8 +88,13 @@ void Render::render_worker(const uint& id)
             path.prev_path = nullptr;
 
             IntersectList * intersects = intersector->intersect(ray, &path, resources);
-            pixels[x][y]->color += Integrator::shade(intersects, resources);
-            pixels[x][y]->current_sample++;
+            const Vec3f color = Integrator::shade(intersects, resources);
+
+            pixels[x][y]->color += color;
+            pixels[x][y]->samples++;
+
+            pixels[x][y]->color_sqr += color*color;
+            pixels[x][y]->variance = ((pixels[x][y]->color_sqr - ((pixels[x][y]->color * pixels[x][y]->color) / pixels[x][y]->samples)) / (pixels[x][y]->samples - 1.f)).max();
 
             resources.memory->clear();
             rendered = false;
@@ -105,19 +111,21 @@ void Render::render_worker(const uint& id)
         for(uint curr_resolution = 1; curr_resolution < max_resolution; curr_resolution *= 2)
         {
             uint m = max_resolution / (curr_resolution * 2);
-            for(uint xr = 0; xr < curr_resolution && xr*max_resolution/curr_resolution < resolution.x; xr++)
+            for(uint yr = 0; yr < curr_resolution && yr*max_resolution/curr_resolution < resolution.y; yr++)
             {
-                for(uint yr = 0; yr < curr_resolution && yr*max_resolution/curr_resolution < resolution.y; yr++)
+                for(uint xr = 0; xr < curr_resolution && xr*max_resolution/curr_resolution < resolution.x; xr++)
                 {
-                    uint xi = 1, yi = 0;
-                    for(uint i = 0; i < 3; i++)
                     {
-                        index++;
-                        uint x = (xr*2 + xi) * m, y = (yr*2 + yi) * m;
-                        if(index % settings.num_threads == id)
-                            render_pixel_sample(x, y);
-                        yi = !yi ? 1 : 1;
-                        xi = !xi ? 1 : 0;
+                        uint xi = 1, yi = 0;
+                        for(uint i = 0; i < 3; i++)
+                        {
+                            index++;
+                            uint x = (xr*2 + xi) * m, y = (yr*2 + yi) * m;
+                            if(index % settings.num_threads == id)
+                                render_pixel_sample(x, y);
+                            yi = !yi ? 1 : 1;
+                            xi = !xi ? 1 : 0;
+                        }
                     }
                 }
             }
@@ -130,7 +138,6 @@ void Render::render_worker(const uint& id)
                     preview_resolution = std::min(preview_resolution, pass_resolution[i]);
                 preview = (preview_resolution < max_resolution);
             }
-
         }
     }
 }
@@ -147,5 +154,5 @@ Vec3f Render::get_pixel_color(const uint& x, const uint& y) const
         uint m = (max_resolution / min_resolution);
         xi = m * (x / m), yi = m * (y / m);
     }
-    return (!pixels[xi][yi]->current_sample) ? VEC3F_ZERO : pixels[xi][yi]->color / (float)pixels[xi][yi]->current_sample;
+    return (!pixels[xi][yi]->samples) ? VEC3F_ZERO : pixels[xi][yi]->color / pixels[xi][yi]->samples;
 }

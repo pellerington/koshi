@@ -44,20 +44,20 @@ void SceneFile::Import(const std::string& filename, Scene& scene, /*Render*/Sett
         settings.sampling_quality = accessor.get_float("sampling_quality");
         settings.depth = accessor.get_uint("depth", 2);
         settings.max_depth = accessor.get_uint("max_depth", 32);
+        settings.max_samples_per_pixel = accessor.get_uint("max_samples_per_pixel", 64);
+        settings.min_samples_per_pixel = accessor.get_uint("min_samples_per_pixel", 4);
         scene_file.erase("settings");
     }
 
     // TODO: Make camera customizable. And use the same interface as an object.
     // ALSO: Make the camera name get set somewhere else and scene.get_camera("name");
     Vec2u resolution(1);
-    uint samples_per_pixel = 0;
     float focal_length = 1.f;
     Transform3f camera_transform;
     if(!scene_file["camera"].is_null())
     {
         AttributeAccessor accessor("camera", scene_file["camera"], scene_file, scene, this);
         resolution = accessor.get_vec2u("resolution");
-        samples_per_pixel = accessor.get_uint("samples_per_pixel", 1);
         focal_length = accessor.get_float("focal_length", 1.f);
 
         const float scale = accessor.get_float("scale", 1.f);
@@ -70,7 +70,7 @@ void SceneFile::Import(const std::string& filename, Scene& scene, /*Render*/Sett
         camera_transform = camera_transform * Transform3f::scale(Vec3f(scale, scale, 1.f));
         scene_file.erase("camera");
     }
-    scene.set_camera(new Camera(camera_transform, resolution, samples_per_pixel, focal_length));
+    scene.set_camera(new Camera(camera_transform, resolution, focal_length));
 
     for (auto it = scene_file.begin(); it != scene_file.end(); ++it)
     {

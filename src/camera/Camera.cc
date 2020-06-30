@@ -2,9 +2,10 @@
 
 #include <iostream>
 
-Camera::Camera(const Transform3f& transform, const Vec2u& resolution, const uint& samples_per_pixel, const float& focal_length)
-: transform(transform), origin(transform * Vec3f(0.f, 0.f, 0.f, 1.f)), resolution(resolution), samples_per_pixel(samples_per_pixel)
-, aspect_ratio((float) resolution.x / resolution.y), focal_length(focal_length), pixel_delta(-1.f / resolution.x * aspect_ratio, -1.f / resolution.y, 0)
+Camera::Camera(const Transform3f& transform, const Vec2u& resolution,const float& focal_length)
+: transform(transform), origin(transform * Vec3f(0.f, 0.f, 0.f, 1.f)), resolution(resolution), 
+  aspect_ratio((float) resolution.x / resolution.y), focal_length(focal_length), 
+  pixel_delta(-1.f / resolution.x * aspect_ratio, -1.f / resolution.y, 0)
 {
 }
 

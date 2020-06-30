@@ -11,15 +11,16 @@
 
 struct Pixel
 {
-    Pixel(const uint x, const uint y, const uint required_samples, const uint seed, const Random2D& rng)
-    : pixel(x, y), color(VEC3F_ZERO), required_samples(required_samples), current_sample(0), seed(seed), rng(rng)
+    Pixel(const uint x, const uint y, const uint seed, const Random2D& rng)
+    : color(VEC3F_ZERO), color_sqr(VEC3F_ZERO), samples(0.f), variance(0.f), seed(seed), rng(rng)
     {
     }
 
-    Vec2u pixel;
     Vec3f color;
-    uint required_samples;
-    uint current_sample;
+    Vec3f color_sqr;    
+    float samples;
+    float variance;
+
     std::mt19937 seed;
     Random2D rng;
 };
