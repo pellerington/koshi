@@ -7,6 +7,7 @@
 
 #include <Util/Color.h>
 #include <Util/Memory.h>
+#include <Math/Helpers.h>
 
 #include <integrator/Integrator.h>
 #include <embree/EmbreeIntersector.h>
@@ -75,8 +76,9 @@ void Render::render_worker(const uint& id)
 
     auto render_pixel_sample = [&](const uint& x, const uint& y)
     {
-        if(pixels[x][y]->samples < settings.max_samples_per_pixel 
-        && (pixels[x][y]->variance > 0.05f*0.05f || pixels[x][y]->samples < settings.min_samples_per_pixel))
+        if (pixels[x][y]->samples < settings.max_samples_per_pixel 
+        && (pixels[x][y]->samples < settings.min_samples_per_pixel 
+        ||  pixels[x][y]->variance > 0.05f*0.05f))
         {
             Ray ray = camera->sample_pixel(Vec2u(x, y), pixels[x][y]->rng.rand());
             RandomService random_service(pixels[x][y]->seed());
@@ -94,7 +96,7 @@ void Render::render_worker(const uint& id)
             pixels[x][y]->samples++;
 
             pixels[x][y]->color_sqr += color*color;
-            pixels[x][y]->variance = ((pixels[x][y]->color_sqr - ((pixels[x][y]->color * pixels[x][y]->color) / pixels[x][y]->samples)) / (pixels[x][y]->samples - 1.f)).max();
+            pixels[x][y]->variance = variance(pixels[x][y]->color, pixels[x][y]->color_sqr, pixels[x][y]->samples);
 
             resources.memory->clear();
             rendered = false;

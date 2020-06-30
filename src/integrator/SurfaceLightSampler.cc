@@ -1,6 +1,7 @@
 #include <integrator/SurfaceLightSampler.h>
 #include <base/Scene.h>
 #include <intersection/Intersector.h>
+#include <Math/Helpers.h>
 
 void SurfaceLightSampler::pre_render(Resources& resources)
 {
@@ -38,9 +39,8 @@ void SurfaceLightSampler::scatter_surface(
 {
     SurfaceLightSamplerData * sampler_data = (SurfaceLightSamplerData *)data;
     const Surface * surface = data->surface;
-    const PathData * prev_path = intersect->path;
-    const uint depth = prev_path ? prev_path->depth : 0;
-    const float quality = prev_path ? prev_path->quality : 1.f;
+    const uint depth = intersect->path ? intersect->path->depth : 0;
+    const float quality = intersect->path ? intersect->path->quality : 1.f;
 
     Interiors transmit_interiors = interiors.pop(intersect->geometry);
 
@@ -51,17 +51,21 @@ void SurfaceLightSampler::scatter_surface(
         if(!light_sampler_data)
             light_sampler_data = sampler_data->light_data[l] = light_sampler->pre_integrate(surface, resources);
 
-        // TODO: Replace num_samples estimator with adaptive sampling.
         LightSampler::LightType light_type = light_sampler->get_light_type();
-        uint num_samples = (light_type == LightSampler::POINT) ? 1u : std::max(1.f, SAMPLES_PER_SA * quality * resources.settings->sampling_quality);
-        const float inv_num_samples = 1.f / (float)num_samples;
+        float num_samples = 0;
+        const float min_num_samples = 4;
+        const float max_num_samples = (light_type == LightSampler::POINT) ? 1.f : std::max(1.f, SAMPLES_PER_SA * quality * resources.settings->sampling_quality);
+        Vec3f variance_sum = VEC3F_ZERO, variance_sum_sqr = VEC3F_ZERO;
+        const uint samples_begin = samples.size();
 
-        for(uint i = 0; i < num_samples; i++)
+        while(num_samples < max_num_samples && (num_samples < min_num_samples || variance(variance_sum, variance_sum_sqr, num_samples) > 0.05f*0.05f))
         {
+            num_samples++;
+
             PathData next_path;
             next_path.depth = depth + 1;
             next_path.quality = quality / num_samples;
-            next_path.prev_path = prev_path;
+            next_path.prev_path = intersect->path;
 
             LightSample light_sample;
             if(!light_sampler->sample(light_sample, light_sampler_data, resources))
@@ -93,9 +97,17 @@ void SurfaceLightSampler::scatter_surface(
             Vec3f shadow = transmittance.shadow(ray.tmax, resources);
 
             sample.li = shadow * light_sample.intensity;
-            sample.weight = weight * inv_num_samples;
+            sample.weight = weight;
             sample.pdf = light_sample.pdf;
+
+            Vec3f color = (sample.li * sample.weight) / sample.pdf;
+            variance_sum += color;
+            variance_sum_sqr += color*color;
         }
+
+        float inv_num_samples = 1.f / num_samples;
+        for(uint i = samples_begin; i < samples.size(); i++)
+            samples[i].weight *= inv_num_samples;
     }
 }
 
