@@ -4,7 +4,7 @@
 #include <material/MaterialGGXRefract.h>
 #include <integrator/AbsorbtionMedium.h>
 
-#include <Math/Helpers.h>
+#include <math/Helpers.h>
 #include <Util/Color.h>
 #include <cmath>
 #include <iostream>
@@ -28,7 +28,7 @@ MaterialInstance MaterialDielectric::instance(const Surface * surface, const Int
     MaterialInstance instance(resources.memory);
 
     MaterialLobeGGXRefract * refract_lobe = resources.memory->create<MaterialLobeGGXRefract>();
-    refract_lobe->rng = resources.random_service->get_random_2D();
+    refract_lobe->rng = resources.random_service->get_random<2>();
     
     refract_lobe->surface = surface;
     refract_lobe->wi = intersect->ray.dir;
@@ -50,7 +50,7 @@ MaterialInstance MaterialDielectric::instance(const Surface * surface, const Int
     }
 
     MaterialLobeGGXReflect * reflect_lobe = resources.memory->create<MaterialLobeGGXReflect>();
-    reflect_lobe->rng = resources.random_service->get_random_2D();
+    reflect_lobe->rng = resources.random_service->get_random<2>();
    
     reflect_lobe->surface = surface;
     reflect_lobe->wi = intersect->ray.dir;

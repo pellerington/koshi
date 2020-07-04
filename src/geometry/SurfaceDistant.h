@@ -2,8 +2,8 @@
 
 #include <cfloat>
 #include <unordered_set>
-#include <Math/Types.h>
-#include <Math/Transform3f.h>
+#include <math/Types.h>
+#include <math/Transform3f.h>
 #include <geometry/GeometryData.h>
 
 struct SurfaceDistant : public GeometryData

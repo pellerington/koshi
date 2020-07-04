@@ -2,7 +2,7 @@
 
 #include <intersection/Intersect.h>
 #include <geometry/Geometry.h>
-#include <Math/Helpers.h>
+#include <math/Helpers.h>
 #include <Util/Color.h>
 #include <cmath>
 #include <iostream>
@@ -17,7 +17,7 @@ MaterialInstance MaterialGGXReflect::instance(const Surface * surface, const Int
     MaterialInstance instance(resources.memory);
     MaterialLobeGGXReflect * lobe = resources.memory->create<MaterialLobeGGXReflect>();
 
-    lobe->rng = resources.random_service->get_random_2D();
+    lobe->rng = resources.random_service->get_random<2>();
 
     lobe->surface = surface;
     lobe->wi = intersect->ray.dir;
@@ -37,7 +37,7 @@ MaterialInstance MaterialGGXReflect::instance(const Surface * surface, const Int
 
 bool MaterialLobeGGXReflect::sample(MaterialSample& sample, Resources& resources) const
 {
-    const Vec2f rnd = rng.rand();
+    const float * rnd = rng.rand();
 
     const float theta = TWO_PI * rnd[0];
     const float phi = atanf(roughness * sqrtf(rnd[1]) / sqrtf(1.f - rnd[1]));

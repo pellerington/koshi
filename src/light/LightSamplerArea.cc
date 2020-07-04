@@ -16,7 +16,7 @@ const LightSamplerData * LightSamplerArea::pre_integrate(const Surface * surface
 {
     LightSamplerDataArea * data = resources.memory->create<LightSamplerDataArea>();
     data->surface = surface;
-    data->rng = resources.random_service->get_random_2D();
+    data->rng = resources.random_service->get_random<2>();
     return data;
 }
 
@@ -26,7 +26,7 @@ bool LightSamplerArea::sample(LightSample& sample, const LightSamplerData * data
     const Surface * surface = light_data->surface;
     const Transform3f& obj_to_world = geometry->get_obj_to_world();
 
-    const Vec2f rnd = light_data->rng.rand();
+    const float * rnd = light_data->rng.rand();
     sample.position = obj_to_world * Vec3f(AREA_LENGTH*(rnd[0]-0.5f), AREA_LENGTH*(rnd[1]-0.5f), 0.f);
     const Vec3f dir = sample.position - surface->position;
     const float sqr_len = dir.sqr_length();

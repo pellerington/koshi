@@ -7,7 +7,7 @@
 
 #include <Util/Color.h>
 #include <Util/Memory.h>
-#include <Math/Helpers.h>
+#include <math/Helpers.h>
 
 #include <integrator/Integrator.h>
 #include <embree/EmbreeIntersector.h>
@@ -26,7 +26,7 @@ Render::Render(Scene& scene, Settings& settings)
     {
         pixels[x] = (Pixel **)malloc(resolution.y * sizeof(Pixel*));
         for(uint y = 0; y < resolution.y; y++)
-            pixels[x][y] = new Pixel(x, y, seed_generator(), random_service.get_random_2D());
+            pixels[x][y] = new Pixel(x, y, seed_generator(), random_service.get_random<2>());
     }
 }
 
@@ -80,7 +80,7 @@ void Render::render_worker(const uint& id)
         && (pixels[x][y]->samples < settings.min_samples_per_pixel 
         ||  pixels[x][y]->variance > 0.05f*0.05f))
         {
-            Ray ray = camera->sample_pixel(Vec2u(x, y), pixels[x][y]->rng.rand());
+            Ray ray = camera->sample_pixel(x, y, pixels[x][y]->rng.rand());
             RandomService random_service(pixels[x][y]->seed());
             resources.random_service = &random_service;
 

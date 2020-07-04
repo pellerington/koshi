@@ -1,10 +1,10 @@
 #pragma once
 
-#include <camera/Camera.h>
 #include <base/Object.h>
 
 #include <map>
 class Resources;
+class Camera;
 
 class Scene
 {

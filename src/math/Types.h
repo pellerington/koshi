@@ -1,9 +1,9 @@
 #pragma once
 
 #include <iostream>
-#include <Math/Vec3f.h>
-#include <Math/Vec2.h>
-#include <Math/Box3f.h>
+#include <math/Vec3f.h>
+#include <math/Vec2.h>
+#include <math/Box3f.h>
 
 #define HALF_PI 1.57079632679f
 #define PI 3.14159265359f

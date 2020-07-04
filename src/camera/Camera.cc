@@ -1,19 +1,20 @@
 #include <camera/Camera.h>
 
-#include <iostream>
-
 Camera::Camera(const Transform3f& transform, const Vec2u& resolution,const float& focal_length)
 : transform(transform), origin(transform * Vec3f(0.f, 0.f, 0.f, 1.f)), resolution(resolution), 
+  inv_resolution(Vec2f(1.f/resolution.x, 1.f/resolution.y)),
   aspect_ratio((float) resolution.x / resolution.y), focal_length(focal_length), 
-  pixel_delta(-1.f / resolution.x * aspect_ratio, -1.f / resolution.y, 0)
+  pixel_delta(-1.f / resolution.x * aspect_ratio, -1.f / resolution.y)
 {
+    delta_sampler = &GaussianFilterSampler::sample;
 }
 
-Ray Camera::sample_pixel(const Vec2u& pixel, const Vec2f& rng) const
+Ray Camera::sample_pixel(const uint& x, const uint& y, const float rng[2]) const
 {
-    // Set ray
-    Vec3f pixel_position(((float)(resolution.x - pixel.x) / resolution.x - 0.5f) * aspect_ratio, ((float)(resolution.y - pixel.y) / resolution.y - 0.5f), focal_length);
-    pixel_position = pixel_position + pixel_delta * Vec3f(rng.x, rng.y, 0.f);
-    pixel_position = transform * pixel_position;
-    return Ray(origin, (pixel_position - origin).normalized());
-}
+    Vec2f pixel_position = 0.5f - Vec2f(x, y) * inv_resolution;
+    pixel_position.x *= aspect_ratio;
+    pixel_position += pixel_delta * delta_sampler(rng);
+
+    Vec3f position = transform * Vec3f(pixel_position.x, pixel_position.y, focal_length);
+    return Ray(origin, (position - origin).normalized());
+}   

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <json.hpp>
 
-#include <Math/Types.h>
+#include <math/Types.h>
 #include <base/Scene.h>
 #include <base/Settings.h>
 #include <base/Object.h>

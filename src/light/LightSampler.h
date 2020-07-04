@@ -2,7 +2,7 @@
 
 #include <base/Object.h>
 #include <Util/Resources.h>
-#include <Math/Types.h>
+#include <math/Types.h>
 #include <vector>
 #include <intersection/Intersect.h>
 

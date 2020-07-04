@@ -21,7 +21,7 @@ public:
 
     struct LightSamplerDataSphereSolidAngle : public LightSamplerDataSphere
     {
-        Random2D rng;
+        Random<2> rng;
         Vec3f cd;
         float cd_len_sqr;
         float cd_len;

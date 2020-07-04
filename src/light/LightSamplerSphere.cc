@@ -37,7 +37,7 @@ const LightSamplerData * LightSamplerSphere::pre_integrate(const Surface * surfa
         LightSamplerDataSphereSolidAngle * data = resources.memory->create<LightSamplerDataSphereSolidAngle>();
         data->eval_type = LightSamplerDataSphere::SPHERE_SOLID_ANGLE;
         data->surface = surface;
-        data->rng = resources.random_service->get_random_2D();
+        data->rng = resources.random_service->get_random<2>();
 
         data->cd = center - surface->position;
         data->cd_len_sqr = data->cd.sqr_length();
@@ -75,7 +75,7 @@ float LightSamplerSphere::evaluate(const Intersect * intersect, const LightSampl
 
 bool LightSamplerSphere::sample_sphere_sa(LightSample& sample, const LightSamplerDataSphereSolidAngle * data, Resources& resources) const
 {
-    const Vec2f rnd = data->rng.rand();
+    const float * rnd = data->rng.rand();
 
     const float theta = TWO_PI * rnd[0];
     const float cos_phi = 1.f - rnd[1] + rnd[1] * data->cos_max;

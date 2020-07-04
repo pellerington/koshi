@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Math/Types.h>
+#include <math/Types.h>
 
 inline bool is_black(const Vec3f& color)
 {

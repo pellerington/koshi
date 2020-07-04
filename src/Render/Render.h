@@ -3,15 +3,16 @@
 #include <vector>
 #include <iostream>
 
-#include <Math/Types.h>
+#include <math/Types.h>
 #include <base/Scene.h>
 #include <intersection/Intersector.h>
 #include <base/Settings.h>
-#include <Math/Random.h>
+#include <math/Random.h>
+#include <camera/Camera.h>
 
 struct Pixel
 {
-    Pixel(const uint x, const uint y, const uint seed, const Random2D& rng)
+    Pixel(const uint x, const uint y, const uint seed, const Random<2>& rng)
     : color(VEC3F_ZERO), color_sqr(VEC3F_ZERO), samples(0.f), variance(0.f), seed(seed), rng(rng)
     {
     }
@@ -22,7 +23,7 @@ struct Pixel
     float variance;
 
     std::mt19937 seed;
-    Random2D rng;
+    Random<2> rng;
 };
 
 class Render

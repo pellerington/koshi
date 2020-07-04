@@ -1,6 +1,6 @@
 #include <material/MaterialGGXRefract.h>
 
-#include <Math/Helpers.h>
+#include <math/Helpers.h>
 #include <Util/Color.h>
 #include <cmath>
 #include <iostream>
@@ -16,7 +16,7 @@ MaterialInstance MaterialGGXRefract::instance(const Surface * surface, const Int
     MaterialInstance instance(resources.memory);
     MaterialLobeGGXRefract * lobe = resources.memory->create<MaterialLobeGGXRefract>();
 
-    lobe->rng = resources.random_service->get_random_2D();
+    lobe->rng = resources.random_service->get_random<2>();
 
     lobe->surface = surface;
     lobe->wi = intersect->ray.dir;
@@ -24,7 +24,7 @@ MaterialInstance MaterialGGXRefract::instance(const Surface * surface, const Int
     lobe->normal = surface->facing ? lobe->normal : -lobe->normal;
     lobe->transform = Transform3f::basis_transform(lobe->normal);
 
-    lobe->rng = resources.random_service->get_random_2D();
+    lobe->rng = resources.random_service->get_random<2>();
     lobe->ior_in = surface->facing ? 1.f : ior;
     lobe->ior_out = surface->facing ? ior : 1.f;
     lobe->color = color_texture->evaluate<Vec3f>(surface->u, surface->v, surface->w, intersect, resources);
@@ -43,7 +43,7 @@ MaterialInstance MaterialGGXRefract::instance(const Surface * surface, const Int
 
 bool MaterialLobeGGXRefract::sample(MaterialSample& sample, Resources& resources) const
 {
-    const Vec2f rnd = rng.rand();
+    const float * rnd = rng.rand();
 
     const float theta = TWO_PI * rnd[0];
     const float phi = atanf(roughness * sqrtf(rnd[1]) / sqrtf(1.f - rnd[1]));

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 
-#include <Math/Types.h>
+#include <math/Types.h>
 #include <import/SceneFile.h>
 #include <Export/SFMLViewer.h>
 #include <Export/OIIOViewer.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Math/Types.h>
+#include <math/Types.h>
 
 // TODO: Make this more user customizable.
 struct Settings

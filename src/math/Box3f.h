@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cfloat>
-#include <Math/Vec3f.h>
+#include <math/Vec3f.h>
 
 class Box3f
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Math/Types.h>
+#include <math/Types.h>
 
 inline float D(const Vec3f& n, const Vec3f& h, const float& n_dot_h, const float& roughness_sqr)
 {

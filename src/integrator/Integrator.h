@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Math/Types.h>
+#include <math/Types.h>
 #include <intersection/Intersect.h>
 #include <Util/Resources.h>
 #include <geometry/Geometry.h>

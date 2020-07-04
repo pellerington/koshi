@@ -1,6 +1,6 @@
 #include <material/MaterialLambert.h>
 
-#include <Math/Helpers.h>
+#include <math/Helpers.h>
 #include <Util/Color.h>
 #include <cmath>
 #include <iostream>
@@ -19,7 +19,7 @@ MaterialInstance MaterialLambert<REFLECT>::instance(const Surface * surface, con
     MaterialInstance instance(resources.memory);
     MaterialLobeLambert<REFLECT> * lobe = resources.memory->create<MaterialLobeLambert<REFLECT>>();
     
-    lobe->rng = resources.random_service->get_random_2D();
+    lobe->rng = resources.random_service->get_random<2>();
 
     lobe->surface = surface;
     lobe->wi = intersect->ray.dir;
@@ -36,7 +36,7 @@ bool MaterialLobeLambert<REFLECT>::sample(MaterialSample& sample, Resources& res
 {
     if(REFLECT && !surface->facing) return false;
 
-    const Vec2f rnd = rng.rand();
+    const float * rnd = rng.rand();
     const float theta = TWO_PI * rnd[0];
 #if UNIFORM_SAMPLE
     const float phi = acosf(rnd[1]);

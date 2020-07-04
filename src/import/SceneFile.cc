@@ -2,6 +2,8 @@
 
 #include <base/ObjectGroup.h>
 
+#include <camera/Camera.h>
+
 #include <import/GeometrySceneFile.h>
 #include <import/LightSceneFile.h>
 #include <import/IntegratorSceneFile.h>

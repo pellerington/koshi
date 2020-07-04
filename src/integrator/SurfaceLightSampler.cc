@@ -1,7 +1,7 @@
 #include <integrator/SurfaceLightSampler.h>
 #include <base/Scene.h>
 #include <intersection/Intersector.h>
-#include <Math/Helpers.h>
+#include <math/Helpers.h>
 
 void SurfaceLightSampler::pre_render(Resources& resources)
 {

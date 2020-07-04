@@ -3,8 +3,8 @@
 #include <vector>
 #include <queue>
 #include <memory>
-#include <Math/Types.h>
-#include <Math/Random.h>
+#include <math/Types.h>
+#include <math/Random.h>
 #include <base/Object.h>
 
 #include <Util/Resources.h>
@@ -26,7 +26,7 @@ struct MaterialSample
 
 struct MaterialLobe
 {
-    Random2D rng;
+    Random<2> rng;
 
     // TODO: Add a contructor for this stuff.
     const Surface * surface;

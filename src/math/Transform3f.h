@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Math/Vec3f.h>
-#include <Math/Box3f.h>
+#include <math/Vec3f.h>
+#include <math/Box3f.h>
 
 class Transform3f
 {

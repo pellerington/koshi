@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Util/Memory.h>
-#include <Math/Random.h>
+#include <math/Random.h>
 #include <base/Settings.h>
 class Intersector;
 class Scene;

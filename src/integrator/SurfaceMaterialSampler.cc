@@ -1,6 +1,6 @@
 #include <integrator/SurfaceMaterialSampler.h>
 #include <intersection/Intersector.h>
-#include <Math/Helpers.h>
+#include <math/Helpers.h>
 
 void SurfaceMaterialSampler::scatter_surface(
     Array<SurfaceSample>& samples,

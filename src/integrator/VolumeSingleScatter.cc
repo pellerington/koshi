@@ -26,8 +26,7 @@ Vec3f VolumeSingleScatter::shadow(const float& t, const Intersect * intersect, I
     }
     else
     {
-        // TODO: Replace with Random<1>, does this need to be done per segment ??? 
-        Random2D rng = resources.random_service->get_random_2D();
+        Random<1> rng = resources.random_service->get_random<1>();
         float inv_tlen = 1.f / intersect->tlen;
 
         for(Volume::Segment * segment = volume->segment; segment; segment = segment->next)

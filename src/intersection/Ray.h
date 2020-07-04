@@ -2,7 +2,7 @@
 
 #include <cfloat>
 #include <unordered_set>
-#include <Math/Types.h>
+#include <math/Types.h>
 
 struct Ray
 {

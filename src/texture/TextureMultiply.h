@@ -1,7 +1,7 @@
 #pragma once
 
 #include <texture/Texture.h>
-#include <Math/Types.h>
+#include <math/Types.h>
 
 // TODO: Turn this into a texture so it is more generable.
 

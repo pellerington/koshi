@@ -12,7 +12,7 @@ const LightSamplerData * LightSamplerDirectional::pre_integrate(const Surface * 
 {
     LightSamplerDataDirectional * data = resources.memory->create<LightSamplerDataDirectional>();
     data->surface = surface;
-    data->rng = resources.random_service->get_random_2D();
+    data->rng = resources.random_service->get_random<2>();
 
     return data;
 }

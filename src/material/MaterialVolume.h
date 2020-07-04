@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Math/Types.h>
+#include <math/Types.h>
 #include <texture/Texture.h>
 #include <material/Material.h>
 #include <geometry/Volume.h>

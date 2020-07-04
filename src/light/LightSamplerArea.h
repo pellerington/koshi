@@ -10,7 +10,7 @@ public:
 
     struct LightSamplerDataArea : public LightSamplerData
     {
-        Random2D rng;
+        Random<2> rng;
     };
     const LightSamplerData * pre_integrate(const Surface * surface, Resources& resources) const;
 
