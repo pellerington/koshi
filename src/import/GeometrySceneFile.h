@@ -93,7 +93,7 @@ struct GeometrySceneFile
             return nullptr;
         
         TextureMultiply * opacity_multiply_texture = new TextureMultiply(opacity, opacity_texture);
-        accessor.add_object("opacity_texture", opacity_multiply_texture);
+        accessor.add_object("opacity_multiply_texture", opacity_multiply_texture);
         Opacity * object = new Opacity(opacity_multiply_texture, hide_camera);
         accessor.add_object("opacity", object);
         geometry->set_attribute("opacity", object);

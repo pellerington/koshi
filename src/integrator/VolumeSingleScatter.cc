@@ -26,6 +26,7 @@ Vec3f VolumeSingleScatter::shadow(const float& t, const Intersect * intersect, I
     }
     else
     {
+        // TODO: Test if this causes biasing.
         Random<1> rng = resources.random_service->get_random<1>();
         float inv_tlen = 1.f / intersect->tlen;
 
@@ -34,15 +35,18 @@ Vec3f VolumeSingleScatter::shadow(const float& t, const Intersect * intersect, I
             float max_density = segment->max_density.max();
             float inv_max_density = 1.f / max_density;
 
-            float tcurr = segment->t0 - logf(1.f - rng.rand()[0]) * inv_max_density;
+            float tcurr = segment->t0;
 
-            while(tcurr < segment->t1 && tcurr < t)
+            while(true)
             {
+                tcurr -= logf(rng.rand()[0]) * inv_max_density;
+                if(tcurr > segment->t1 || tcurr > t)
+                    break;
+
                 const float d = (tcurr - intersect->t) * inv_tlen;
                 Vec3f uvw = volume->uvw0 * d + volume->uvw1 * (1.f - d);
                 Vec3f density = volume->material->get_density(uvw, intersect, resources);
                 shadow = shadow * (VEC3F_ONES - density * inv_max_density);
-                tcurr = tcurr - logf(1.f - rng.rand()[0]) * inv_max_density;
             }
         }
     }

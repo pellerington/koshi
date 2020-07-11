@@ -37,6 +37,11 @@ void SurfaceMaterialSampler::scatter_surface(
             ? interiors.push(intersect->geometry, lobe->interior)
             : interiors.pop(intersect->geometry);
 
+        PathData next_path;
+        next_path.depth = depth + 1;
+        next_path.quality = sample_quality;
+        next_path.prev_path = intersect->path;
+
         while(num_samples < max_num_samples && (num_samples < min_num_samples || variance(variance_sum, variance_sum_sqr, num_samples) > 0.05f*0.05f))
         {
             num_samples++;
@@ -51,19 +56,13 @@ void SurfaceMaterialSampler::scatter_surface(
             if((transmit && hemisphere == MaterialLobe::FRONT) || (!transmit && hemisphere == MaterialLobe::BACK))
                 continue;
 
-            PathData next_path;
-            next_path.depth = depth + 1;
-            next_path.quality = sample_quality;
-            next_path.prev_path = intersect->path;
-
             const Vec3f& ray_position = front ? surface->front_position : surface->back_position;
             Ray ray(ray_position, material_sample.wo);
 
             SurfaceSample& sample = samples.push();
 
-            // TODO: Make this pre_intersect callback nicer
             sample.intersects = resources.intersector->intersect(ray, &next_path, resources, 
-                Interiors::pre_intersect_callback, transmit ? &transmit_interiors : &interiors);
+                transmit ? transmit_interiors.get_callback() : interiors.get_callback());
             sample.weight = material_sample.weight;
             sample.pdf = material_sample.pdf;
 
@@ -88,6 +87,8 @@ float SurfaceMaterialSampler::evaluate(
     const Intersect * intersect, SurfaceSamplerData * data,
     Resources& resources) const
 {
+    if(sample.scatter)
+        return false;
     float pdf = 0.f;
     const Vec3f& wo = intersect->ray.dir;
     for(uint i = 0; i < material_instance.size(); i++)

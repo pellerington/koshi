@@ -1,22 +1,15 @@
 #include <intersection/Intersector.h>
-
 #include <geometry/Geometry.h>
-#include <base/Scene.h>
 
-Intersector::Intersector(Scene * scene)
-: scene(scene)
+Intersector::Intersector(ObjectGroup * objects)
 {
-    for(auto object = scene->begin(); object != scene->end(); ++object)
+    for(uint i = 0; i < objects->size(); i++)
     {
-        Geometry * geometry = dynamic_cast<Geometry*>(object->second);
+        Geometry * geometry = objects->get<Geometry>(i);
         if(geometry)
         {
-            IntersectionCallbacks * callbacks = geometry->get_attribute<IntersectionCallbacks>("intersection_callbacks");
-            if(callbacks)
-            {
-                if(callbacks->null_intersection_cb)
-                    null_callbacks.push_back(std::make_pair(callbacks->null_intersection_cb, geometry));
-            }
+            IntersectionCallbacks * callback = geometry->get_attribute<IntersectionCallbacks>("intersection_callbacks");
+            if(callback) callbacks.push_back(callback);
         }
     }
 }

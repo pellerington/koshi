@@ -5,6 +5,7 @@
 #include <intersection/Opacity.h>
 #include <integrator/Integrator.h>
 #include <integrator/DistantLightEvaluator.h>
+#include <intersection/IntersectCallbacks.h>
 
 class GeometryEnvironment : public Geometry
 {
@@ -13,40 +14,33 @@ public:
     : Geometry(transform), integrator(nullptr)
     {
         intersection_cb = new IntersectionCallbacks;
-        intersection_cb->null_intersection_cb = null_intersection_cb;
+        intersection_cb->post_intersection_cb = post_intersection_cb;
+        intersection_cb->post_intersection_data = this;
         set_attribute("intersection_callbacks", intersection_cb);
     }
 
     void pre_render(Resources& resources)
     {
-        integrator = get_attribute<Integrator>("integrator");
-        delete_integrator = false;
-        if(!integrator)
-        {
-            integrator = new DistantLightEvaluator();
-            delete_integrator = true;
-        }
+        integrator = new DistantLightEvaluator();
     }
 
     ~GeometryEnvironment()
     {
-        if(delete_integrator)
-            delete integrator;
+        delete integrator;
         delete intersection_cb;
     }
 
 private:
-    bool delete_integrator;
     Integrator * integrator;
     IntersectionCallbacks * intersection_cb;
 
-    static void null_intersection_cb(IntersectList * intersects, Geometry * geometry, Resources& resources)
+    static void post_intersection_cb(IntersectList * intersects, void * data, Resources& resources)
     {
         // We only hit if we have infinite distance.
-        if(intersects->ray.tmax != FLT_MAX)
+        if(intersects->tend < FLT_MAX || intersects->ray.tmax != FLT_MAX)
             return;
 
-        GeometryEnvironment * environment_geometry = (GeometryEnvironment *)geometry;
+        GeometryEnvironment * geometry = (GeometryEnvironment *)data;
         Intersect * intersect = intersects->push(resources);
 
         intersect->t = FLT_MAX;
@@ -62,12 +56,12 @@ private:
         const float u = phi * INV_TWO_PI;
         const float v = theta * INV_PI;
 
-        SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(u, v, intersect->ray.dir.normalized());
+        SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(u, v);
         intersect->geometry_data = distant;
     
         Opacity * opacity = geometry->get_attribute<Opacity>("opacity");
-        if(opacity) distant->set_opacity(opacity->get_opacity(distant->u, distant->v, 0.f, intersect, resources));
+        if(opacity) distant->opacity = opacity->get_opacity(distant->u, distant->v, 0.f, intersect, resources);
 
-        intersect->integrator = environment_geometry->integrator;
+        intersect->integrator = geometry->integrator;
     }
 };

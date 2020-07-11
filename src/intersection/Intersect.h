@@ -51,7 +51,7 @@ class IntersectList
 {
 public:
     IntersectList(Resources& resources, const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), intersects(resources.memory), path(path)
+    : ray(ray), intersects(resources.memory, 4), path(path)
     {}
 
     const Ray ray;
@@ -70,42 +70,16 @@ public:
         return intersect;
     }
 
-    inline void pop() 
+    inline uint pop(const uint& i) 
     {
-        if(!intersects.size()) return;
+        intersects[i] = intersects[intersects.size() - 1];
         intersects.resize(intersects.size() - 1);
+        return i;
     }
 
-    inline void finalize(const float& tmax)
-    {
-        uint curr_size = intersects.size();
-        for(uint i = 0; i < curr_size;)
-        {
-            if(intersects[i]->t > tmax)
-            {
-                curr_size--;
-                if(curr_size) intersects[i] = intersects[curr_size];
-                intersects.resize(curr_size);
-            }
-            else
-            {
-                if(intersects[i]->t + intersects[i]->tlen > tmax)
-                    intersects[i]->tlen = tmax - intersects[i]->t;
-                i++;
-            }
-        }
-    }
-
+    float tend;
 
 private:
     Array<Intersect*> intersects;
     const PathData * path;
-};
-
-// TODO: Move intersect callbacks to thier own file.
-// HitIntersectionCallback
-typedef void (NullIntersectionCallback)(IntersectList * intersects, Geometry * geometry, Resources& resources);
-struct IntersectionCallbacks : public Object
-{
-    NullIntersectionCallback * null_intersection_cb = nullptr;
 };

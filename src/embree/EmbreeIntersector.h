@@ -7,14 +7,24 @@
 class EmbreeIntersector : public Intersector
 {
 public:
-    EmbreeIntersector(Scene * scene);
+    EmbreeIntersector(ObjectGroup * objects);
+
+    virtual Intersector * get_intersector(ObjectGroup * group);
+    virtual Intersector * get_intersector(Geometry * geometry);
 
     static void intersect_callback(const RTCFilterFunctionNArguments * args);
-    IntersectList * intersect(const Ray& ray, const PathData * path, Resources& resources,
-        PreIntersectionCallback * pre_intersect_callback = nullptr, void * pre_intersect_data = nullptr);
+    IntersectList * intersect(const Ray& ray, const PathData * path, Resources& resources, IntersectionCallbacks * callback = nullptr);
 
 private:
     RTCScene rtc_scene;
-    Integrator * default_integrator;
 
+    // TODO: Store geometry/scene and instance seperatly when we add instancing.
+    struct EmbreeGeometryInstance {
+        RTCGeometry geometry;
+        RTCScene scene;
+        RTCGeometry instance;
+    };
+    static std::unordered_map<Geometry*, EmbreeGeometryInstance> instances;
+
+    static std::unordered_map<Object*, Intersector*> intersectors;
 };

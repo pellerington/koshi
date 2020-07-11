@@ -4,6 +4,7 @@
 
 #include <integrator/SurfaceMaterialSampler.h>
 #include <integrator/SurfaceLightSampler.h>
+#include <integrator/SurfaceRandomWalkSampler.h>
 #include <integrator/SurfaceMultipleImportanceSampler.h>
 #include <integrator/VolumeSingleScatter.h>
 
@@ -21,6 +22,11 @@ struct IntegratorSceneFile
         Type surface_light_integrator("surface_light_integrator");
         surface_light_integrator.create_object_cb = create_surface_light_integrator;
         types.add(surface_light_integrator);
+
+        // Surface Randomwalk Integrator
+        Type surface_randomwalk_integrator("surface_randomwalk_integrator");
+        surface_randomwalk_integrator.create_object_cb = create_surface_randomwalk_integrator;
+        types.add(surface_randomwalk_integrator);
 
         // Surface Light Integrator
         Type surface_mis_integrator("surface_mis_integrator");
@@ -44,6 +50,11 @@ struct IntegratorSceneFile
     static Object * create_surface_light_integrator(AttributeAccessor& accessor, Object * parent)
     {
         return new SurfaceLightSampler;
+    }
+
+    static Object * create_surface_randomwalk_integrator(AttributeAccessor& accessor, Object * parent)
+    {
+        return new SurfaceRandomWalkSampler;
     }
 
     static Object * create_surface_mis_integrator(AttributeAccessor& accessor, Object * parent)

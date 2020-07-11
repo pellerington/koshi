@@ -8,11 +8,12 @@
 
 struct SurfaceDistant : public GeometryData
 {
-    SurfaceDistant(const float& u, const float& v, const Vec3f& wi) : opacity(VEC3F_ONES), u(u), v(v), wi(wi) {}
-
-    Vec3f opacity;
-    void set_opacity(const Vec3f& _opacity) { opacity = _opacity; }
+    SurfaceDistant(const float& u, const float& v) : u(u), v(v), opacity(VEC3F_ONES) {}
 
     float u, v;
-    Vec3f wi;
+
+    Vec3f opacity;
+
+    // Material * material
+
 };

@@ -1,4 +1,6 @@
 #include <math/Random.h>
+#include <math/BlueNoiseGenerator.h>
+#include <math/ProgressiveNoiseGenerator.h>
 
 template<>
 float * Random<1>::data = nullptr;
@@ -26,4 +28,7 @@ void RandomService::pre_render()
 
     Random<1>::data = BlueNoiseGenerator<1>::GetData(SEQUENCES, SEQUENCE_SIZE);
     Random<2>::data = BlueNoiseGenerator<2>::GetData(SEQUENCES, SEQUENCE_SIZE);
+
+    // Random<1>::data = ProgressiveNoiseGenerator<1>::GetData(SEQUENCES, SEQUENCE_SIZE);
+    // Random<2>::data = ProgressiveNoiseGenerator<2>::GetData(SEQUENCES, SEQUENCE_SIZE);
 }

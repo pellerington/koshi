@@ -3,13 +3,13 @@
 #include <texture/Texture.h>
 #include <math/Types.h>
 
-// TODO: Turn this into a texture so it is more generable.
-
 class TextureMultiply : public Texture
 {
 public:
     TextureMultiply(const Vec3f& value, const Texture * texture = nullptr)
-    : value(value), texture(texture) {}
+    : value(value), texture(texture) 
+    {
+    }
 
     Vec3f evaluate(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) const
     {

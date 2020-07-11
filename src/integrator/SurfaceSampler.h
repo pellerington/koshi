@@ -12,6 +12,7 @@ struct SurfaceSample
     Vec3f weight;
     float pdf;
     const IntersectList * intersects;
+    bool scatter = false;
 };
 
 class SurfaceSampler : public Integrator
@@ -42,19 +43,17 @@ public:
         const Surface * surface = surface_data->surface;
         if(!surface) return color;
 
+        // TODO: Move this into a material function.
         // Add light contribution.
         Light * light = intersect->geometry->get_attribute<Light>("light");
         if(light && surface->facing) color += light->get_intensity(surface->u, surface->v, 0.f, intersect, resources);
 
-        // TODO: Place the material on the geometry surface so it can be overidden.
-        Material * material = intersect->geometry->get_attribute<Material>("material");
-
-        if(is_saturated(color) || intersect->path->depth > resources.settings->max_depth || intersect->path->quality < min_quality || !material)
+        if(is_saturated(color) || intersect->path->depth > resources.settings->max_depth || intersect->path->quality < min_quality || !surface->material)
         {
             return color * transmittance.shadow(intersect->t, resources) * surface->opacity;
         }
 
-        MaterialInstance material_instance = material->instance(surface, intersect, resources);
+        MaterialInstance material_instance = surface->material->instance(surface, intersect, resources);
 
         Interiors interiors(intersect->t, transmittance.get_intersects());
 

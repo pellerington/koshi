@@ -26,7 +26,8 @@ bool LightSamplerDirectional::sample(LightSample& sample, const LightSamplerData
 
     Intersect light_intersect(Ray(surface->position, direction));
     light_intersect.geometry = geometry;
-    SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(0.f, 0.f, direction);
+    // TODO: Add uv once we have angle availible
+    SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(0.f, 0.f);
     light_intersect.geometry_data = distant;
 
     sample.intensity = INV_EPSILON_F * light->get_intensity(distant->u, distant->v, 0.f, &light_intersect, resources);

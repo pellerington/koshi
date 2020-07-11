@@ -11,10 +11,28 @@ class Scene
 public:
     void pre_render(Resources& resources);
 
-    bool add_object(const std::string& name, Object * object);
+    void add_object(const std::string& name, Object * object)
+    {
+        objects.insert(std::make_pair(name, object));
+    }
 
-    Object * get_object(const std::string& name);
-    // TODO: replace this with a better way to get / search objects. Look into database implementations.
+    Object * get_object(const std::string& name)
+    {
+        auto object = objects.find(name);
+        if(object != objects.end())
+            return object->second;
+        return nullptr;
+    }
+
+    template<class T>
+    T * get_object(const std::string& name)
+    {
+        auto object = objects.find(name);
+        if(object != objects.end())
+            return dynamic_cast<T*>(object->second);
+        return nullptr;
+    }
+
     auto begin() { return objects.begin(); }
     auto end() { return objects.end(); }
 

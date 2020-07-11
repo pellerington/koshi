@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Util/Memory.h>
-#include <math/Random.h>
 #include <base/Settings.h>
 class Intersector;
 class Scene;
+class RandomService;
 
 struct Resources
 {

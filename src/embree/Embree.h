@@ -19,6 +19,5 @@ struct Embree
 struct EmbreeIntersectContext : public RTCIntersectContext
 {
     IntersectList * intersects;
-    Integrator * default_integrator;
     Resources * resources;
 };

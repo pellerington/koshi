@@ -4,14 +4,22 @@
 
 #include <texture/TextureImage.h>
 #include <texture/TextureChecker.h>
+#include <texture/TextureGrid.h>
 #include <texture/TextureGradient.h>
 #include <texture/TextureOpenVDB.h>
 #include <texture/TextureGeometryAttribute.h>
+#include <texture/TextureConstant.h>
 
 struct TextureSceneFile
 {
     static void add_types(Types& types)
     {
+        // Texture Constant
+        Type texture_constant("texture_constant");
+        texture_constant.reserved_attributes.push_back("color");
+        texture_constant.create_object_cb = create_texture_constant;
+        types.add(texture_constant);
+
         // Texture Image
         Type texture_image("texture_image");
         texture_image.reserved_attributes.push_back("filename");
@@ -24,6 +32,15 @@ struct TextureSceneFile
         texture_checker.reserved_attributes.push_back("scale");
         texture_checker.create_object_cb = create_texture_checker;
         types.add(texture_checker);
+
+        // Texture Grid
+        Type texture_grid("texture_grid");
+        texture_grid.reserved_attributes.push_back("fill");
+        texture_grid.reserved_attributes.push_back("line");
+        texture_grid.reserved_attributes.push_back("line_size");
+        texture_grid.reserved_attributes.push_back("scale");
+        texture_grid.create_object_cb = create_texture_grid;
+        types.add(texture_grid);
 
         // Texture Gradient
         Type texture_gradient("texture_gradient");
@@ -47,6 +64,12 @@ struct TextureSceneFile
         types.add(texture_geometry_attribute);
     }
 
+    static Object * create_texture_constant(AttributeAccessor& accessor, Object * parent)
+    {
+        const Vec3f color = accessor.get_vec3f("color");
+        return new TextureConstant(color);
+    }
+
     static Object * create_texture_image(AttributeAccessor& accessor, Object * parent)
     {
         const std::string filename = accessor.get_string("filename");
@@ -58,6 +81,15 @@ struct TextureSceneFile
     {
         const Vec3f scale = accessor.get_vec3f("scale", 1.f);
         return new TextureChecker(scale);
+    }
+
+    static Object * create_texture_grid(AttributeAccessor& accessor, Object * parent)
+    {
+        const Vec3f fill = accessor.get_vec3f("fill", 1.f);
+        const Vec3f line = accessor.get_vec3f("line", 0.f);
+        const float line_size = accessor.get_float("line_size", 0.1f);
+        const Vec3f scale = accessor.get_vec3f("scale", 1.f);
+        return new TextureGrid(fill, line, line_size, scale);
     }
 
     static Object * create_texture_gradient(AttributeAccessor& accessor, Object * parent)

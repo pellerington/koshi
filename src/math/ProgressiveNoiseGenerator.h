@@ -3,11 +3,11 @@
 #include <random>
 #include <math/Types.h>
 
-// Based on Progressive Multi-Jittered Sample Sequences
+// Based on Loosely on Progressive Sample Sequences
 // https://graphics.pixar.com/library/ProgressiveMultiJitteredSampling/paper.pdf
 
 template<uint N>
-class MultiJitteredNoiseGenerator
+class ProgressiveNoiseGenerator
 {
 public:
     static float * GetData(const uint& sequences, const uint& sequence_size);
@@ -16,5 +16,5 @@ public:
     static bool LoadData(float * data, const uint& sequences, const uint& sequence_size);
 };
 
-template class MultiJitteredNoiseGenerator<1>;
-template class MultiJitteredNoiseGenerator<2>;
+template class ProgressiveNoiseGenerator<1>;
+template class ProgressiveNoiseGenerator<2>;

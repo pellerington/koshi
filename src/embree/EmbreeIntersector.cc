@@ -3,49 +3,80 @@
 #include <geometry/Geometry.h>
 #include <intersection/Opacity.h>
 #include <integrator/Integrator.h>
+#include <material/Material.h>
 #include <base/Scene.h>
 
-EmbreeIntersector::EmbreeIntersector(Scene * scene) : Intersector(scene)
+std::unordered_map<Geometry*, EmbreeIntersector::EmbreeGeometryInstance> EmbreeIntersector::instances = std::unordered_map<Geometry*, EmbreeGeometryInstance>();
+std::unordered_map<Object*, Intersector*> EmbreeIntersector::intersectors = std::unordered_map<Object*, Intersector*>();
+
+EmbreeIntersector::EmbreeIntersector(ObjectGroup * objects) : Intersector(objects)
 {
     // Build the scene
     rtc_scene = rtcNewScene(Embree::rtc_device);
-    for(auto object = scene->begin(); object != scene->end(); ++object)
+    for(uint i = 0; i < objects->size(); i++)
     {
-        Geometry * geometry = dynamic_cast<Geometry*>(object->second);
+        Geometry * geometry = objects->get<Geometry>(i);
         if(geometry)
         {
-            EmbreeGeometry * embree_geometry = geometry->get_attribute<EmbreeGeometry>("embree_geometry");
-            if(embree_geometry)
+            if(instances.find(geometry) != instances.end())
             {
-                RTCGeometry geom = embree_geometry->get_rtc_geometry();
-                rtcSetGeometryIntersectFilterFunction(geom, &EmbreeIntersector::intersect_callback);
-                rtcSetGeometryUserData(geom, geometry);
-                rtcCommitGeometry(geom);
+                rtcAttachGeometry(rtc_scene, instances[geometry].instance);
+            }
+            else
+            {
+                EmbreeGeometry * embree_geometry = geometry->get_attribute<EmbreeGeometry>("embree_geometry");
+                if(embree_geometry)
+                {
+                    instances[geometry].geometry = embree_geometry->get_rtc_geometry();
+                    rtcSetGeometryIntersectFilterFunction(instances[geometry].geometry, &EmbreeIntersector::intersect_callback);
+                    rtcSetGeometryUserData(instances[geometry].geometry, geometry);
+                    rtcCommitGeometry(instances[geometry].geometry);
 
-                // TODO: Store this so we can update / delete this as we update a progressive render.
-                RTCScene geom_scene = rtcNewScene(Embree::rtc_device);
-                rtcAttachGeometry(geom_scene, geom); 
-                rtcSetSceneBuildQuality(geom_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
-                rtcCommitScene(geom_scene);
+                    instances[geometry].scene = rtcNewScene(Embree::rtc_device);
+                    rtcAttachGeometry(instances[geometry].scene, instances[geometry].geometry); 
+                    rtcSetSceneBuildQuality(instances[geometry].scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
+                    rtcCommitScene(instances[geometry].scene);
 
-                // TODO: Do instanceing ourselves so we can load in and out.
-                RTCGeometry instance = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_INSTANCE);
-                // TODO: Transform needs to be cleaned up somewhere or will cause memory leak.
-                const float * transform = geometry->get_obj_to_world().get_array();
-                rtcSetGeometryTransform(instance, 0, RTC_FORMAT_FLOAT3X4_ROW_MAJOR, transform);
-                rtcSetGeometryInstancedScene(instance, geom_scene);
-                // TODO: Add a seperate object intersect filter?
-                //rtcSetGeometryIntersectFilterFunction(geom, &EmbreeIntersector::intersect_callback);
-                rtcSetGeometryUserData(instance, geometry); 
-                rtcCommitGeometry(instance);
-                rtcAttachGeometry(rtc_scene, instance);
+                    // TODO: Do instanceing ourselves so we can load in and out on demand.
+                    instances[geometry].instance = rtcNewGeometry(Embree::rtc_device, RTC_GEOMETRY_TYPE_INSTANCE);
+                    const float * transform = geometry->get_obj_to_world().get_array();
+                    rtcSetGeometryTransform(instances[geometry].instance, 0, RTC_FORMAT_FLOAT3X4_ROW_MAJOR, transform);
+                    rtcSetGeometryInstancedScene(instances[geometry].instance, instances[geometry].scene);
+                    // TODO: Add a seperate object intersect filter.
+                    //rtcSetGeometryIntersectFilterFunction(geom, &EmbreeIntersector::intersect_callback);
+                    rtcSetGeometryUserData(instances[geometry].instance, geometry); 
+                    rtcCommitGeometry(instances[geometry].instance);
+
+                    rtcAttachGeometry(rtc_scene, instances[geometry].instance);
+                }
             }
         }
     }
     rtcSetSceneBuildQuality(rtc_scene, RTCBuildQuality::RTC_BUILD_QUALITY_HIGH);
     rtcCommitScene(rtc_scene);
 
-    default_integrator = dynamic_cast<Integrator*>(scene->get_object("default_integrator"));
+    intersectors[objects] = this;
+}
+
+Intersector * EmbreeIntersector::get_intersector(ObjectGroup * group)
+{
+    auto cached_intersector = intersectors.find(group);
+    if(cached_intersector != intersectors.end())
+        return cached_intersector->second;
+    return new EmbreeIntersector(group);
+}
+
+Intersector * EmbreeIntersector::get_intersector(Geometry * geometry)
+{
+    auto cached_intersector = intersectors.find(geometry);
+    if(cached_intersector != intersectors.end())
+        return cached_intersector->second;
+    ObjectGroup group;
+    group.push(geometry);
+    Intersector * intersector = new EmbreeIntersector(&group);
+    intersectors.erase(&group);
+    intersectors[geometry] = intersector;
+    return intersector;
 }
 
 void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * args)
@@ -79,9 +110,12 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
     );
     intersect->geometry_data = surface;
 
+    // Add the material to the surface.
+    surface->material = geometry->get_attribute<Material>("material");
+
     // Get the opacity of the intersect
     Opacity * opacity = geometry->get_attribute<Opacity>("opacity");
-    if(opacity) surface->set_opacity(opacity->get_opacity(surface->u, surface->v, 0.f, intersect, *context->resources));
+    if(opacity) surface->opacity = opacity->get_opacity(surface->u, surface->v, 0.f, intersect, *context->resources);
 
     // Close any segments of this geometry
     if(!surface->facing)
@@ -99,23 +133,24 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
     // Add an integrator
     intersect->integrator = geometry->get_attribute<Integrator>("integrator");
     if(!intersect->integrator)
-        intersect->integrator = context->default_integrator;
-
-    // TODO: Add a maximum/limit to the amount of intersections
+        intersect->integrator = context->resources->scene->get_object<Integrator>("default_integrator");
 }
 
-IntersectList * EmbreeIntersector::intersect(const Ray& ray, const PathData * path, Resources& resources,
-    PreIntersectionCallback * pre_intersect_callback, void * pre_intersect_data)
+IntersectList * EmbreeIntersector::intersect(const Ray& ray, const PathData * path, Resources& resources, IntersectionCallbacks * callback)
 {
+    // Setup intersect list
     IntersectList * intersects = resources.memory->create<IntersectList>(resources, ray, path);
 
-    if(pre_intersect_callback)
-        pre_intersect_callback(intersects, resources, pre_intersect_data);
+    // Call preintersection callbacks.
+    if(callback && callback->pre_intersection_cb)
+        callback->pre_intersection_cb(intersects, callback->pre_intersection_data, resources);
+    for(uint i = 0; i < callbacks.size(); i++)
+        if(callbacks[i]->pre_intersection_cb)
+            callbacks[i]->pre_intersection_cb(intersects, callbacks[i]->pre_intersection_data, resources);
 
     // Setup context
     EmbreeIntersectContext context;
     context.intersects = intersects;
-    context.default_integrator = default_integrator;
     context.resources = &resources;
     RTCIntersectContext * rtc_context = &context;
     rtcInitIntersectContext(rtc_context);
@@ -135,12 +170,23 @@ IntersectList * EmbreeIntersector::intersect(const Ray& ray, const PathData * pa
     // Perform intersection
     rtcIntersect1(rtc_scene, rtc_context, &rtcRayHit);
 
-    // Perform null intersect callbacks
-    if (rtcRayHit.hit.geomID == RTC_INVALID_GEOMETRY_ID)
-        null_intersection_callbacks(intersects, resources);
-
     // Finalize the intersection
-    intersects->finalize(rtcRayHit.ray.tfar);
+    intersects->tend = rtcRayHit.ray.tfar;
+    for(uint i = 0; i < intersects->size(); i++)
+    {
+        Intersect * intersect = intersects->get(i);
+        if(intersect->t > intersects->tend)
+            i = intersects->pop(i) - 1;
+        else if(intersect->t + intersect->tlen > intersects->tend)
+            intersect->tlen = intersects->tend - intersect->t;
+    }
+
+    // Perform post intersect callbacks
+    if(callback && callback->post_intersection_cb)
+        callback->post_intersection_cb(intersects, callback->post_intersection_data, resources);
+    for(uint i = 0; i < callbacks.size(); i++)
+        if(callbacks[i]->post_intersection_cb)
+            callbacks[i]->post_intersection_cb(intersects, callbacks[i]->post_intersection_data, resources);
 
     return intersects;
 }

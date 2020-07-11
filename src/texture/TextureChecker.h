@@ -6,7 +6,9 @@ class TextureChecker : public Texture
 {
 public:
     TextureChecker(const Vec3f scale = VEC3F_ONES)
-    : scale(scale) {}
+    : scale(scale) 
+    {
+    }
 
     Vec3f evaluate(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) const
     {

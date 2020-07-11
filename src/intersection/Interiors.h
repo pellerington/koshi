@@ -1,16 +1,23 @@
 #pragma once
 
-#include <intersection/Intersect.h>
+#include <intersection/IntersectCallbacks.h>
 // TODO: Do IorStack on the path data. We shouldn't bother handling it with opacity ect.
 // OR Add IOR to intersects and access them from the interiors.
 
 // TODO: Move this file somewhere else, should not be part of the core intersects.
 
+// TODO: Clean this up somehow. We should be adding it to the callbacks not letting it exclusivly control them. Also it's ugly.
+// Maybe this should just be an array we push pull out of?
+
 class Interiors
 {
 public:
     Interiors(const float& t, const IntersectList * prev_intersects)
-    : t(t), prev_intersects(prev_intersects), change(NONE), geometry(nullptr), integrator(nullptr) {}
+    : t(t), prev_intersects(prev_intersects), change(NONE), geometry(nullptr), integrator(nullptr) 
+    {
+        callback.pre_intersection_cb = pre_intersect_callback;
+        callback.pre_intersection_data = this;
+    }
 
     Interiors push(Geometry * geometry, Integrator * integrator)
     {
@@ -32,7 +39,7 @@ public:
         return interiors;
     }
 
-    static void pre_intersect_callback(IntersectList * intersects, Resources& resources, void * data)
+    static void pre_intersect_callback(IntersectList * intersects, void * data, Resources& resources)
     {
         Interiors * interiors = (Interiors*)data;
 
@@ -70,7 +77,15 @@ public:
         }
     }
 
+    IntersectionCallbacks * get_callback()
+    {
+        callback.pre_intersection_data = this; 
+        return &callback; 
+    }
+
 private:
+
+    IntersectionCallbacks callback;
 
     float t;
     const IntersectList * prev_intersects;

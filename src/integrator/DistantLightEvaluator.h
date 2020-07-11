@@ -3,6 +3,7 @@
 #include <integrator/Integrator.h>
 #include <geometry/SurfaceDistant.h>
 
+// TODO: Modify to be a generic light evaluator.
 class DistantLightEvaluator : public Integrator
 {
 public:

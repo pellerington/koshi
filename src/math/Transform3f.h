@@ -175,15 +175,16 @@ public:
         return os;
     }
 
-    inline float * get_array() const 
+    inline const float * get_array() const 
     {
-        float * array = new float[16];
         for(uint y = 0; y < 4; y++)
         for(uint x = 0; x < 4; x++)
-        array[y * 4 + x] = rows[y][x];
-        return array;
+        carray[y * 4 + x] = rows[y][x];
+        return carray;
     }
 
 protected:
     __m128 rows[4];
+
+    mutable float carray[16];
 };

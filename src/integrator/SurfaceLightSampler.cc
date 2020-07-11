@@ -58,14 +58,14 @@ void SurfaceLightSampler::scatter_surface(
         Vec3f variance_sum = VEC3F_ZERO, variance_sum_sqr = VEC3F_ZERO;
         const uint samples_begin = samples.size();
 
+        PathData next_path;
+        next_path.depth = depth + 1;
+        next_path.quality = quality / num_samples;
+        next_path.prev_path = intersect->path;
+
         while(num_samples < max_num_samples && (num_samples < min_num_samples || variance(variance_sum, variance_sum_sqr, num_samples) > 0.05f*0.05f))
         {
             num_samples++;
-
-            PathData next_path;
-            next_path.depth = depth + 1;
-            next_path.quality = quality / num_samples;
-            next_path.prev_path = intersect->path;
 
             LightSample light_sample;
             if(!light_sampler->sample(light_sample, light_sampler_data, resources))
@@ -90,8 +90,8 @@ void SurfaceLightSampler::scatter_surface(
 
             SurfaceSample& sample = samples.push();
 
-            sample.intersects = resources.intersector->intersect(ray, &next_path, resources,
-                Interiors::pre_intersect_callback, transmit ? &transmit_interiors : &interiors);
+            sample.intersects = resources.intersector->intersect(ray, &next_path, resources, 
+                transmit ? transmit_interiors.get_callback() : interiors.get_callback());
 
             Transmittance transmittance = Integrator::shadow(sample.intersects, resources);
             Vec3f shadow = transmittance.shadow(ray.tmax, resources);
@@ -117,7 +117,11 @@ float SurfaceLightSampler::evaluate(
     const Intersect * intersect, SurfaceSamplerData * data, 
     Resources& resources) const
 {
+    if(sample.scatter)
+        return false;
+
     SurfaceLightSamplerData * sampler_data = (SurfaceLightSamplerData *)data;
+
     float pdf = 0.f;
     for(uint i = 0; i < sample.intersects->size(); i++)
     {

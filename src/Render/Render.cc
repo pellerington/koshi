@@ -44,7 +44,13 @@ void Render::start_render()
     scene.pre_render(resources);
 
     // TODO: this should be passed in as an argument to the Render
-    intersector = new EmbreeIntersector(&scene);
+    ObjectGroup render_group;
+    for(auto object = scene.begin(); object != scene.end(); ++object)
+    {
+        Geometry * geometry = dynamic_cast<Geometry*>(object->second);
+        if(geometry) render_group.push(geometry);
+    }
+    intersector = new EmbreeIntersector(&render_group);
 
     // Start Rendering
     const auto start = std::chrono::system_clock::now();
@@ -68,6 +74,7 @@ void Render::render_worker(const uint& id)
 {
     Resources resources;
     resources.settings = &settings;
+    resources.scene = &scene;
     resources.thread_id = id;
     resources.intersector = intersector;
     resources.memory = new Memory;

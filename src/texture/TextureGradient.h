@@ -6,7 +6,9 @@ class TextureGradient : public Texture
 {
 public:
     TextureGradient(const Vec3f& min = VEC3F_ZERO, const Vec3f& max = VEC3F_ONES, const uint& axis = 0)
-    : min(min), max(max), axis(axis) {}
+    : min(min), max(max), axis(axis) 
+    {
+    }
 
     Vec3f evaluate(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) const
     {

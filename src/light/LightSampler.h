@@ -3,8 +3,9 @@
 #include <base/Object.h>
 #include <Util/Resources.h>
 #include <math/Types.h>
-#include <vector>
 #include <intersection/Intersect.h>
+#include <math/Random.h>
+#include <vector>
 
 struct LightSample {
     Vec3f position;
@@ -15,7 +16,7 @@ struct LightSample {
 struct LightSamplerData
 {
     const Surface * surface;
-    ~LightSamplerData();
+    ~LightSamplerData() = default;
 };
 
 class LightSampler : public Object
