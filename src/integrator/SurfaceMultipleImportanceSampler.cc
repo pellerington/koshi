@@ -31,7 +31,7 @@ IntegratorData * SurfaceMultipleImportanceSampler::pre_integrate(const Intersect
 
 void SurfaceMultipleImportanceSampler::scatter_surface(
     Array<SurfaceSample>& samples,
-    const MaterialInstance& material_instance, 
+    const MaterialLobes& lobes, 
     const Intersect * intersect, SurfaceSamplerData * data,
     Interiors& interiors, Resources& resources) const
 {
@@ -39,7 +39,7 @@ void SurfaceMultipleImportanceSampler::scatter_surface(
     for(uint i = 0; i < integrators.size(); i++)
     {
         const uint prev_size = samples.size();
-        integrators[i]->scatter_surface(samples, material_instance, intersect, sampler_data->integrator_data[i], interiors, resources);
+        integrators[i]->scatter_surface(samples, lobes, intersect, sampler_data->integrator_data[i], interiors, resources);
 
         for(uint j = prev_size; j < samples.size(); j++)
         {
@@ -50,7 +50,7 @@ void SurfaceMultipleImportanceSampler::scatter_surface(
                 for(uint k = 0; k < integrators.size(); k++)
                 {
                     if(k == i) continue;
-                    float temp_pdf = integrators[k]->evaluate(samples[j], material_instance, intersect, sampler_data->integrator_data[k], resources);
+                    float temp_pdf = integrators[k]->evaluate(samples[j], lobes, intersect, sampler_data->integrator_data[k], resources);
                     pdf_sqr_sum += temp_pdf * temp_pdf;
                 }
                 samples[j].weight *= pdf_sqr / pdf_sqr_sum;
@@ -61,14 +61,14 @@ void SurfaceMultipleImportanceSampler::scatter_surface(
 
 float SurfaceMultipleImportanceSampler::evaluate(
     const SurfaceSample& sample, 
-    const MaterialInstance& material_instance,
+    const MaterialLobes& lobes,
     const Intersect * intersect, SurfaceSamplerData * data,
     Resources& resources) const
 {
     SurfaceMultipleImportanceSamplerData * sampler_data = (SurfaceMultipleImportanceSamplerData *)data;
     float pdf = 0.f;
     for(uint i = 0; i < integrators.size(); i++)
-        pdf += integrators[i]->evaluate(sample, material_instance, intersect, sampler_data->integrator_data[i], resources);
+        pdf += integrators[i]->evaluate(sample, lobes, intersect, sampler_data->integrator_data[i], resources);
     return pdf;
 }
 

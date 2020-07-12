@@ -14,7 +14,7 @@ public:
                        const Texture * normal_texture, 
                        const Texture * opacity_texture);
 
-    MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources);
+    MaterialLobes instance(const Surface * surface, const Intersect * intersect, Resources& resources);
 
 private:
     const Texture * reflective_color_texture;

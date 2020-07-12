@@ -4,14 +4,12 @@
 #include <unordered_set>
 #include <math/Types.h>
 #include <math/Transform3f.h>
-#include <geometry/GeometryData.h>
+#include <geometry/SurfaceDistant.h>
 
-class Material;
-
-struct Surface : public GeometryData
+struct Surface : public SurfaceDistant
 {
     Surface(const Vec3f& position, const Vec3f& normal, const float& u, const float& v, const float& w, const bool& facing)
-    : position(position), normal(normal), facing(facing), u(u), v(v), w(w), opacity(VEC3F_ONES), material(nullptr)
+    : SurfaceDistant(u, v, w), position(position), normal(normal), facing(facing)
     {
         front_position = position + normal *  RAY_OFFSET;
         back_position  = position + normal * -RAY_OFFSET;
@@ -23,10 +21,4 @@ struct Surface : public GeometryData
 
     Vec3f normal;
     bool facing;
-
-    float u, v, w;
-
-    Vec3f opacity;
-
-    Material * material;
 };

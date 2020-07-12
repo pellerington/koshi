@@ -2,14 +2,14 @@
 
 #include "import/SceneFile.h"
 
-#include <light/Light.h>
-
 #include <import/GeometrySceneFile.h>
 #include <geometry/GeometryEnvironment.h>
 
 #include <light/LightSamplerArea.h>
 #include <light/LightSamplerSphere.h>
 #include <light/LightSamplerDirectional.h>
+
+#include <material/MaterialLight.h>
 
 #include <texture/TextureMultiply.h>
 
@@ -57,17 +57,17 @@ struct LightSceneFile
     {
         Transform3f transform = GeometrySceneFile::get_transform(accessor);
         GeometryVisibility visibility = GeometrySceneFile::get_visibility(accessor);
-        GeometryEnvironment * environment = new GeometryEnvironment(transform, visibility);
+        GeometryEnvironment * geometry = new GeometryEnvironment(transform, visibility);
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
         TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
         accessor.add_object("intensity_multiply_texture", intensity_multiply_texture);
-        Light * light = new Light(intensity_multiply_texture);
-        accessor.add_object("light", light);
-        environment->set_attribute("light", light);
+        MaterialLight * material = new MaterialLight(intensity_multiply_texture);
+        accessor.add_object("material", material);
+        geometry->set_attribute("material", material);
 
-        return environment;
+        return geometry;
     }
 
     static Object * create_light_directional(AttributeAccessor& accessor, Object * parent)
@@ -80,9 +80,9 @@ struct LightSceneFile
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
         TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
         accessor.add_object("intensity_multiply_texture", intensity_multiply_texture);
-        Light * light = new Light(intensity_multiply_texture);
-        accessor.add_object("light", light);
-        geometry->set_attribute("light", light);
+        MaterialLight * material = new MaterialLight(intensity_multiply_texture);
+        accessor.add_object("material", material);
+        geometry->set_attribute("material", material);
 
         LightSamplerDirectional * light_sampler = new LightSamplerDirectional(geometry);
         accessor.add_object("light_sampler", light_sampler);
@@ -95,50 +95,50 @@ struct LightSceneFile
     {
         Transform3f transform = GeometrySceneFile::get_transform(accessor);
         GeometryVisibility visibility = GeometrySceneFile::get_visibility(accessor);
-        GeometryArea * area_light = new GeometryArea(transform, visibility);
+        GeometryArea * geometry = new GeometryArea(transform, visibility);
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
         TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
         accessor.add_object("intensity_multiply_texture", intensity_multiply_texture);
-        Light * light = new Light(intensity_multiply_texture);
-        accessor.add_object("light", light);
-        area_light->set_attribute("light", light);
+        MaterialLight * material = new MaterialLight(intensity_multiply_texture);
+        accessor.add_object("material", material);
+        geometry->set_attribute("material", material);
 
-        LightSamplerArea * light_sampler = new LightSamplerArea(area_light);
+        LightSamplerArea * light_sampler = new LightSamplerArea(geometry);
         accessor.add_object("light_sampler", light_sampler);
-        area_light->set_attribute("light_sampler", light_sampler);
+        geometry->set_attribute("light_sampler", light_sampler);
 
         // TODO: move this to some defaults.
-        EmbreeGeometryArea * embree_geometry = new EmbreeGeometryArea(area_light);
-        area_light->set_attribute("embree_geometry", embree_geometry);
+        EmbreeGeometryArea * embree_geometry = new EmbreeGeometryArea(geometry);
+        geometry->set_attribute("embree_geometry", embree_geometry);
 
-        return area_light;
+        return geometry;
     }
 
     static Object * create_light_sphere(AttributeAccessor& accessor, Object * parent)
     {
         Transform3f transform = GeometrySceneFile::get_transform(accessor);
         GeometryVisibility visibility = GeometrySceneFile::get_visibility(accessor);
-        GeometrySphere * sphere_light = new GeometrySphere(transform, visibility);
+        GeometrySphere * geometry = new GeometrySphere(transform, visibility);
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
         TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
         accessor.add_object("intensity_multiply_texture", intensity_multiply_texture);
-        Light * light = new Light(intensity_multiply_texture);
-        accessor.add_object("light", light);
-        sphere_light->set_attribute("light", light);
+        MaterialLight * material = new MaterialLight(intensity_multiply_texture);
+        accessor.add_object("material", material);
+        geometry->set_attribute("material", material);
 
-        LightSamplerSphere * light_sampler = new LightSamplerSphere(sphere_light);
+        LightSamplerSphere * light_sampler = new LightSamplerSphere(geometry);
         accessor.add_object("light_sampler", light_sampler);
-        sphere_light->set_attribute("light_sampler", light_sampler);
+        geometry->set_attribute("light_sampler", light_sampler);
 
         // TODO: move this to some defaults.
-        EmbreeGeometrySphere * embree_geometry = new EmbreeGeometrySphere(sphere_light);
-        sphere_light->set_attribute("embree_geometry", embree_geometry);
+        EmbreeGeometrySphere * embree_geometry = new EmbreeGeometrySphere(geometry);
+        geometry->set_attribute("embree_geometry", embree_geometry);
 
-        return sphere_light;
+        return geometry;
     }
 
 };

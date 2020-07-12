@@ -8,12 +8,12 @@ class SurfaceRandomWalkSampler : public SurfaceSampler
 public:
     void scatter_surface(
         Array<SurfaceSample>& samples,
-        const MaterialInstance& material_instance,
+        const MaterialLobes& lobes,
         const Intersect * intersect, SurfaceSamplerData * data, 
         Interiors& interiors, Resources& resources) const;
 
     float evaluate(const SurfaceSample& sample, 
-        const MaterialInstance& material_instance,
+        const MaterialLobes& lobes,
         const Intersect * intersect, SurfaceSamplerData * data, 
         Resources& resources) const
     {

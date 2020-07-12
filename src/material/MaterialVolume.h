@@ -30,7 +30,7 @@ public:
     virtual Vec3f get_scatter(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
     virtual Vec3f get_emission(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
 
-    virtual MaterialInstance instance(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
+    virtual MaterialLobes instance(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const;
 
 private:
     const Texture * density_texture;

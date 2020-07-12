@@ -14,10 +14,9 @@ MaterialRandomWalk::MaterialRandomWalk(const Texture * color_texture, const Text
     exit_material = new MaterialLambert<false>(new TextureConstant(VEC3F_ONES), normal_texture, new TextureConstant(VEC3F_ONES));
 }
 
-MaterialInstance MaterialRandomWalk::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
+MaterialLobes MaterialRandomWalk::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
 {
-
-    MaterialInstance instance(resources.memory);
+    MaterialLobes instance(resources.memory);
     
     MaterialLobeRandomWalk * lobe = resources.memory->create<MaterialLobeRandomWalk>();
 

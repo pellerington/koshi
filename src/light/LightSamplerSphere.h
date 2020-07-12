@@ -8,6 +8,8 @@ class LightSamplerSphere : public LightSampler
 public:
     LightSamplerSphere(GeometrySphere * geometry);
 
+    void pre_render(Resources& resources);
+
     struct LightSamplerDataSphere : public LightSamplerData
     {
         enum EvalType { SPHERE_SOLID_ANGLE, SPHERE_AREA, ELLIPSOID_SOLID_ANGLE, ELLIPSOID_AREA };
@@ -42,7 +44,7 @@ public:
 
 private:
     GeometrySphere * geometry;
-    Light * light;
+    Material * material;
     
     Vec3f center;
     Vec3f radius;

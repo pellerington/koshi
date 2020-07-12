@@ -4,7 +4,7 @@
 
 void SurfaceRandomWalkSampler::scatter_surface(
     Array<SurfaceSample>& samples,
-    const MaterialInstance& material_instance,
+    const MaterialLobes& lobes,
     const Intersect * intersect, SurfaceSamplerData * data, 
     Interiors& interiors, Resources& resources) const
 {
@@ -15,9 +15,9 @@ void SurfaceRandomWalkSampler::scatter_surface(
     if(!surface->facing)
         return;
 
-    for(uint l = 0; l < material_instance.size(); l++)
+    for(uint l = 0; l < lobes.size(); l++)
     {
-        const MaterialLobeRandomWalk * subsurface = dynamic_cast<const MaterialLobeRandomWalk *>(material_instance[l]);
+        const MaterialLobeRandomWalk * subsurface = dynamic_cast<const MaterialLobeRandomWalk *>(lobes[l]);
         if(subsurface)
         {
             uint num_samples = SAMPLES_PER_SA * resources.settings->sampling_quality * quality;

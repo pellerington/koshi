@@ -14,9 +14,9 @@ MaterialLambert<REFLECT>::MaterialLambert(const Texture * color_texture, const T
 }
 
 template<bool REFLECT>
-MaterialInstance MaterialLambert<REFLECT>::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
+MaterialLobes MaterialLambert<REFLECT>::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
 {
-    MaterialInstance instance(resources.memory);
+    MaterialLobes instance(resources.memory);
     MaterialLobeLambert<REFLECT> * lobe = resources.memory->create<MaterialLobeLambert<REFLECT>>();
     
     lobe->rng = resources.random_service->get_random<2>();

@@ -8,6 +8,8 @@ class LightSamplerArea : public LightSampler
 public:
     LightSamplerArea(GeometryArea * geometry);
 
+    void pre_render(Resources& resources);
+
     struct LightSamplerDataArea : public LightSamplerData
     {
         Random<2> rng;
@@ -21,7 +23,9 @@ public:
 
 private:
     GeometryArea * geometry;
-    Light * light;
+    Material * material;
+
+    // TODO: Move double sided into the material.
     bool double_sided;
     Vec3f normal;
     float area;

@@ -4,7 +4,7 @@
 
 void SurfaceMaterialSampler::scatter_surface(
     Array<SurfaceSample>& samples,
-    const MaterialInstance& material_instance,
+    const MaterialLobes& lobes,
     const Intersect * intersect, SurfaceSamplerData * data,
     Interiors& interiors, Resources& resources) const
 {
@@ -12,9 +12,9 @@ void SurfaceMaterialSampler::scatter_surface(
     const uint depth = intersect->path ? intersect->path->depth : 0;
     const float quality = intersect->path ? intersect->path->quality : 1.f;
 
-    for(uint l = 0; l < material_instance.size(); l++)
+    for(uint l = 0; l < lobes.size(); l++)
     {
-        const MaterialLobe * lobe = material_instance[l];
+        const MaterialLobe * lobe = lobes[l];
 
         MaterialLobe::ScatterType scatter_type = lobe->get_scatter_type();
         float num_samples = 0.f;
@@ -83,7 +83,7 @@ void SurfaceMaterialSampler::scatter_surface(
 
 float SurfaceMaterialSampler::evaluate(
     const SurfaceSample& sample, 
-    const MaterialInstance& material_instance,
+    const MaterialLobes& lobes,
     const Intersect * intersect, SurfaceSamplerData * data,
     Resources& resources) const
 {
@@ -91,7 +91,7 @@ float SurfaceMaterialSampler::evaluate(
         return false;
     float pdf = 0.f;
     const Vec3f& wo = intersect->ray.dir;
-    for(uint i = 0; i < material_instance.size(); i++)
-        pdf += material_instance[i]->pdf(wo, resources);
+    for(uint i = 0; i < lobes.size(); i++)
+        pdf += lobes[i]->pdf(wo, resources);
     return pdf;
 }

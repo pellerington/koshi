@@ -15,7 +15,7 @@ Vec3f MaterialVolume::get_emission(const Vec3f& uvw, const Intersect * intersect
     return VEC3F_ZERO;
 }
 
-MaterialInstance MaterialVolume::instance(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const
+MaterialLobes MaterialVolume::instance(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const
 {
-    return MaterialInstance(resources.memory);
+    return MaterialLobes(resources.memory);
 }

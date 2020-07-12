@@ -52,8 +52,8 @@ struct MaterialLobe
     virtual Hemisphere get_hemisphere() const = 0;
 };
 
-// TODO: Remove this typdef and rename everything as lobes instead of material_instance
-typedef Array<MaterialLobe*> MaterialInstance;
+// TODO: Remove this typdef and rename everything as lobes instead of lobes
+typedef Array<MaterialLobe*> MaterialLobes;
 
 // TODO: Generalize the material with a contructor for normals and opacity.
 class Material : public Object
@@ -65,7 +65,10 @@ public:
     {
     }
 
-    virtual MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources) = 0;
+    virtual MaterialLobes instance(const Surface * surface, const Intersect * intersect, Resources& resources)
+    {
+        return MaterialLobes(resources.memory, 1u);
+    }
 
     virtual Vec3f emission(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) 
     { 

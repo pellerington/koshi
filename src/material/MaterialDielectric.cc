@@ -24,9 +24,9 @@ MaterialDielectric::MaterialDielectric(const Texture * reflective_color_texture,
 {
 }
 
-MaterialInstance MaterialDielectric::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
+MaterialLobes MaterialDielectric::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
 {
-    MaterialInstance instance(resources.memory);
+    MaterialLobes instance(resources.memory);
 
     MaterialLobeGGXRefract * refract_lobe = resources.memory->create<MaterialLobeGGXRefract>();
     refract_lobe->rng = resources.random_service->get_random<2>();

@@ -33,7 +33,7 @@ IntegratorData * SurfaceLightSampler::pre_integrate(const Intersect * intersect,
 
 void SurfaceLightSampler::scatter_surface(
     Array<SurfaceSample>& samples,
-    const MaterialInstance& material_instance,
+    const MaterialLobes& lobes,
     const Intersect * intersect, SurfaceSamplerData * data, 
     Interiors& interiors, Resources& resources) const
 {
@@ -76,11 +76,11 @@ void SurfaceLightSampler::scatter_surface(
             const bool transmit = front ^ surface->facing;
 
             Vec3f weight;
-            for(size_t i = 0; i < material_instance.size(); i++)
+            for(size_t i = 0; i < lobes.size(); i++)
             {
-                MaterialLobe::Hemisphere hemisphere = material_instance[i]->get_hemisphere();
+                MaterialLobe::Hemisphere hemisphere = lobes[i]->get_hemisphere();
                 if(hemisphere == MaterialLobe::SPHERE || (!transmit && hemisphere == MaterialLobe::FRONT) || (transmit && hemisphere == MaterialLobe::BACK))
-                    weight += material_instance[i]->weight(wo, resources);
+                    weight += lobes[i]->weight(wo, resources);
             }
 
             if(is_black(weight)) continue;
@@ -113,7 +113,7 @@ void SurfaceLightSampler::scatter_surface(
 
 float SurfaceLightSampler::evaluate(
     const SurfaceSample& sample, 
-    const MaterialInstance& material_instance,
+    const MaterialLobes& lobes,
     const Intersect * intersect, SurfaceSamplerData * data, 
     Resources& resources) const
 {

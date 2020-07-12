@@ -13,9 +13,9 @@ MaterialGGXReflect::MaterialGGXReflect(const Texture * color_texture, const Text
 {
 }
 
-MaterialInstance MaterialGGXReflect::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
+MaterialLobes MaterialGGXReflect::instance(const Surface * surface, const Intersect * intersect, Resources& resources)
 {
-    MaterialInstance instance(resources.memory);
+    MaterialLobes instance(resources.memory);
     MaterialLobeGGXReflect * lobe = resources.memory->create<MaterialLobeGGXReflect>();
 
     lobe->rng = resources.random_service->get_random<2>();

@@ -1,15 +1,20 @@
 #include <light/LightSamplerArea.h>
+#include <material/Material.h>
 
 LightSamplerArea::LightSamplerArea(GeometryArea * geometry) 
 : geometry(geometry)
 {
-    light = geometry->get_attribute<Light>("light");
     double_sided = false;
     const Transform3f& obj_to_world = geometry->get_obj_to_world();
     area  = obj_to_world.multiply(Vec3f(1.f, 0.f, 0.f), false).length();
     area *= obj_to_world.multiply(Vec3f(0.f, 1.f, 0.f), false).length();
 
     normal = obj_to_world.multiply(Vec3f(0.f, 0.f, -1.f), false).normalized();
+}
+
+void LightSamplerArea::pre_render(Resources& resources)
+{
+    material = geometry->get_attribute<Material>("material");
 }
 
 const LightSamplerData * LightSamplerArea::pre_integrate(const Surface * surface, Resources& resources) const
@@ -38,7 +43,7 @@ bool LightSamplerArea::sample(LightSample& sample, const LightSamplerData * data
     light_intersect.geometry = geometry;
     Surface * light_surface = resources.memory->create<Surface>(sample.position, normal, rnd[0], rnd[1], 0.f, cos_theta < 0.f);
     light_intersect.geometry_data = light_surface;
-    sample.intensity = light->get_intensity(light_surface->u, light_surface->v, 0.f, &light_intersect, resources);
+    sample.intensity = material->emission(light_surface->u, light_surface->v, light_surface->w, &light_intersect, resources);
     sample.pdf = sqr_len / (area * (fabs(cos_theta) + EPSILON_F));
 
     return true;

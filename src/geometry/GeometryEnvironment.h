@@ -3,7 +3,7 @@
 #include <geometry/Geometry.h>
 #include <geometry/SurfaceDistant.h>
 #include <integrator/Integrator.h>
-#include <integrator/DistantLightEvaluator.h>
+#include <integrator/LightEvaluator.h>
 #include <intersection/IntersectCallbacks.h>
 #include <material/Material.h>
 
@@ -21,7 +21,7 @@ public:
 
     void pre_render(Resources& resources)
     {
-        integrator = new DistantLightEvaluator();
+        integrator = new LightEvaluator();
     }
 
     ~GeometryEnvironment()
@@ -62,7 +62,7 @@ private:
         const float u = phi * INV_TWO_PI;
         const float v = theta * INV_PI;
 
-        SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(u, v);
+        SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(u, v, 0.f);
         intersect->geometry_data = distant;
     
         distant->material = geometry->get_attribute<Material>("material");

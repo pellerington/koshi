@@ -2,7 +2,6 @@
 
 #include <integrator/Integrator.h>
 #include <material/Material.h>
-#include <light/Light.h>
 #include <Util/Color.h>
 
 #define SAMPLES_PER_SA 64
@@ -37,29 +36,28 @@ public:
 
     Vec3f integrate(const Intersect * intersect, IntegratorData * data, Transmittance& transmittance, Resources& resources) const
     {
-        Vec3f color = VEC3F_ZERO;
-
         // Check it is geometry surface.
         SurfaceSamplerData * surface_data = (SurfaceSamplerData *)data;
         const Surface * surface = surface_data->surface;
-        if(!surface) return color;
+        if(!surface || !surface->material) return VEC3F_ZERO;
 
-        // TODO: Move this into a material function.
+        Vec3f color = VEC3F_ZERO;
+
         // Add light contribution.
-        Light * light = intersect->geometry->get_attribute<Light>("light");
-        if(light && surface->facing) color += light->get_intensity(surface->u, surface->v, surface->w, intersect, resources);
+        color += (surface->facing) ? surface->material->emission(surface->u, surface->v, surface->w, intersect, resources) : VEC3F_ZERO;
 
-        if(is_saturated(color) || intersect->path->depth > resources.settings->max_depth || intersect->path->quality < min_quality || !surface->material)
-        {
+        // Terminate before scattering?
+        if(is_saturated(color) || intersect->path->depth > resources.settings->max_depth || intersect->path->quality < min_quality)
             return color * transmittance.shadow(intersect->t, resources) * surface->opacity;
-        }
 
-        MaterialInstance material_instance = surface->material->instance(surface, intersect, resources);
+        MaterialLobes lobes = surface->material->instance(surface, intersect, resources);
+        if(!lobes.size()) 
+            return color * transmittance.shadow(intersect->t, resources) * surface->opacity; 
 
         Interiors interiors(intersect->t, transmittance.get_intersects());
 
         Array<SurfaceSample> samples(resources.memory);
-        scatter_surface(samples, material_instance, intersect, surface_data, interiors, resources);
+        scatter_surface(samples, lobes, intersect, surface_data, interiors, resources);
         for(uint i = 0; i < samples.size(); i++)
         {
             color += samples[i].li * samples[i].weight / samples[i].pdf;
@@ -76,12 +74,12 @@ public:
 
     virtual void scatter_surface(
         Array<SurfaceSample>& samples,
-        const MaterialInstance& material_instance,
+        const MaterialLobes& lobes,
         const Intersect * intersect, SurfaceSamplerData * data, 
         Interiors& interiors, Resources& resources) const = 0;
 
     virtual float evaluate(const SurfaceSample& sample, 
-        const MaterialInstance& material_instance,
+        const MaterialLobes& lobes,
         const Intersect * intersect, SurfaceSamplerData * data, 
         Resources& resources) const = 0;
 

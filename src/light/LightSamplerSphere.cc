@@ -1,11 +1,9 @@
 #include <light/LightSamplerSphere.h>
+#include <material/Material.h>
 
 LightSamplerSphere::LightSamplerSphere(GeometrySphere * geometry)
 : geometry(geometry)
 {
-    // TODO: No Guarentee we will get this, do it in pre_render() or combine into Light ??
-    light = geometry->get_attribute<Light>("light");
-
     const Transform3f& obj_to_world = geometry->get_obj_to_world();
 
     center = obj_to_world * VEC3F_ZERO;
@@ -14,12 +12,17 @@ LightSamplerSphere::LightSamplerSphere(GeometrySphere * geometry)
     radius.y = obj_to_world.multiply(Vec3f(0.f, SPHERE_RADIUS, 0.f), false).length();
     radius.z = obj_to_world.multiply(Vec3f(0.f, 0.f, SPHERE_RADIUS), false).length();
 
-    radius_sqr = radius*radius;
+    radius_sqr = radius * radius;
 
     const float p = 8.f / 5.f;
     area = FOUR_PI * powf((powf(radius.x*radius.y, p) + powf(radius.x*radius.z, p) + powf(radius.y*radius.z, p)) / 3.f, 1.f / p);
 
     ellipsoid = fabs(radius.x-radius.y) > 0.01f || fabs(radius.x-radius.z) > 0.01f || fabs(radius.y-radius.z) > 0.01f;
+}
+
+void LightSamplerSphere::pre_render(Resources& resources)
+{
+    material = geometry->get_attribute<Material>("material");
 }
 
 const LightSamplerData * LightSamplerSphere::pre_integrate(const Surface * surface, Resources& resources) const
@@ -94,7 +97,7 @@ bool LightSamplerSphere::sample_sphere_sa(LightSample& sample, const LightSample
     Surface * light_surface = resources.memory->create<Surface>(sample.position, normal, 0.f, 0.f, 0.f, true);
     light_intersect.geometry_data = light_surface;
 
-    sample.intensity = light->get_intensity(light_surface->u, light_surface->v, 0.f, &light_intersect, resources);
+    sample.intensity = material->emission(light_surface->u, light_surface->v, light_surface->w, &light_intersect, resources);
 
     sample.pdf = 1.f / (TWO_PI * (1.f - data->cos_max));
 

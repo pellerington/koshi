@@ -9,6 +9,8 @@ class LightSamplerDirectional : public LightSampler
 public:
     LightSamplerDirectional(Geometry * geometry);
 
+    void pre_render(Resources& resources);
+
     struct LightSamplerDataDirectional : public LightSamplerData
     {
         Random<2> rng;
@@ -26,7 +28,7 @@ public:
 
 private:
     Geometry * geometry;
-    Light * light;
+    Material * material;
 
     Vec3f direction;
 };
