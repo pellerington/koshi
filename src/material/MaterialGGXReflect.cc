@@ -7,8 +7,9 @@
 #include <cmath>
 #include <iostream>
 
-MaterialGGXReflect::MaterialGGXReflect(const Texture * color_texture, const Texture * roughness_texture, const Texture * normal_texture)
-: color_texture(color_texture), roughness_texture(roughness_texture), normal_texture(normal_texture)
+MaterialGGXReflect::MaterialGGXReflect(const Texture * color_texture, const Texture * roughness_texture, 
+                                       const Texture * normal_texture, const Texture * opacity_texture)
+: Material(normal_texture, opacity_texture), color_texture(color_texture), roughness_texture(roughness_texture)
 {
 }
 

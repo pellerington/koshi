@@ -14,6 +14,5 @@ struct SurfaceDistant : public GeometryData
 
     Vec3f opacity;
 
-    // Material * material
-
+    Material * material;
 };

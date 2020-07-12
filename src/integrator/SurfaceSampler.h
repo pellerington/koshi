@@ -2,6 +2,7 @@
 
 #include <integrator/Integrator.h>
 #include <material/Material.h>
+#include <light/Light.h>
 #include <Util/Color.h>
 
 #define SAMPLES_PER_SA 64
@@ -46,7 +47,7 @@ public:
         // TODO: Move this into a material function.
         // Add light contribution.
         Light * light = intersect->geometry->get_attribute<Light>("light");
-        if(light && surface->facing) color += light->get_intensity(surface->u, surface->v, 0.f, intersect, resources);
+        if(light && surface->facing) color += light->get_intensity(surface->u, surface->v, surface->w, intersect, resources);
 
         if(is_saturated(color) || intersect->path->depth > resources.settings->max_depth || intersect->path->quality < min_quality || !surface->material)
         {

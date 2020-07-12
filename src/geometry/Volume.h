@@ -5,8 +5,7 @@ class MaterialVolume;
 
 struct Volume : public GeometryData
 {
-    // TODO: Make this more generable.
-    Vec3f uvw0, uvw1;
+    Vec3f uvw_near, uvw_far;
 
     struct Segment {
         float t0, t1;
@@ -14,11 +13,9 @@ struct Volume : public GeometryData
         Segment * next;
     };
     Segment * segment = nullptr;
-    
-
     // Add function to access sement using [t].
 
-    // Opacity???
+    // Vec3f opacity;
 
     MaterialVolume * material;
 };

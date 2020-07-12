@@ -15,10 +15,6 @@
 #include <embree/EmbreeGeometryArea.h>
 #include <embree/EmbreeGeometryVolume.h>
 
-#include <texture/TextureMultiply.h>
-
-#include <intersection/Opacity.h>
-
 struct GeometrySceneFile
 {
 
@@ -27,9 +23,6 @@ struct GeometrySceneFile
         type.reserved_attributes.push_back("scale");
         type.reserved_attributes.push_back("rotation");
         type.reserved_attributes.push_back("translation");
-
-        type.reserved_attributes.push_back("opacity");
-        type.reserved_attributes.push_back("opacity_texture");
         type.reserved_attributes.push_back("hide_camera");
     }
 
@@ -84,33 +77,22 @@ struct GeometrySceneFile
         return transform;
     }
 
-    static Object * get_opacity(AttributeAccessor& accessor, Object * geometry)
+    static GeometryVisibility get_visibility(AttributeAccessor& accessor)
     {
-        const Vec3f opacity = accessor.get_vec3f("opacity", 1.f);
-        Texture * opacity_texture = dynamic_cast<Texture*>(accessor.get_object("opacity_texture"));
-        const bool hide_camera = accessor.get_bool("hide_camera");
-        if(opacity == 1.f && !opacity_texture && !hide_camera)
-            return nullptr;
-        
-        TextureMultiply * opacity_multiply_texture = new TextureMultiply(opacity, opacity_texture);
-        accessor.add_object("opacity_multiply_texture", opacity_multiply_texture);
-        Opacity * object = new Opacity(opacity_multiply_texture, hide_camera);
-        accessor.add_object("opacity", object);
-        geometry->set_attribute("opacity", object);
-
-        return object;
+        GeometryVisibility visibility;
+        visibility.hide_camera = accessor.get_bool("hide_camera");
+        return visibility;
     }
 
     static Object * create_geometry_mesh(AttributeAccessor& accessor, Object * parent)
     {
-        Transform3f transform = get_transform(accessor);
-
         std::string filetype = accessor.get_string("filetype");
         std::string filename = accessor.get_string("filename");
 
-        GeometryMesh * geometry = new GeometryMesh(transform, filename);
+        Transform3f transform = get_transform(accessor);
+        GeometryVisibility visibility = get_visibility(accessor);
 
-        get_opacity(accessor, geometry);
+        GeometryMesh * geometry = new GeometryMesh(filename, transform, visibility);
 
         EmbreeGeometryMesh * embree = new EmbreeGeometryMesh(geometry);
         geometry->set_attribute("embree_geometry", embree);
@@ -122,9 +104,9 @@ struct GeometrySceneFile
     static Object * create_geometry_box(AttributeAccessor& accessor, Object * parent)
     {
         Transform3f transform = get_transform(accessor);
-        GeometryBox * geometry = new GeometryBox(transform);
+        GeometryVisibility visibility = get_visibility(accessor);
 
-        get_opacity(accessor, geometry);
+        GeometryBox * geometry = new GeometryBox(transform, visibility);
 
         EmbreeGeometryBox * embree = new EmbreeGeometryBox(geometry);
         geometry->set_attribute("embree_geometry", embree);
@@ -136,9 +118,9 @@ struct GeometrySceneFile
     static Object * create_geometry_sphere(AttributeAccessor& accessor, Object * parent)
     {
         Transform3f transform = get_transform(accessor);
-        GeometrySphere * geometry = new GeometrySphere(transform);
+        GeometryVisibility visibility = get_visibility(accessor);
 
-        get_opacity(accessor, geometry);
+        GeometrySphere * geometry = new GeometrySphere(transform, visibility);
 
         EmbreeGeometrySphere * embree = new EmbreeGeometrySphere(geometry);
         geometry->set_attribute("embree_geometry", embree);
@@ -150,9 +132,9 @@ struct GeometrySceneFile
     static Object * create_geometry_area(AttributeAccessor& accessor, Object * parent)
     {
         Transform3f transform = get_transform(accessor);
-        GeometryArea * geometry = new GeometryArea(transform);
+        GeometryVisibility visibility = get_visibility(accessor);
 
-        get_opacity(accessor, geometry);
+        GeometryArea * geometry = new GeometryArea(transform, visibility);
 
         EmbreeGeometryArea * embree = new EmbreeGeometryArea(geometry);
         geometry->set_attribute("embree_geometry", embree);
@@ -164,9 +146,9 @@ struct GeometrySceneFile
     static Object * create_geometry_volume(AttributeAccessor& accessor, Object * parent)
     {
         Transform3f transform = get_transform(accessor);
-        GeometryVolume * geometry = new GeometryVolume(transform);
+        GeometryVisibility visibility = get_visibility(accessor);
 
-        // get_opacity(accessor, geometry);
+        GeometryVolume * geometry = new GeometryVolume(transform, visibility);
 
         EmbreeGeometryVolume * embree = new EmbreeGeometryVolume(geometry);
         geometry->set_attribute("embree_geometry", embree);

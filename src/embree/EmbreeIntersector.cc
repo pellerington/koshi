@@ -1,7 +1,6 @@
 #include <embree/EmbreeIntersector.h>
 #include <embree/EmbreeGeometry.h>
 #include <geometry/Geometry.h>
-#include <intersection/Opacity.h>
 #include <integrator/Integrator.h>
 #include <material/Material.h>
 #include <base/Scene.h>
@@ -79,11 +78,23 @@ Intersector * EmbreeIntersector::get_intersector(Geometry * geometry)
     return intersector;
 }
 
+// void EmbreeIntersector::object_callback(const RTCFilterFunctionNArguments * args)
+// {
+
+// }
+
 void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * args)
 {
     EmbreeIntersectContext * context = (EmbreeIntersectContext*)args->context;
     Geometry * geometry = (Geometry*)args->geometryUserPtr;
     const Ray& ray = context->intersects->ray;
+
+    args->valid[0] = 0;
+
+    // TODO: Do this in an object callback on the intersector
+    // Check our visibility.
+    if(context->intersects->path->depth == 0 && geometry->get_visibility().hide_camera)
+        return;
 
     // Ignore if a duplicate
     for(uint i = 0; i < context->intersects->size(); i++)
@@ -112,23 +123,22 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
 
     // Add the material to the surface.
     surface->material = geometry->get_attribute<Material>("material");
-
-    // Get the opacity of the intersect
-    Opacity * opacity = geometry->get_attribute<Opacity>("opacity");
-    if(opacity) surface->opacity = opacity->get_opacity(surface->u, surface->v, 0.f, intersect, *context->resources);
+    surface->opacity = (surface->material) ? surface->material->opacity(surface->u, surface->v, surface->w, intersect, *context->resources) : VEC3F_ONES;
 
     // Close any segments of this geometry
     if(!surface->facing)
+    {
         for(uint i = 0; i < context->intersects->size(); i++)
         {
             Intersect * intersect = context->intersects->get(i);
             if(intersect->geometry == geometry && intersect->tlen > 0.f)
                 intersect->tlen = RTCRayN_tfar(args->ray, args->N, 0) - intersect->t;
         }
+    }
 
-    // Is this hit solid?
-    if(!(surface->opacity >= 1.f))
-        args->valid[0] = 0;
+    // Check hit is solid
+    if(surface->opacity >= 1.f)
+        args->valid[0] = -1;
 
     // Add an integrator
     intersect->integrator = geometry->get_attribute<Integrator>("integrator");

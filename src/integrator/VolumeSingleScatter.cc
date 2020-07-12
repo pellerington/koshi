@@ -44,7 +44,7 @@ Vec3f VolumeSingleScatter::shadow(const float& t, const Intersect * intersect, I
                     break;
 
                 const float d = (tcurr - intersect->t) * inv_tlen;
-                Vec3f uvw = volume->uvw0 * d + volume->uvw1 * (1.f - d);
+                Vec3f uvw = volume->uvw_near * d + volume->uvw_far * (1.f - d);
                 Vec3f density = volume->material->get_density(uvw, intersect, resources);
                 shadow = shadow * (VEC3F_ONES - density * inv_max_density);
             }

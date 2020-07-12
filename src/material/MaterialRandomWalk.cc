@@ -5,13 +5,13 @@
 #include <texture/TextureConstant.h>
 #include <intersection/Intersector.h>
 
-MaterialRandomWalk::MaterialRandomWalk(const Texture * color_texture, const Texture * density_texture, 
-                                       const float& anistropy, const Texture * normal_texture)
-: color_texture(color_texture), density_texture(density_texture), anistropy(anistropy), normal_texture(normal_texture)
+MaterialRandomWalk::MaterialRandomWalk(const Texture * color_texture, const Texture * density_texture, const float& anistropy, 
+                                       const Texture * normal_texture, const Texture * opacity_texture)
+: Material(normal_texture, opacity_texture), color_texture(color_texture), density_texture(density_texture), anistropy(anistropy)
 {
     // TODO: Have exit color be texturable here ( so we don't have to clean it up. )
     // TODO: Plug exit_material into MaterialRandomWalk and setup so it gets deleted automatically.
-    exit_material = new MaterialLambert<false>(new TextureConstant(VEC3F_ONES), normal_texture);
+    exit_material = new MaterialLambert<false>(new TextureConstant(VEC3F_ONES), normal_texture, new TextureConstant(VEC3F_ONES));
 }
 
 MaterialInstance MaterialRandomWalk::instance(const Surface * surface, const Intersect * intersect, Resources& resources)

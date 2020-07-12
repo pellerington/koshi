@@ -7,7 +7,7 @@
 class GeometryArea : public Geometry
 {
 public:
-    GeometryArea(const Transform3f& obj_to_world);
+    GeometryArea(const Transform3f& obj_to_world, const GeometryVisibility& visibility);
 private:
     static const Box3f bbox;
 };

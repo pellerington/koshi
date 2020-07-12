@@ -10,7 +10,9 @@ public:
                        const Texture * refractive_color_texture,
                        const float& refractive_color_depth, 
                        const Texture * roughness_texture,
-                       const float& ior, const Texture * normal_texture);
+                       const float& ior,
+                       const Texture * normal_texture, 
+                       const Texture * opacity_texture);
 
     MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources);
 
@@ -20,5 +22,4 @@ private:
     const float refractive_color_depth;
     const Texture * roughness_texture;
     const float ior;
-    const Texture * normal_texture;
 };

@@ -2,16 +2,16 @@
 
 #include <geometry/Geometry.h>
 #include <geometry/SurfaceDistant.h>
-#include <intersection/Opacity.h>
 #include <integrator/Integrator.h>
 #include <integrator/DistantLightEvaluator.h>
 #include <intersection/IntersectCallbacks.h>
+#include <material/Material.h>
 
 class GeometryEnvironment : public Geometry
 {
 public:
-    GeometryEnvironment(const Transform3f& transform)
-    : Geometry(transform), integrator(nullptr)
+    GeometryEnvironment(const Transform3f& transform, const GeometryVisibility& visibility)
+    : Geometry(transform, visibility), integrator(nullptr)
     {
         intersection_cb = new IntersectionCallbacks;
         intersection_cb->post_intersection_cb = post_intersection_cb;
@@ -41,6 +41,12 @@ private:
             return;
 
         GeometryEnvironment * geometry = (GeometryEnvironment *)data;
+
+        // TODO: Do this in an object callback on the intersector
+        // Check our visibility.
+        if(intersects->path->depth == 0 && geometry->get_visibility().hide_camera)
+            return;
+
         Intersect * intersect = intersects->push(resources);
 
         intersect->t = FLT_MAX;
@@ -59,8 +65,8 @@ private:
         SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(u, v);
         intersect->geometry_data = distant;
     
-        Opacity * opacity = geometry->get_attribute<Opacity>("opacity");
-        if(opacity) distant->opacity = opacity->get_opacity(distant->u, distant->v, 0.f, intersect, resources);
+        distant->material = geometry->get_attribute<Material>("material");
+        distant->opacity = (distant->material) ? distant->material->opacity(distant->u, distant->v, 0.f, intersect, resources) : VEC3F_ONES;
 
         intersect->integrator = geometry->integrator;
     }

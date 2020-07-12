@@ -6,8 +6,10 @@
 #include <iostream>
 #include <integrator/AbsorbtionMedium.h>
 
-MaterialGGXRefract::MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, const float& ior, const float& color_depth, const Texture * normal_texture)
-: color_texture(color_texture), color_depth(color_depth), roughness_texture(roughness_texture), ior(ior), normal_texture(normal_texture)
+MaterialGGXRefract::MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, 
+                                       const float& ior, const float& color_depth, 
+                                       const Texture * normal_texture, const Texture * opacity_texture)
+: Material(normal_texture, opacity_texture), color_texture(color_texture), color_depth(color_depth), roughness_texture(roughness_texture), ior(ior)
 {
 }
 

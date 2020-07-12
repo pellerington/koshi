@@ -31,7 +31,7 @@ public:
 class GeometryMesh : public Geometry
 {
 public:
-    GeometryMesh(const Transform3f& obj_to_world, const std::string& filename);
+    GeometryMesh(const std::string& filename, const Transform3f& obj_to_world, const GeometryVisibility& visibility);
 
     const GeometryAttribute * get_geometry_attribute(const std::string& name);
 

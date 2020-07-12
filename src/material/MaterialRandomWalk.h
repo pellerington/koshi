@@ -20,13 +20,12 @@ struct MaterialLobeRandomWalk : MaterialLobe
 class MaterialRandomWalk: public Material
 {
 public:
-    MaterialRandomWalk(const Texture * color_texture, const Texture * density_texture, 
-                       const float& anistropy, const Texture * normal_texture);
+    MaterialRandomWalk(const Texture * color_texture, const Texture * density_texture, const float& anistropy, 
+                       const Texture * normal_texture, const Texture * opacity_texture);
     MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources);
 private:
     const Texture * color_texture;
     const Texture * density_texture;
     const float anistropy;
-    const Texture * normal_texture;
     Material * exit_material;
 };

@@ -12,7 +12,7 @@
 class GeometryVolume : public Geometry
 {
 public:
-    GeometryVolume(const Transform3f& obj_to_world = Transform3f());
+    GeometryVolume(const Transform3f& obj_to_world, const GeometryVisibility& visibility);
 
     void pre_render(Resources& resources);
 

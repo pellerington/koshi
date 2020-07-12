@@ -95,8 +95,15 @@ struct MaterialSceneFile
         Texture * color_texture = dynamic_cast<Texture*>(accessor.get_object("color_texture"));
         TextureMultiply * color_multiply_texture = new TextureMultiply(color, color_texture);
         accessor.add_object("color_multiply_texture", color_multiply_texture);
+
         Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
-        return new MaterialLambert<true>(color_multiply_texture, normal_texture);
+
+        const Vec3f opacity = accessor.get_vec3f("opacity", 1.f);
+        Texture * opacity_texture = dynamic_cast<Texture*>(accessor.get_object("opacity_texture"));
+        TextureMultiply * opacity_multiply_texture = new TextureMultiply(opacity, opacity_texture);
+        accessor.add_object("opacity_multiply_texture", opacity_multiply_texture);
+
+        return new MaterialLambert<true>(color_multiply_texture, normal_texture, opacity_multiply_texture);
     }
 
     static Object * create_material_ggx(AttributeAccessor& accessor, Object * parent)
@@ -113,7 +120,13 @@ struct MaterialSceneFile
 
         Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
 
-        return new MaterialGGXReflect(color_multiply_texture, roughness_multiply_texture, normal_texture);
+        const Vec3f opacity = accessor.get_vec3f("opacity", 1.f);
+        Texture * opacity_texture = dynamic_cast<Texture*>(accessor.get_object("opacity_texture"));
+        TextureMultiply * opacity_multiply_texture = new TextureMultiply(opacity, opacity_texture);
+        accessor.add_object("opacity_multiply_texture", opacity_multiply_texture);
+
+        return new MaterialGGXReflect(color_multiply_texture, roughness_multiply_texture, 
+                                      normal_texture, opacity_multiply_texture);
     }
 
     static Object * create_material_ggx_refract(AttributeAccessor& accessor, Object * parent)
@@ -134,9 +147,14 @@ struct MaterialSceneFile
 
         Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
 
+        const Vec3f opacity = accessor.get_vec3f("opacity", 1.f);
+        Texture * opacity_texture = dynamic_cast<Texture*>(accessor.get_object("opacity_texture"));
+        TextureMultiply * opacity_multiply_texture = new TextureMultiply(opacity, opacity_texture);
+        accessor.add_object("opacity_multiply_texture", opacity_multiply_texture);
+
         return new MaterialGGXRefract(
             color_multiply_texture, roughness_multiply_texture, 
-            ior, color_depth, normal_texture
+            ior, color_depth, normal_texture, opacity_multiply_texture
         );
     }
 
@@ -163,9 +181,15 @@ struct MaterialSceneFile
 
         Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
 
+        const Vec3f opacity = accessor.get_vec3f("opacity", 1.f);
+        Texture * opacity_texture = dynamic_cast<Texture*>(accessor.get_object("opacity_texture"));
+        TextureMultiply * opacity_multiply_texture = new TextureMultiply(opacity, opacity_texture);
+        accessor.add_object("opacity_multiply_texture", opacity_multiply_texture);
+
         return new MaterialDielectric(
             reflect_color_multiply_texture, refract_color_multiply_texture,
-            refract_color_depth, roughness_multiply_texture, ior, normal_texture
+            refract_color_depth, roughness_multiply_texture, ior,
+            normal_texture, opacity_multiply_texture
         );
     }
 
@@ -186,7 +210,13 @@ struct MaterialSceneFile
 
         Texture * normal_texture = dynamic_cast<Texture*>(accessor.get_object("normal_texture"));
 
-        return new MaterialRandomWalk(color_multiply_texture, density_multiply_texture, anistropy, normal_texture);      
+        const Vec3f opacity = accessor.get_vec3f("opacity", 1.f);
+        Texture * opacity_texture = dynamic_cast<Texture*>(accessor.get_object("opacity_texture"));
+        TextureMultiply * opacity_multiply_texture = new TextureMultiply(opacity, opacity_texture);
+        accessor.add_object("opacity_multiply_texture", opacity_multiply_texture);
+
+        return new MaterialRandomWalk(color_multiply_texture, density_multiply_texture, anistropy, 
+                                      normal_texture, opacity_multiply_texture);      
     }
 
     static Object * create_material_volume(AttributeAccessor& accessor, Object * parent)
@@ -209,6 +239,7 @@ struct MaterialSceneFile
         accessor.add_object("emission_multiply_texture", emission_multiply_texture);
         const std::string emission_attribute = accessor.get_string("emission_attribute");
 
+        // TODO: This being a multiply texture is bad?
         const float anistropy = accessor.get_float("anistropy");
         Texture * anistropy_texture = dynamic_cast<Texture*>(accessor.get_object("anistropy_texture"));
         TextureMultiply * anistropy_multiply_texture = new TextureMultiply(anistropy, anistropy_texture);

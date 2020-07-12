@@ -2,8 +2,8 @@
 
 #include <import/MeshFile.h>
 
-GeometryMesh::GeometryMesh(const Transform3f& obj_to_world, const std::string& filename)
-: Geometry(obj_to_world)
+GeometryMesh::GeometryMesh(const std::string& filename, const Transform3f& obj_to_world, const GeometryVisibility& visibility)
+: Geometry(obj_to_world, visibility)
 {
     // TODO: Check the filetype somehow
     std::vector<GeometryMeshAttribute*> read_attributes = MeshFile::ReadOBJ(filename);

@@ -14,12 +14,13 @@ MaterialDielectric::MaterialDielectric(const Texture * reflective_color_texture,
                                        const float& refractive_color_depth,
                                        const Texture * roughness_texture,
                                        const float& ior,
-                                       const Texture * normal_texture)
-: reflective_color_texture(reflective_color_texture), 
+                                       const Texture * normal_texture,
+                                       const Texture * opacity_texture)
+: Material(normal_texture, opacity_texture),
+  reflective_color_texture(reflective_color_texture), 
   refractive_color_texture(refractive_color_texture),
   refractive_color_depth(refractive_color_depth),
-  roughness_texture(roughness_texture), ior(ior),
-  normal_texture(normal_texture)
+  roughness_texture(roughness_texture), ior(ior)
 {
 }
 

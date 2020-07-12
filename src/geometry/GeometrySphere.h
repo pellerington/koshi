@@ -8,7 +8,7 @@
 class GeometrySphere : public Geometry
 {
 public:
-    GeometrySphere(const Transform3f& obj_to_world);
+    GeometrySphere(const Transform3f& obj_to_world, const GeometryVisibility& visibility);
 
 protected:
     static const Box3f bbox; 

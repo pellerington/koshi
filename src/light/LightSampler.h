@@ -5,6 +5,7 @@
 #include <math/Types.h>
 #include <intersection/Intersect.h>
 #include <math/Random.h>
+#include <light/Light.h>
 #include <vector>
 
 struct LightSample {

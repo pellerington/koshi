@@ -8,8 +8,8 @@
 #include <geometry/Geometry.h>
 
 template<bool REFLECT>
-MaterialLambert<REFLECT>::MaterialLambert(const Texture * color_texture, const Texture * normal_texture)
-: color_texture(color_texture), normal_texture(normal_texture)
+MaterialLambert<REFLECT>::MaterialLambert(const Texture * color_texture, const Texture * normal_texture, const Texture * opacity_texture)
+: Material(normal_texture, opacity_texture), color_texture(color_texture)
 {
 }
 

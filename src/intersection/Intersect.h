@@ -51,10 +51,11 @@ class IntersectList
 {
 public:
     IntersectList(Resources& resources, const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), intersects(resources.memory, 4), path(path)
+    : ray(ray), path(path), intersects(resources.memory, 4)
     {}
 
     const Ray ray;
+    const PathData * path;
 
     inline size_t size() const { return intersects.size(); }
     inline bool empty() const { return !intersects.size(); }
@@ -81,5 +82,4 @@ public:
 
 private:
     Array<Intersect*> intersects;
-    const PathData * path;
 };

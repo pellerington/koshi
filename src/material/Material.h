@@ -34,9 +34,9 @@ struct MaterialLobe
     Vec3f normal;
     Transform3f transform;
 
-    // TODO: Make these virtual functions?
+    // TODO: Make these virtual functions instead.
     Vec3f color;
-    float roughness;    
+    float roughness;
 
     virtual bool sample(MaterialSample& sample, Resources& resources) const = 0;
     virtual Vec3f weight(const Vec3f& wo, Resources& resources) const = 0;
@@ -55,12 +55,29 @@ struct MaterialLobe
 // TODO: Remove this typdef and rename everything as lobes instead of material_instance
 typedef Array<MaterialLobe*> MaterialInstance;
 
+// TODO: Generalize the material with a contructor for normals and opacity.
 class Material : public Object
 {
 public:
+
+    Material(const Texture * normal_texture = nullptr, const Texture * opacity_texture = nullptr)
+    : normal_texture(normal_texture), opacity_texture(opacity_texture)
+    {
+    }
+
     virtual MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources) = 0;
 
-    // inline virtual Vec3f emission() const { return VEC3_ZERO; }
+    virtual Vec3f emission(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) 
+    { 
+        return VEC3F_ZERO; 
+    }
 
-    // inline virtual Opacity???
+    virtual Vec3f opacity(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources)
+    {
+        return (opacity_texture) ? opacity_texture->evaluate(u, v, w, intersect, resources) : VEC3F_ONES;
+    }
+
+protected:
+    const Texture * normal_texture;
+    const Texture * opacity_texture;
 };

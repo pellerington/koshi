@@ -22,7 +22,9 @@ struct MaterialLobeGGXRefract : public MaterialLobe
 class MaterialGGXRefract : public Material
 {
 public:
-    MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, const float& ior, const float& color_depth, const Texture * normal_texture);
+    MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, 
+                       const float& ior, const float& color_depth, 
+                       const Texture * normal_texture, const Texture * opacity_texture);
     MaterialInstance instance(const Surface * surface, const Intersect * intersect, Resources& resources);
 
 private:
@@ -30,5 +32,4 @@ private:
     const float color_depth;
     const Texture * roughness_texture;
     const float ior;
-    const Texture * normal_texture;
 };

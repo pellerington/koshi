@@ -4,8 +4,8 @@
 
 const Box3f GeometryVolume::bbox = Box3f(Vec3f(-VOLUME_LENGTH*0.5f), Vec3f(VOLUME_LENGTH*0.5f));
 
-GeometryVolume::GeometryVolume(const Transform3f& obj_to_world)
-: Geometry(obj_to_world)
+GeometryVolume::GeometryVolume(const Transform3f& obj_to_world, const GeometryVisibility& visibility)
+: Geometry(obj_to_world, visibility)
 {
     obj_bbox = bbox;
     world_bbox = obj_to_world * obj_bbox;
