@@ -20,8 +20,8 @@ public:
     Vec3f(const float& n) : data(_mm_setr_ps(n, n, n, 0.f)) {}
     Vec3f(const __m128& data) : data(data) {}
 
-    inline float& operator[](const int i) { return data[i]; }
-    inline const float& operator[](const int i) const { return data[i]; }
+    inline float& operator[](const int& i) { return data[i]; }
+    inline const float& operator[](const int& i) const { return data[i]; }
 
     // Assignement
     inline Vec3f& operator= (const Vec3f& other) { data = other.data; return *this; }
@@ -99,12 +99,15 @@ public:
         return v;
     }
 
-    static inline Vec3f normalize(const Vec3f v) {
+    static inline Vec3f normalize(const Vec3f& v) {
         return v.normalized();
     }
 
-    inline static Vec3f clamp(const Vec3f& _v, const float min, const float max) {
+    inline static Vec3f clamp(const Vec3f& _v, const float& min, const float& max) {
         Vec3f v = _v; v.min(max); v.max(min); return v;
+    }
+    inline void clamp(const float& min, const float& max) {
+        this->min(max); this->max(min);
     }
 
     inline static Vec3f min(const Vec3f& v0, const Vec3f& v1) { return Vec3f(_mm_min_ps(v0.data, v1.data)); }

@@ -4,10 +4,12 @@
 
 #include <import/GeometrySceneFile.h>
 #include <geometry/GeometryEnvironment.h>
+#include <geometry/GeometryDirectional.h>
 
 #include <light/LightSamplerArea.h>
 #include <light/LightSamplerSphere.h>
 #include <light/LightSamplerDirectional.h>
+#include <light/LightSamplerEnvironment.h>
 
 #include <material/MaterialLight.h>
 
@@ -20,6 +22,7 @@ struct LightSceneFile
     {
         type.reserved_attributes.push_back("intesity");
         type.reserved_attributes.push_back("intensity_texture");
+        type.reserved_attributes.push_back("normalized");
     }
 
     static void add_types(Types& types)
@@ -63,9 +66,16 @@ struct LightSceneFile
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
         TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
         accessor.add_object("intensity_multiply_texture", intensity_multiply_texture);
-        MaterialLight * material = new MaterialLight(intensity_multiply_texture);
+
+        const bool normalized = accessor.get_bool("normalized", true);
+
+        MaterialLight * material = new MaterialLight(intensity_multiply_texture, normalized);
         accessor.add_object("material", material);
         geometry->set_attribute("material", material);
+
+        LightSamplerEnvironment * light_sampler = new LightSamplerEnvironment(geometry);
+        accessor.add_object("light_sampler", light_sampler);
+        geometry->set_attribute("light_sampler", light_sampler);
 
         return geometry;
     }
@@ -74,13 +84,17 @@ struct LightSceneFile
     {
         Transform3f transform = GeometrySceneFile::get_transform(accessor);
         GeometryVisibility visibility = GeometrySceneFile::get_visibility(accessor);
-        Geometry * geometry = new Geometry(transform, visibility);
+        const float angle = accessor.get_float("angle");
+        GeometryDirectional * geometry = new GeometryDirectional(angle, transform, visibility);
 
         const Vec3f intensity = accessor.get_vec3f("intensity");
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
         TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
         accessor.add_object("intensity_multiply_texture", intensity_multiply_texture);
-        MaterialLight * material = new MaterialLight(intensity_multiply_texture);
+
+        const bool normalized = accessor.get_bool("normalized", true);
+
+        MaterialLight * material = new MaterialLight(intensity_multiply_texture, normalized);
         accessor.add_object("material", material);
         geometry->set_attribute("material", material);
 
@@ -101,7 +115,10 @@ struct LightSceneFile
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
         TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
         accessor.add_object("intensity_multiply_texture", intensity_multiply_texture);
-        MaterialLight * material = new MaterialLight(intensity_multiply_texture);
+
+        const bool normalized = accessor.get_bool("normalized", true);
+
+        MaterialLight * material = new MaterialLight(intensity_multiply_texture, normalized);
         accessor.add_object("material", material);
         geometry->set_attribute("material", material);
 
@@ -126,7 +143,10 @@ struct LightSceneFile
         Texture * intensity_texture = dynamic_cast<Texture*>(accessor.get_object("intensity_texture"));
         TextureMultiply * intensity_multiply_texture = new TextureMultiply(intensity, intensity_texture);
         accessor.add_object("intensity_multiply_texture", intensity_multiply_texture);
-        MaterialLight * material = new MaterialLight(intensity_multiply_texture);
+
+        const bool normalized = accessor.get_bool("normalized", true);
+
+        MaterialLight * material = new MaterialLight(intensity_multiply_texture, normalized);
         accessor.add_object("material", material);
         geometry->set_attribute("material", material);
 

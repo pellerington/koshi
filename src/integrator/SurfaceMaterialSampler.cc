@@ -26,7 +26,7 @@ void SurfaceMaterialSampler::scatter_surface(
             max_num_samples = SAMPLES_PER_SA * sqrtf(lobe->roughness);
         const float sample_quality = quality / max_num_samples;
         max_num_samples = std::max(1.f, max_num_samples * quality * resources.settings->sampling_quality);
-        Vec3f variance_sum = VEC3F_ZERO, variance_sum_sqr = VEC3F_ZERO;
+        Vec3f variance_sum = VEC3F_ZERO;
         const uint samples_begin = samples.size();
 
         MaterialLobe::Hemisphere hemisphere = lobe->get_hemisphere();
@@ -42,7 +42,7 @@ void SurfaceMaterialSampler::scatter_surface(
         next_path.quality = sample_quality;
         next_path.prev_path = intersect->path;
 
-        while(num_samples < max_num_samples && (num_samples < min_num_samples || variance(variance_sum, variance_sum_sqr, num_samples) > 0.05f*0.05f))
+        while(num_samples < max_num_samples)
         {
             num_samples++;
 
@@ -50,7 +50,7 @@ void SurfaceMaterialSampler::scatter_surface(
             if(!lobe->sample(material_sample, resources))
                 continue;
 
-            const bool front = material_sample.wo.dot(surface->normal) > 0;
+            const bool front = material_sample.wo.dot(surface->normal) > 0.f;
             const bool transmit = front ^ surface->facing;
 
             if((transmit && hemisphere == MaterialLobe::FRONT) || (!transmit && hemisphere == MaterialLobe::BACK))
@@ -71,8 +71,9 @@ void SurfaceMaterialSampler::scatter_surface(
             sample.li = Integrator::shade(sample.intersects, resources);
 
             Vec3f color = (sample.li * sample.weight) / sample.pdf;
+            if(num_samples >= min_num_samples && luminance(variance_sum / (num_samples-1.f) - (variance_sum+color) / num_samples) < 0.01f)
+                break;
             variance_sum += color;
-            variance_sum_sqr += color*color;
         }
 
         float inv_num_samples = 1.f / num_samples;
@@ -82,15 +83,14 @@ void SurfaceMaterialSampler::scatter_surface(
 }
 
 float SurfaceMaterialSampler::evaluate(
-    const SurfaceSample& sample, 
-    const MaterialLobes& lobes,
+    const SurfaceSample& sample, const MaterialLobes& lobes,
     const Intersect * intersect, SurfaceSamplerData * data,
     Resources& resources) const
 {
     if(sample.scatter)
         return false;
     float pdf = 0.f;
-    const Vec3f& wo = intersect->ray.dir;
+    const Vec3f& wo = sample.intersects->ray.dir;
     for(uint i = 0; i < lobes.size(); i++)
         pdf += lobes[i]->pdf(wo, resources);
     return pdf;

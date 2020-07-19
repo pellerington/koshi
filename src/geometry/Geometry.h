@@ -38,6 +38,8 @@ public:
 
     const GeometryVisibility& get_visibility() { return visibility; }
 
+    virtual const float get_area() const { return 1.f; }
+
     virtual const GeometryAttribute * get_geometry_attribute(const std::string& attribute_name) { return nullptr; }
 
 protected:

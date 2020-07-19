@@ -1,5 +1,6 @@
 #include <integrator/SurfaceMultipleImportanceSampler.h>
 #include <base/ObjectGroup.h>
+#include <integrator/SurfaceLightSampler.h>
 
 void SurfaceMultipleImportanceSampler::pre_render(Resources& resources)
 {

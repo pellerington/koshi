@@ -52,10 +52,10 @@ void SurfaceLightSampler::scatter_surface(
             light_sampler_data = sampler_data->light_data[l] = light_sampler->pre_integrate(surface, resources);
 
         LightSampler::LightType light_type = light_sampler->get_light_type();
-        float num_samples = 0;
-        const float min_num_samples = 4;
+        float num_samples = 0.f;
+        const float min_num_samples = 4.f;
         const float max_num_samples = (light_type == LightSampler::POINT) ? 1.f : std::max(1.f, SAMPLES_PER_SA * quality * resources.settings->sampling_quality);
-        Vec3f variance_sum = VEC3F_ZERO, variance_sum_sqr = VEC3F_ZERO;
+        Vec3f variance_sum = VEC3F_ZERO;
         const uint samples_begin = samples.size();
 
         PathData next_path;
@@ -63,7 +63,7 @@ void SurfaceLightSampler::scatter_surface(
         next_path.quality = quality / num_samples;
         next_path.prev_path = intersect->path;
 
-        while(num_samples < max_num_samples && (num_samples < min_num_samples || variance(variance_sum, variance_sum_sqr, num_samples) > 0.05f*0.05f))
+        while(num_samples < max_num_samples)
         {
             num_samples++;
 
@@ -72,7 +72,7 @@ void SurfaceLightSampler::scatter_surface(
                 continue;
 
             Vec3f wo = (light_sample.position - surface->position).normalized();
-            const bool front = wo.dot(surface->normal) > 0;
+            const bool front = wo.dot(surface->normal) > 0.f;
             const bool transmit = front ^ surface->facing;
 
             Vec3f weight;
@@ -101,8 +101,9 @@ void SurfaceLightSampler::scatter_surface(
             sample.pdf = light_sample.pdf;
 
             Vec3f color = (sample.li * sample.weight) / sample.pdf;
+            if(num_samples >= min_num_samples && luminance(variance_sum / (num_samples-1.f) - (variance_sum+color) / num_samples) < 0.01f)
+                break;
             variance_sum += color;
-            variance_sum_sqr += color*color;
         }
 
         float inv_num_samples = 1.f / num_samples;
@@ -112,8 +113,7 @@ void SurfaceLightSampler::scatter_surface(
 }
 
 float SurfaceLightSampler::evaluate(
-    const SurfaceSample& sample, 
-    const MaterialLobes& lobes,
+    const SurfaceSample& sample, const MaterialLobes& lobes,
     const Intersect * intersect, SurfaceSamplerData * data, 
     Resources& resources) const
 {

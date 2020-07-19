@@ -79,6 +79,7 @@ float MaterialLobeLambert<REFLECT>::pdf(const Vec3f& wo, Resources& resources) c
 
     const float n_dot_wo = normal.dot(wo);
     const float n_dot_wi = normal.dot(wi);
+
     if((REFLECT && n_dot_wo < 0.f) || (!REFLECT && n_dot_wo * n_dot_wi > 0.f))
         return 0.f;
 

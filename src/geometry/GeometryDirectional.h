@@ -1,18 +1,16 @@
 #pragma once
 
 #include <geometry/Geometry.h>
-#include <geometry/SurfaceDistant.h>
-#include <integrator/Integrator.h>
-#include <integrator/LightEvaluator.h>
 #include <intersection/IntersectCallbacks.h>
-#include <material/Material.h>
+#include <integrator/LightEvaluator.h>
+#include <math/Helpers.h>
 
-class GeometryEnvironment : public Geometry
+class GeometryDirectional : public Geometry
 {
 public:
-    GeometryEnvironment(const Transform3f& transform, const GeometryVisibility& visibility)
-    : Geometry(transform, visibility)
-    {
+    GeometryDirectional(const float& angle, const Transform3f& transform, const GeometryVisibility& visibility)
+    : Geometry(transform, visibility), phi_max(clamp(angle, 0.f, HALF_PI - EPSILON_F)), cos_phi_max(cosf(phi_max)), area(TWO_PI * (1.f - cos_phi_max))
+    {        
         intersection_cb = new IntersectionCallbacks;
         intersection_cb->post_intersection_cb = post_intersection_cb;
         intersection_cb->post_intersection_data = this;
@@ -20,13 +18,18 @@ public:
         integrator = new LightEvaluator();
     }
 
-    ~GeometryEnvironment()
+    inline const float& get_phi_max() const { return phi_max; }
+    inline const float& get_cos_phi_max() const { return cos_phi_max; }
+    inline const float get_area() const { return std::max(area, EPSILON_F); }
+
+    ~GeometryDirectional()
     {
         delete integrator;
         delete intersection_cb;
     }
 
 private:
+    const float phi_max, cos_phi_max, area;
     Integrator * integrator;
     IntersectionCallbacks * intersection_cb;
 
@@ -36,11 +39,19 @@ private:
         if(intersects->tend < FLT_MAX || intersects->ray.tmax != FLT_MAX)
             return;
 
-        GeometryEnvironment * geometry = (GeometryEnvironment *)data;
+        GeometryDirectional * geometry = (GeometryDirectional *)data;
+
+        // Only intersect if we have an angle.
+        if(geometry->phi_max < EPSILON_F)
+            return;
 
         // TODO: Do this in an object callback on the intersector
         // Check our visibility.
         if(intersects->path->depth == 0 && geometry->get_visibility().hide_camera)
+            return;
+
+        const Vec3f dir = geometry->get_world_to_obj().multiply(intersects->ray.dir, false);
+        if(dir.y < geometry->cos_phi_max)
             return;
 
         Intersect * intersect = intersects->push(resources);
@@ -48,12 +59,10 @@ private:
         intersect->t = FLT_MAX;
         intersect->geometry = geometry;
 
-        const Vec3f dir = geometry->get_world_to_obj().multiply(intersect->ray.dir, false);
-
         float theta = atanf((dir.z + EPSILON_F) / (dir.x + EPSILON_F));
         theta += ((dir.z < 0.f) ? PI : 0.f) + ((dir.z * dir.x < 0.f) ? PI : 0.f);
         const float u = theta * INV_TWO_PI;
-        const float v = acosf(dir.y) * INV_PI;
+        const float v = acosf(dir.y) / geometry->phi_max;
 
         SurfaceDistant * distant = resources.memory->create<SurfaceDistant>(u, v, 0.f);
         intersect->geometry_data = distant;
