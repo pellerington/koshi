@@ -37,9 +37,9 @@ public:
     auto end() { return objects.end(); }
 
     void set_camera(Camera * _camera) { camera = _camera; }
-    const Camera * get_camera() const { return camera; }
+    Camera * get_camera() const { return camera; }
 
 private:
     std::unordered_map<std::string, Object*> objects;
-    const Camera * camera;
+    Camera * camera;
 };

@@ -26,11 +26,10 @@ void ProgressiveNoiseGenerator<N>::CreateData(float * data, const uint& sequence
 
     for(uint offset = 0; offset < sequences * sequence_size * N; offset += sequence_size * N)
     {
-
         // TODO: Also take into account per axis multi-jittering!
         // TODO: Cleanup code.
         // TOOD: Check the progression is good on python?
-        // TODO: Make this faster by using simd but only set position for n dimensions.
+        // TODO: Make this cleaner using simd and only set positions for N ?
 
         // Sample randomly,
         // Empty square furthest from any (including wrap around).

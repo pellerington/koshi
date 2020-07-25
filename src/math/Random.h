@@ -59,6 +59,11 @@ public:
         return distribution(random_generator);
     }
 
+    inline uint seed()
+    {
+        return random_generator();
+    }
+
 private:
     std::mt19937 random_generator;
     std::uniform_real_distribution<float> distribution;

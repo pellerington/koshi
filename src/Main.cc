@@ -32,28 +32,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    // std::vector<Vec3f> points;
-    // for(int i = 0; i < num_samples; i++)
-    // {
-    //     points.push_back(point);
-    // }
-    // DebugObj::Points(points);
-
-    // Memory memory;
-    // for(uint i = 0; i < 200; i++)
-    // {
-    //     Ray * ray = resources.memory->create<Ray>(Vec3f(0,i,0), Vec3f(0,0,i));
-    //     std::cout << ray->dir << '\n';
-    // }
-    // memory->clear();
-    // std::cout << "Cleared!" << '\n';
-    // for(uint i = 0; i < 200; i++)
-    // {
-    //     Ray * ray = resources.memory->create<Ray>(Vec3f(0,i,0), Vec3f(0,0,i));
-    //     std::cout << ray->dir << '\n';
-    // }
-
-
     std::cout << "Threads: " << threads << '\n';
     std::cout << "File: " << filename << '\n';
 
@@ -67,25 +45,25 @@ int main(int argc, char *argv[])
     for(auto it = scene.begin(); it != scene.end(); ++it)
         std::cout << it->first << " " << it->second << " " << (it->second != nullptr) << "\n";
 
-    Render render(scene, settings);
-
     std::cout << "Imported Scene" << '\n';
 
-    // TODO: Create and return threads, so we dont need to do thread -> thread
-    std::thread render_thread(&Render::start_render, &render);
+    Render render(&scene, &settings);
+    render.start();
 
-    std::cout << "Render Thread Started." << '\n';
+    std::cout << "Render Started." << '\n';
 
     if(sfml_window)
     {
         std::thread view_thread(SFMLViewer::RenderWindow, 1024, &render);
         view_thread.join();
-        render.kill();
+        render.pause();
+    }
+    else
+    {
+        render.wait();
     }
 
-    render_thread.join();
-
-    OIIOViewer::FileOut(render, "output.png");
+    OIIOViewer::FileOut(&render, "output.png");
 
     std::cout << "Writing Render." << '\n';
 

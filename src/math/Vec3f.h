@@ -19,6 +19,7 @@ public:
     Vec3f(const float& x, const float& y, const float& z, const float& t = 0.f) : data(_mm_setr_ps(x, y, z, t)) {}
     Vec3f(const float& n) : data(_mm_setr_ps(n, n, n, 0.f)) {}
     Vec3f(const __m128& data) : data(data) {}
+    Vec3f(const float * n) : data(_mm_setr_ps(n[0], n[1], n[2], 0.f)) {}
 
     inline float& operator[](const int& i) { return data[i]; }
     inline const float& operator[](const int& i) const { return data[i]; }

@@ -37,6 +37,7 @@ struct Intersect
     float t, tlen;
     bool interior;
 
+    // std::string hit_type (Surface || SurfaceDistant || Volume) this could help avoid dynamic_cast
     Geometry * geometry;
     GeometryData * geometry_data;
     uint geometry_primitive;
@@ -63,6 +64,18 @@ public:
 
     inline Intersect * get(const uint& i) { return intersects[i]; }
     inline const Intersect * get(const uint& i) const { return intersects[i]; }
+    inline Intersect * get_front()
+    {
+        if(empty()) return nullptr;
+        uint index = 0; float t = FLT_MAX;
+        for(uint i = 0; i < intersects.size(); i++)
+            if(intersects[i]->t < t)
+            {
+                index = i;
+                t = intersects[i]->t;
+            }
+        return intersects[index];
+    }
 
     inline Intersect * push(Resources& resources) 
     {

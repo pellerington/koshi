@@ -3,7 +3,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
-#include <Render/Render.h>
+#include <render/Render.h>
 
 class SFMLViewer
 {
@@ -22,6 +22,14 @@ public:
 
         sprite.setScale((float)screen_width/image_width, (float)screen_height/image_height);
 
+        std::vector<std::string> aov_list = render->get_aov_list();
+        uint aov_index = 0;
+        for(uint i = 0; i < aov_list.size(); i++)
+            if(aov_list[i] == "color")
+                aov_index = i;
+
+        float brightness = 1.f;
+
         while (window.isOpen())
         {
             sf::Event event;
@@ -31,10 +39,21 @@ public:
                     window.close();
                 if (event.type == sf::Event::MouseButtonPressed)
                     if (event.mouseButton.button == sf::Mouse::Left)
-                        std::cout << render->get_pixel_color(image_width * event.mouseButton.x/screen_width, image_height * event.mouseButton.y/screen_height) << std::endl;
+                        std::cout << render->get_pixel(aov_list[aov_index], image_width * event.mouseButton.x/screen_width, image_height * event.mouseButton.y/screen_height) << std::endl;
+                if(event.type == sf::Event::KeyPressed)
+                {
+                    if(event.key.code == sf::Keyboard::Right)
+                        aov_index = (aov_index + 1) % aov_list.size();
+                    if(event.key.code == sf::Keyboard::Left)
+                        aov_index = (aov_index + aov_list.size() - 1) % aov_list.size();
+                    if(event.key.code == sf::Keyboard::Up)
+                        brightness += 0.05f;
+                    if(event.key.code == sf::Keyboard::Down)
+                        brightness = std::max(brightness - 0.05f, 0.f);
+                }
             }
 
-            update_pixels(render, pixels);
+            update_pixels(aov_list[aov_index], brightness, render, pixels);
             texture.update(pixels);
             window.clear(sf::Color::Black);
             window.draw(sprite);
@@ -46,7 +65,7 @@ public:
     }
 
 private:
-    static void update_pixels(const Render * render, sf::Uint8 * pixels)
+    static void update_pixels(const std::string& aov, const float& brightness, const Render * render, sf::Uint8 * pixels)
     {
         uint image_width = render->get_image_resolution().x;
         uint image_height = render->get_image_resolution().y;
@@ -55,7 +74,7 @@ private:
         {
             for(uint y = 0; y < image_height; y++)
             {
-                const Vec3f pixel = render->get_pixel_color(x, y);
+                const Vec3f pixel = brightness * render->get_pixel(aov, x, y);
                 const uint index = (x + image_width * y) * 4;
                 pixels[index + 0] = std::min(std::max((int)(pixel.r * 255), 0), 255);
                 pixels[index + 1] = std::min(std::max((int)(pixel.g * 255), 0), 255);
