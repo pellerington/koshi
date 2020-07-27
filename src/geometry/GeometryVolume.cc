@@ -1,6 +1,6 @@
-#include <geometry/GeometryVolume.h>
+#include <koshi/geometry/GeometryVolume.h>
 
-#include <material/MaterialVolume.h>
+#include <koshi/material/MaterialVolume.h>
 
 const Box3f GeometryVolume::bbox = Box3f(Vec3f(-VOLUME_LENGTH*0.5f), Vec3f(VOLUME_LENGTH*0.5f));
 

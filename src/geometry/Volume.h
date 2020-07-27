@@ -1,6 +1,6 @@
 #pragma once
 
-#include <geometry/GeometryData.h>
+#include <koshi/geometry/GeometryData.h>
 class MaterialVolume;
 
 struct Volume : public GeometryData

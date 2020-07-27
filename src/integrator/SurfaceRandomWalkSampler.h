@@ -1,7 +1,7 @@
 #pragma once
 
-#include <integrator/SurfaceSampler.h>
-#include <intersection/IntersectCallbacks.h>
+#include <koshi/integrator/SurfaceSampler.h>
+#include <koshi/intersection/IntersectCallbacks.h>
 
 class SurfaceRandomWalkSampler : public SurfaceSampler
 {

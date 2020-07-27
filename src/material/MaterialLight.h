@@ -1,7 +1,7 @@
 #pragma once
 
-#include <material/Material.h>
-#include <geometry/Geometry.h>
+#include <koshi/material/Material.h>
+#include <koshi/geometry/Geometry.h>
 
 class MaterialLight : public Material
 {

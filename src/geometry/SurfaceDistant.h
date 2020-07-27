@@ -1,7 +1,7 @@
 #pragma once
 
-#include <math/Types.h>
-#include <geometry/GeometryData.h>
+#include <koshi/math/Types.h>
+#include <koshi/geometry/GeometryData.h>
 
 class Material;
 

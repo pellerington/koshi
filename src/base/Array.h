@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Util/Resources.h>
+#include <koshi/base/Resources.h>
 
 #define DEFAULT_SIZE 8
 

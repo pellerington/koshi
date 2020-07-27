@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math/Types.h>
+#include <koshi/math/Types.h>
 #include <vector>
 
 // TODO: Figure out how to let users inject this into the camera.

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <geometry/Geometry.h>
-#include <geometry/SurfaceDistant.h>
-#include <integrator/Integrator.h>
-#include <integrator/LightEvaluator.h>
-#include <intersection/IntersectCallbacks.h>
-#include <material/Material.h>
+#include <koshi/geometry/Geometry.h>
+#include <koshi/geometry/SurfaceDistant.h>
+#include <koshi/integrator/Integrator.h>
+#include <koshi/integrator/LightEvaluator.h>
+#include <koshi/intersection/IntersectCallbacks.h>
+#include <koshi/material/Material.h>
 
 class GeometryEnvironment : public Geometry
 {

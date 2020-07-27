@@ -1,10 +1,10 @@
-#include <material/MaterialGGXRefract.h>
+#include <koshi/material/MaterialGGXRefract.h>
 
-#include <math/Helpers.h>
-#include <Util/Color.h>
+#include <koshi/math/Helpers.h>
+#include <koshi/math/Color.h>
 #include <cmath>
 #include <iostream>
-#include <integrator/AbsorbtionMedium.h>
+#include <koshi/integrator/AbsorbtionMedium.h>
 
 MaterialGGXRefract::MaterialGGXRefract(const Texture * color_texture, const Texture * roughness_texture, 
                                        const float& ior, const float& color_depth, 

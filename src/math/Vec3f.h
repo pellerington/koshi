@@ -59,8 +59,8 @@ public:
     inline Vec3f operator/ (const float& n) const { return Vec3f(_mm_div_ps(data, _mm_set_ps1(n))); }
     friend inline Vec3f operator/ (const float& n, const Vec3f& other) { return Vec3f(_mm_div_ps(_mm_set_ps1(n), other.data)); }
 
+    // Logic
     inline bool operator== (const Vec3f& v) const { return x == v.x && y == v.y && z == v.z; }
-
     inline bool operator< (const float& n) const { return x < n && y < n && z < n; }
     inline bool operator> (const float& n) const { return x > n && y > n && z > n; }
     inline bool operator>= (const float& n) const { return x >= n && y >= n && z >= n; }
@@ -123,7 +123,7 @@ public:
 
     inline void abs() { x = fabs(x); y = fabs(y); z = fabs(z); }
 
-    // This is an approximation, switch to actual std::exp?
+    // This is an approximation, switch to actual std::exp and move this into fast math?
     inline static Vec3f exp(const Vec3f& v) {
         Vec3f x(v);
         x = 1.f + x / 256.f;

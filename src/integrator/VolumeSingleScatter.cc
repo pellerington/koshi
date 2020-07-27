@@ -1,7 +1,7 @@
-#include <integrator/VolumeSingleScatter.h>
+#include <koshi/integrator/VolumeSingleScatter.h>
 
-#include <geometry/Volume.h>
-#include <material/MaterialVolume.h>
+#include <koshi/geometry/Volume.h>
+#include <koshi/material/MaterialVolume.h>
 
 Vec3f VolumeSingleScatter::integrate(const Intersect * intersect, IntegratorData * data, Transmittance& transmittance, Resources& resources) const
 {

@@ -1,14 +1,14 @@
-#include <render/Render.h>
+#include <koshi/render/Render.h>
 
 #include <iostream>
 #include <cfloat>
 
-#include <Util/Color.h>
-#include <Util/Memory.h>
-#include <math/Helpers.h>
+#include <koshi/math/Color.h>
+#include <koshi/base/Memory.h>
+#include <koshi/math/Helpers.h>
 
-#include <integrator/Integrator.h>
-#include <embree/EmbreeIntersector.h>
+#include <koshi/integrator/Integrator.h>
+#include <koshi/embree/EmbreeIntersector.h>
 
 Render::Render(Scene * scene, Settings * settings)
 : scene(scene), settings(settings), resolution(scene->get_camera()->get_image_resolution())
@@ -27,7 +27,7 @@ Render::Render(Scene * scene, Settings * settings)
     aovs["normals"].mode = AOV::AVERAGE;
     aovs["normals"].buffer = new Buffer(resolution.x * resolution.y, 3);
 
-    // TODO: Make this an aov buffer so we can do checkpointing!
+    // TODO: Make this an aov buffer of integers so we can do checkpointing!
     rng = new Random<2>[resolution.x * resolution.y];
 
     for(uint i = 0; i < resolution.x * resolution.y; i++)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <random>
-#include <math/Types.h>
+#include <koshi/math/Types.h>
 
 // Based on Loosely on Progressive Sample Sequences
 // https://graphics.pixar.com/library/ProgressiveMultiJitteredSampling/paper.pdf

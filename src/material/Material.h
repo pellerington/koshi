@@ -3,15 +3,15 @@
 #include <vector>
 #include <queue>
 #include <memory>
-#include <math/Types.h>
-#include <math/Random.h>
-#include <base/Object.h>
+#include <koshi/math/Types.h>
+#include <koshi/random/Random.h>
+#include <koshi/base/Object.h>
 
-#include <Util/Resources.h>
-#include <Util/Array.h>
-#include <geometry/Surface.h>
-#include <intersection/Interiors.h>
-#include <texture/Texture.h>
+#include <koshi/base/Resources.h>
+#include <koshi/base/Array.h>
+#include <koshi/geometry/Surface.h>
+#include <koshi/intersection/Interiors.h>
+#include <koshi/texture/Texture.h>
 
 #define UNIFORM_SAMPLE false
 

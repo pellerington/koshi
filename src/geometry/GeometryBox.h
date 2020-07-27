@@ -1,6 +1,6 @@
 #pragma once
 
-#include <geometry/Geometry.h>
+#include <koshi/geometry/Geometry.h>
 
 #define BOX_LENGTH 1.f
 

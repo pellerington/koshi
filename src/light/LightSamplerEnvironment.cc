@@ -1,7 +1,7 @@
-#include <light/LightSamplerEnvironment.h>
-#include <material/MaterialLight.h>
-#include <math/Helpers.h>
-#include <Util/Color.h>
+#include <koshi/light/LightSamplerEnvironment.h>
+#include <koshi/material/MaterialLight.h>
+#include <koshi/math/Helpers.h>
+#include <koshi/math/Color.h>
 
 void LightSamplerEnvironment::pre_render(Resources& resources)
 {

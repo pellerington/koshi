@@ -1,4 +1,4 @@
-#include <camera/Camera.h>
+#include <koshi/camera/Camera.h>
 
 Camera::Camera(const Transform3f& transform, const Vec2u& resolution,const float& focal_length)
 : transform(transform), origin(transform * Vec3f(0.f, 0.f, 0.f, 1.f)), resolution(resolution), 

@@ -1,4 +1,4 @@
-#include <camera/PixelSampler.h>
+#include <koshi/camera/PixelSampler.h>
 
 const std::vector<float> GaussianFilterSampler::cdf = {
     0.0510946, 0.102090, 0.152787, 0.202991, 0.252513, 0.301173, 0.348799, 0.395230,

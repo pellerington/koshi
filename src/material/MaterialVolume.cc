@@ -1,4 +1,4 @@
-#include <material/MaterialVolume.h>
+#include <koshi/material/MaterialVolume.h>
 
 Vec3f MaterialVolume::get_density(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const
 {

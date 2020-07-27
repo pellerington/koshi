@@ -1,4 +1,4 @@
-#include <math/BlueNoiseGenerator.h>
+#include <koshi/random/BlueNoiseGenerator.h>
 
 #include <iostream>
 #include <fstream>

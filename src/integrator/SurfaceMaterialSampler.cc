@@ -1,6 +1,6 @@
-#include <integrator/SurfaceMaterialSampler.h>
-#include <intersection/Intersector.h>
-#include <math/Helpers.h>
+#include <koshi/integrator/SurfaceMaterialSampler.h>
+#include <koshi/intersection/Intersector.h>
+#include <koshi/math/Helpers.h>
 
 void SurfaceMaterialSampler::scatter_surface(
     Array<SurfaceSample>& samples,

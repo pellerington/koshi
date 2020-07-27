@@ -1,4 +1,4 @@
-#include <math/ProgressiveNoiseGenerator.h>
+#include <koshi/random/ProgressiveNoiseGenerator.h>
 
 #include <iostream>
 #include <fstream>

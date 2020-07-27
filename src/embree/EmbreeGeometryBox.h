@@ -1,7 +1,7 @@
 #pragma once
 
-#include <embree/EmbreeGeometry.h>
-#include <geometry/GeometryBox.h>
+#include <koshi/embree/EmbreeGeometry.h>
+#include <koshi/geometry/GeometryBox.h>
 
 class EmbreeGeometryBox : public EmbreeGeometry
 {

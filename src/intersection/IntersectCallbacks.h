@@ -1,6 +1,6 @@
 #pragma once
 
-#include <intersection/Intersect.h>
+#include <koshi/intersection/Intersect.h>
 
 typedef void (PreIntersectionCallback)(IntersectList * intersects, void * data, Resources& resources);
 

@@ -1,9 +1,9 @@
-#include <material/MaterialGGXReflect.h>
+#include <koshi/material/MaterialGGXReflect.h>
 
-#include <intersection/Intersect.h>
-#include <geometry/Geometry.h>
-#include <math/Helpers.h>
-#include <Util/Color.h>
+#include <koshi/intersection/Intersect.h>
+#include <koshi/geometry/Geometry.h>
+#include <koshi/math/Helpers.h>
+#include <koshi/math/Color.h>
 #include <cmath>
 #include <iostream>
 

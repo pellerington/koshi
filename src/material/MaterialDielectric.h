@@ -1,7 +1,7 @@
 #pragma once
 
-#include <material/Material.h>
-#include <material/Fresnel.h>
+#include <koshi/material/Material.h>
+#include <koshi/material/Fresnel.h>
 
 class MaterialDielectric : public Material
 {

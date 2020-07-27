@@ -1,4 +1,4 @@
-#include <material/Material.h>
+#include <koshi/material/Material.h>
 
 struct MaterialLobeRandomWalk : MaterialLobe
 {

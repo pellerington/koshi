@@ -1,8 +1,8 @@
 #pragma once
 
-#include <material/Material.h>
-#include <material/Fresnel.h>
-#include <material/GGX.h>
+#include <koshi/material/Material.h>
+#include <koshi/material/Fresnel.h>
+#include <koshi/material/GGX.h>
 
 struct MaterialLobeGGXReflect : public MaterialLobe
 {

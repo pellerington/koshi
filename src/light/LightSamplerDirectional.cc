@@ -1,6 +1,6 @@
-#include <light/LightSamplerDirectional.h>
-#include <geometry/SurfaceDistant.h>
-#include <material/Material.h>
+#include <koshi/light/LightSamplerDirectional.h>
+#include <koshi/geometry/SurfaceDistant.h>
+#include <koshi/material/Material.h>
 
 LightSamplerDirectional::LightSamplerDirectional(GeometryDirectional * geometry)
 : geometry(geometry)

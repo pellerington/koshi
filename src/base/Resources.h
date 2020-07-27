@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Util/Memory.h>
-#include <base/Settings.h>
+#include <koshi/base/Memory.h>
+#include <koshi/base/Settings.h>
 class Intersector;
 class Scene;
 class RandomService;

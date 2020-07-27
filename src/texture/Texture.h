@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Util/Resources.h>
-#include <base/Object.h>
+#include <koshi/base/Resources.h>
+#include <koshi/base/Object.h>
 
 #include <iostream>
 

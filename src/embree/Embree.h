@@ -1,8 +1,8 @@
 #pragma once
 
 #include <embree3/rtcore.h>
-#include <intersection/Ray.h>
-#include <intersection/Intersect.h>
+#include <koshi/intersection/Ray.h>
+#include <koshi/intersection/Intersect.h>
 
 struct Embree
 {

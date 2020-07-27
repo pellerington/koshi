@@ -1,6 +1,6 @@
-#include <integrator/SurfaceRandomWalkSampler.h>
-#include <material/MaterialRandomWalk.h>
-#include <intersection/Intersector.h>
+#include <koshi/integrator/SurfaceRandomWalkSampler.h>
+#include <koshi/material/MaterialRandomWalk.h>
+#include <koshi/intersection/Intersector.h>
 
 void SurfaceRandomWalkSampler::scatter_surface(
     Array<SurfaceSample>& samples,

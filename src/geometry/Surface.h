@@ -2,9 +2,9 @@
 
 #include <cfloat>
 #include <unordered_set>
-#include <math/Types.h>
-#include <math/Transform3f.h>
-#include <geometry/SurfaceDistant.h>
+#include <koshi/math/Types.h>
+#include <koshi/math/Transform3f.h>
+#include <koshi/geometry/SurfaceDistant.h>
 
 struct Surface : public SurfaceDistant
 {

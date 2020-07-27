@@ -4,16 +4,16 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include <robin_hood.h>
+#include <koshi/dependency/robin_hood.h>
 
-#include <math/Types.h>
-#include <base/Scene.h>
-#include <intersection/Intersector.h>
-#include <base/Settings.h>
-#include <math/Random.h>
-#include <camera/Camera.h>
+#include <koshi/math/Types.h>
+#include <koshi/base/Scene.h>
+#include <koshi/intersection/Intersector.h>
+#include <koshi/base/Settings.h>
+#include <koshi/random/Random.h>
+#include <koshi/camera/Camera.h>
 
-#include <render/Buffer.h>
+#include <koshi/render/Buffer.h>
 
 class Render
 {

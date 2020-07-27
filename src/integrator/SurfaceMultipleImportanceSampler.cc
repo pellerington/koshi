@@ -1,6 +1,6 @@
-#include <integrator/SurfaceMultipleImportanceSampler.h>
-#include <base/ObjectGroup.h>
-#include <integrator/SurfaceLightSampler.h>
+#include <koshi/integrator/SurfaceMultipleImportanceSampler.h>
+#include <koshi/base/ObjectGroup.h>
+#include <koshi/integrator/SurfaceLightSampler.h>
 
 void SurfaceMultipleImportanceSampler::pre_render(Resources& resources)
 {

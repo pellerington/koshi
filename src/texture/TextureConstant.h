@@ -1,7 +1,7 @@
 #pragma once
 
-#include <texture/Texture.h>
-#include <math/Types.h>
+#include <koshi/texture/Texture.h>
+#include <koshi/math/Types.h>
 
 class TextureConstant : public Texture
 {

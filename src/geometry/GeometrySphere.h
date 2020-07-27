@@ -1,6 +1,6 @@
 #pragma once
 
-#include <geometry/Geometry.h>
+#include <koshi/geometry/Geometry.h>
 
 #define SPHERE_RADIUS 1.f
 #define SPHERE_RADIUS_SQR SPHERE_RADIUS*SPHERE_RADIUS

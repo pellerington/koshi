@@ -1,11 +1,11 @@
-#include <material/MaterialDielectric.h>
+#include <koshi/material/MaterialDielectric.h>
 
-#include <material/MaterialGGXReflect.h>
-#include <material/MaterialGGXRefract.h>
-#include <integrator/AbsorbtionMedium.h>
+#include <koshi/material/MaterialGGXReflect.h>
+#include <koshi/material/MaterialGGXRefract.h>
+#include <koshi/integrator/AbsorbtionMedium.h>
 
-#include <math/Helpers.h>
-#include <Util/Color.h>
+#include <koshi/math/Helpers.h>
+#include <koshi/math/Color.h>
 #include <cmath>
 #include <iostream>
 

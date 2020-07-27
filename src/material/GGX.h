@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math/Types.h>
+#include <koshi/math/Types.h>
 
 inline float D(const Vec3f& n, const Vec3f& h, const float& n_dot_h, const float& roughness_sqr)
 {

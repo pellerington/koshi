@@ -2,11 +2,11 @@
 
 #include <memory>
 #include <vector>
-#include <base/Object.h>
-#include <Util/Resources.h>
-#include <Util/Array.h>
-#include <intersection/Ray.h>
-#include <geometry/Surface.h>
+#include <koshi/base/Object.h>
+#include <koshi/base/Resources.h>
+#include <koshi/base/Array.h>
+#include <koshi/intersection/Ray.h>
+#include <koshi/geometry/Surface.h>
 class Geometry;
 class Integrator;
 

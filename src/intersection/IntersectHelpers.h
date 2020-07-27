@@ -1,6 +1,6 @@
 #pragma once
 
-#include <intersection/Ray.h>
+#include <koshi/intersection/Ray.h>
 
 inline bool intersect_bbox(const Ray& ray, const Box3f& box)
 {

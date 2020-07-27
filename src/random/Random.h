@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <sstream>
 
-#include <math/Types.h>
+#include <koshi/math/Types.h>
 
 #define SEQUENCES 4096u
 #define SEQUENCE_SIZE 128u

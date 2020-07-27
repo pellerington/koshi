@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math/Types.h>
+#include <koshi/math/Types.h>
 
 // TODO: Make this more user customizable.
 struct Settings

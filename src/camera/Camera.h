@@ -1,8 +1,8 @@
 #pragma once
 
-#include <math/Transform3f.h>
-#include <intersection/Ray.h>
-#include <camera/PixelSampler.h>
+#include <koshi/math/Transform3f.h>
+#include <koshi/intersection/Ray.h>
+#include <koshi/camera/PixelSampler.h>
 
 class Camera
 {

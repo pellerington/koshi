@@ -4,9 +4,9 @@
 #include <iostream>
 #include <vector>
 
-#include <base/Object.h>
-#include <Util/Resources.h>
-#include <math/Transform3f.h>
+#include <koshi/base/Object.h>
+#include <koshi/base/Resources.h>
+#include <koshi/math/Transform3f.h>
 
 class GeometryAttribute 
 {

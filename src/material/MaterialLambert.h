@@ -1,6 +1,6 @@
 #pragma once
 
-#include <material/Material.h>
+#include <koshi/material/Material.h>
 
 template<bool REFLECT>
 struct MaterialLobeLambert : public MaterialLobe

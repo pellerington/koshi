@@ -1,8 +1,8 @@
 #pragma once
 
-#include <integrator/Integrator.h>
-#include <material/Material.h>
-#include <Util/Color.h>
+#include <koshi/integrator/Integrator.h>
+#include <koshi/material/Material.h>
+#include <koshi/math/Color.h>
 
 #define SAMPLES_PER_SA 64
 

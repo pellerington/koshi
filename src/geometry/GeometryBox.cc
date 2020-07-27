@@ -1,4 +1,4 @@
-#include <geometry/GeometryBox.h>
+#include <koshi/geometry/GeometryBox.h>
 
 const Box3f GeometryBox::bbox = Box3f(Vec3f(-BOX_LENGTH*0.5f), Vec3f(BOX_LENGTH*0.5f));
 

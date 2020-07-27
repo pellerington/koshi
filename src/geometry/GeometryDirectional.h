@@ -1,9 +1,9 @@
 #pragma once
 
-#include <geometry/Geometry.h>
-#include <intersection/IntersectCallbacks.h>
-#include <integrator/LightEvaluator.h>
-#include <math/Helpers.h>
+#include <koshi/geometry/Geometry.h>
+#include <koshi/intersection/IntersectCallbacks.h>
+#include <koshi/integrator/LightEvaluator.h>
+#include <koshi/math/Helpers.h>
 
 class GeometryDirectional : public Geometry
 {

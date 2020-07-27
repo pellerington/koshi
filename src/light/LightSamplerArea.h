@@ -1,7 +1,7 @@
 #pragma once
 
-#include <light/LightSampler.h>
-#include <geometry/GeometryArea.h>
+#include <koshi/light/LightSampler.h>
+#include <koshi/geometry/GeometryArea.h>
 
 class LightSamplerArea : public LightSampler
 {

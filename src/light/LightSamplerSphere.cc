@@ -1,5 +1,5 @@
-#include <light/LightSamplerSphere.h>
-#include <material/Material.h>
+#include <koshi/light/LightSamplerSphere.h>
+#include <koshi/material/Material.h>
 
 LightSamplerSphere::LightSamplerSphere(GeometrySphere * geometry)
 : geometry(geometry)

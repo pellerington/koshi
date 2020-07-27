@@ -1,6 +1,6 @@
 #pragma once
 
-#include <texture/Texture.h>
+#include <koshi/texture/Texture.h>
 #include <openvdb/openvdb.h>
 #include <openvdb/tools/Interpolation.h>
 

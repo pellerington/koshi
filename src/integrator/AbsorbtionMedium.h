@@ -1,6 +1,6 @@
 #pragma once
 
-#include <integrator/Integrator.h>
+#include <koshi/integrator/Integrator.h>
 
 class AbsorbtionMedium : public Integrator
 {

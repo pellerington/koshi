@@ -1,6 +1,6 @@
 #pragma once
 
-#include <integrator/SurfaceSampler.h>
+#include <koshi/integrator/SurfaceSampler.h>
 
 class SurfaceMaterialSampler : public SurfaceSampler
 {

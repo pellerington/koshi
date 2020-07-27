@@ -1,10 +1,10 @@
 #pragma once
 
-#include <base/Object.h>
-#include <Util/Resources.h>
-#include <math/Types.h>
-#include <intersection/Intersect.h>
-#include <math/Random.h>
+#include <koshi/base/Object.h>
+#include <koshi/base/Resources.h>
+#include <koshi/math/Types.h>
+#include <koshi/intersection/Intersect.h>
+#include <koshi/random/Random.h>
 #include <vector>
 
 struct LightSample {

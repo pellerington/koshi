@@ -1,10 +1,10 @@
 #pragma once
 
-#include <embree/Embree.h>
-#include <geometry/GeometryVolume.h>
-#include <geometry/Volume.h>
-#include <intersection/IntersectHelpers.h>
-#include <intersection/Intersect.h>
+#include <koshi/embree/Embree.h>
+#include <koshi/geometry/GeometryVolume.h>
+#include <koshi/geometry/Volume.h>
+#include <koshi/intersection/IntersectHelpers.h>
+#include <koshi/intersection/Intersect.h>
 
 class EmbreeGeometryVolume : public EmbreeGeometry
 {

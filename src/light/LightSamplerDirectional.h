@@ -1,7 +1,7 @@
 #pragma once
 
-#include <light/LightSampler.h>
-#include <geometry/GeometryDirectional.h>
+#include <koshi/light/LightSampler.h>
+#include <koshi/geometry/GeometryDirectional.h>
 
 // TODO: Add a GeometryDirectional class and make it so we can increase the cone of influence
 class LightSamplerDirectional : public LightSampler

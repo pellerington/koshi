@@ -1,9 +1,9 @@
 #pragma once
 
-#include <math/Types.h>
-#include <texture/Texture.h>
-#include <material/Material.h>
-#include <geometry/Volume.h>
+#include <koshi/math/Types.h>
+#include <koshi/texture/Texture.h>
+#include <koshi/material/Material.h>
+#include <koshi/geometry/Volume.h>
 
 class MaterialVolume  : public Object
 {

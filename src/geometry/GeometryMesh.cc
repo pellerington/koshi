@@ -1,6 +1,6 @@
-#include <geometry/GeometryMesh.h>
+#include <koshi/geometry/GeometryMesh.h>
 
-#include <import/MeshFile.h>
+#include <koshi/geometry/MeshFile.h>
 
 GeometryMesh::GeometryMesh(const std::string& filename, const Transform3f& obj_to_world, const GeometryVisibility& visibility)
 : Geometry(obj_to_world, visibility)

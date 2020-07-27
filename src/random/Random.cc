@@ -1,6 +1,6 @@
-#include <math/Random.h>
-#include <math/BlueNoiseGenerator.h>
-#include <math/ProgressiveNoiseGenerator.h>
+#include <koshi/random/Random.h>
+#include <koshi/random/BlueNoiseGenerator.h>
+#include <koshi/random/ProgressiveNoiseGenerator.h>
 
 template<>
 float * Random<1>::data = nullptr;

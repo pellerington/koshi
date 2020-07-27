@@ -3,7 +3,7 @@
 #include <string>
 #include <OpenImageIO/texture.h>
 
-#include <texture/Texture.h>
+#include <koshi/texture/Texture.h>
  
 // TODO: include more options such as MipMode and InterpMode
 class TextureImage : public Texture

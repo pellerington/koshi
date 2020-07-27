@@ -1,4 +1,4 @@
-#include <texture/Texture.h>
+#include <koshi/texture/Texture.h>
 
 template<>
 float Texture::evaluate<float>(const float& u, const float& v, const float& w, const Intersect * intersect, Resources& resources) const { 

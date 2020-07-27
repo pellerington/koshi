@@ -1,11 +1,11 @@
-#include <material/MaterialLambert.h>
+#include <koshi/material/MaterialLambert.h>
 
-#include <math/Helpers.h>
-#include <Util/Color.h>
+#include <koshi/math/Helpers.h>
+#include <koshi/math/Color.h>
 #include <cmath>
 #include <iostream>
 
-#include <geometry/Geometry.h>
+#include <koshi/geometry/Geometry.h>
 
 template<bool REFLECT>
 MaterialLambert<REFLECT>::MaterialLambert(const Texture * color_texture, const Texture * normal_texture, const Texture * opacity_texture)

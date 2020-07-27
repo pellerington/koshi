@@ -1,9 +1,9 @@
 #pragma once
 
-#include <math/Types.h>
-#include <intersection/Intersect.h>
-#include <Util/Resources.h>
-#include <geometry/Geometry.h>
+#include <koshi/math/Types.h>
+#include <koshi/intersection/Intersect.h>
+#include <koshi/base/Resources.h>
+#include <koshi/geometry/Geometry.h>
 class Scene;
 
 struct IntegratorData

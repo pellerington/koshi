@@ -1,7 +1,7 @@
 #pragma once
 
-#include <math/Vec3f.h>
-#include <math/Box3f.h>
+#include <koshi/math/Vec3f.h>
+#include <koshi/math/Box3f.h>
 
 class Transform3f
 {

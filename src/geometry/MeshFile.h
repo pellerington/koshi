@@ -1,9 +1,9 @@
 #pragma once
 
-#include <geometry/GeometryMesh.h>
+#include <koshi/geometry/GeometryMesh.h>
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
+#include <koshi/dependency/tiny_obj_loader.h>
 
 class MeshFile
 {

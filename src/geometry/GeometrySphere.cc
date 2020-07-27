@@ -1,4 +1,4 @@
-#include <geometry/GeometrySphere.h>
+#include <koshi/geometry/GeometrySphere.h>
 
 const Box3f GeometrySphere::bbox = Box3f(Vec3f(-SPHERE_RADIUS), Vec3f(SPHERE_RADIUS)); 
 

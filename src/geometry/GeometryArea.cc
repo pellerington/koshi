@@ -1,4 +1,4 @@
-#include <geometry/GeometryArea.h>
+#include <koshi/geometry/GeometryArea.h>
 
 const Box3f GeometryArea::bbox = Box3f(Vec3f(-AREA_LENGTH*0.5f, -AREA_LENGTH*0.5f, 0.f), Vec3f(AREA_LENGTH*0.5f, AREA_LENGTH*0.5f, 0.f));
 

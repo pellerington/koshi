@@ -1,9 +1,9 @@
-#include <embree/EmbreeIntersector.h>
-#include <embree/EmbreeGeometry.h>
-#include <geometry/Geometry.h>
-#include <integrator/Integrator.h>
-#include <material/Material.h>
-#include <base/Scene.h>
+#include <koshi/embree/EmbreeIntersector.h>
+#include <koshi/embree/EmbreeGeometry.h>
+#include <koshi/geometry/Geometry.h>
+#include <koshi/integrator/Integrator.h>
+#include <koshi/material/Material.h>
+#include <koshi/base/Scene.h>
 
 std::unordered_map<Geometry*, EmbreeIntersector::EmbreeGeometryInstance> EmbreeIntersector::instances = std::unordered_map<Geometry*, EmbreeGeometryInstance>();
 std::unordered_map<Object*, Intersector*> EmbreeIntersector::intersectors = std::unordered_map<Object*, Intersector*>();

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <embree/Embree.h>
+#include <koshi/embree/Embree.h>
 
-#include <intersection/Intersector.h>
+#include <koshi/intersection/Intersector.h>
 
 class EmbreeIntersector : public Intersector
 {

@@ -1,6 +1,6 @@
-#include <embree/Embree.h>
-#include <embree/EmbreeGeometryArea.h>
-#include <embree/EmbreeGeometryBox.h>
+#include <koshi/embree/Embree.h>
+#include <koshi/embree/EmbreeGeometryArea.h>
+#include <koshi/embree/EmbreeGeometryBox.h>
 
 RTCDevice Embree::rtc_device = rtcNewDevice("");
 

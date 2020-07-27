@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math/Types.h>
+#include <koshi/math/Types.h>
 
 inline bool is_black(const Vec3f& color)
 {

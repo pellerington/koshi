@@ -1,6 +1,6 @@
 #pragma once
 
-#include <intersection/IntersectCallbacks.h>
+#include <koshi/intersection/IntersectCallbacks.h>
 // TODO: Do IorStack on the path data. We shouldn't bother handling it with opacity ect.
 // OR Add IOR to intersects and access them from the interiors.
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <light/LightSampler.h>
-#include <geometry/GeometrySphere.h>
+#include <koshi/light/LightSampler.h>
+#include <koshi/geometry/GeometrySphere.h>
 
 class LightSamplerSphere : public LightSampler
 {

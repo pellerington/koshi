@@ -1,8 +1,8 @@
 #pragma once
 
-#include <integrator/Integrator.h>
-#include <geometry/SurfaceDistant.h>
-#include <material/Material.h>
+#include <koshi/integrator/Integrator.h>
+#include <koshi/geometry/SurfaceDistant.h>
+#include <koshi/material/Material.h>
 
 // TODO: Modify to be a generic light evaluator.
 class LightEvaluator : public Integrator

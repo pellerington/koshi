@@ -1,7 +1,7 @@
-#include <integrator/SurfaceLightSampler.h>
-#include <base/Scene.h>
-#include <intersection/Intersector.h>
-#include <math/Helpers.h>
+#include <koshi/integrator/SurfaceLightSampler.h>
+#include <koshi/base/Scene.h>
+#include <koshi/intersection/Intersector.h>
+#include <koshi/math/Helpers.h>
 
 void SurfaceLightSampler::pre_render(Resources& resources)
 {

@@ -1,5 +1,5 @@
-#include <light/LightSamplerArea.h>
-#include <material/Material.h>
+#include <koshi/light/LightSamplerArea.h>
+#include <koshi/material/Material.h>
 
 LightSamplerArea::LightSamplerArea(GeometryArea * geometry) 
 : geometry(geometry)

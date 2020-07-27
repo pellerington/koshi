@@ -1,7 +1,7 @@
 #pragma once
 
-#include <geometry/Geometry.h>
-#include <math/Types.h>
+#include <koshi/geometry/Geometry.h>
+#include <koshi/math/Types.h>
 #include <vector>
 
 class GeometryMeshAttribute  : public GeometryAttribute

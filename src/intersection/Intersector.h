@@ -1,10 +1,10 @@
 #pragma once
 
-#include <base/ObjectGroup.h>
-#include <intersection/Intersect.h>
-#include <intersection/Ray.h>
-#include <intersection/Interiors.h>
-#include <intersection/IntersectCallbacks.h>
+#include <koshi/base/ObjectGroup.h>
+#include <koshi/intersection/Intersect.h>
+#include <koshi/intersection/Ray.h>
+#include <koshi/intersection/Interiors.h>
+#include <koshi/intersection/IntersectCallbacks.h>
 class Scene;
 
 class Intersector

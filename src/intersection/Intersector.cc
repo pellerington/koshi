@@ -1,5 +1,5 @@
-#include <intersection/Intersector.h>
-#include <geometry/Geometry.h>
+#include <koshi/intersection/Intersector.h>
+#include <koshi/geometry/Geometry.h>
 
 Intersector::Intersector(ObjectGroup * objects)
 {

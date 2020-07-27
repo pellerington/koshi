@@ -1,8 +1,8 @@
 #pragma once
 
-#include <texture/Texture.h>
-#include <intersection/Intersect.h>
-#include <geometry/Geometry.h>
+#include <koshi/texture/Texture.h>
+#include <koshi/intersection/Intersect.h>
+#include <koshi/geometry/Geometry.h>
 
 class TextureGeometryAttribute : public Texture
 {

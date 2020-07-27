@@ -1,9 +1,9 @@
-#include <material/MaterialRandomWalk.h>
-#include <intersection/Intersect.h>
-#include <geometry/Geometry.h>
-#include <material/MaterialLambert.h>
-#include <texture/TextureConstant.h>
-#include <intersection/Intersector.h>
+#include <koshi/material/MaterialRandomWalk.h>
+#include <koshi/intersection/Intersect.h>
+#include <koshi/geometry/Geometry.h>
+#include <koshi/material/MaterialLambert.h>
+#include <koshi/texture/TextureConstant.h>
+#include <koshi/intersection/Intersector.h>
 
 MaterialRandomWalk::MaterialRandomWalk(const Texture * color_texture, const Texture * density_texture, const float& anistropy, 
                                        const Texture * normal_texture, const Texture * opacity_texture)

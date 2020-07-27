@@ -1,7 +1,7 @@
 #pragma once
 
-#include <integrator/SurfaceSampler.h>
-#include <light/LightSampler.h>
+#include <koshi/integrator/SurfaceSampler.h>
+#include <koshi/light/LightSampler.h>
 #include <map>
 
 class SurfaceLightSampler : public SurfaceSampler
