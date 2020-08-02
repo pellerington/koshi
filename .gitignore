@@ -3,6 +3,7 @@
 *.out
 Todo
 build
+scenes
 RandomCache*
 .vscode
 *.code-workspace
