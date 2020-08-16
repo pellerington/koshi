@@ -3,7 +3,6 @@
 #include <koshi/base/ObjectGroup.h>
 #include <koshi/intersection/Intersect.h>
 #include <koshi/intersection/Ray.h>
-#include <koshi/intersection/Interiors.h>
 #include <koshi/intersection/IntersectCallbacks.h>
 class Scene;
 

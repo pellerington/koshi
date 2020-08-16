@@ -10,8 +10,8 @@
 #include <koshi/base/Resources.h>
 #include <koshi/base/Array.h>
 #include <koshi/geometry/Surface.h>
-#include <koshi/intersection/Interiors.h>
 #include <koshi/texture/Texture.h>
+#include <koshi/intersection/Intersect.h>
 
 #define UNIFORM_SAMPLE false
 
@@ -20,7 +20,7 @@ class Integrator;
 struct MaterialSample
 {
     Vec3f wo;
-    Vec3f weight;
+    Vec3f value;
     float pdf;
 };
 
@@ -34,18 +34,17 @@ struct MaterialLobe
     Vec3f normal;
     Transform3f transform;
 
-    // TODO: Make these virtual functions instead.
+    // TODO: Make these virtual functions instead?
     Vec3f color;
     float roughness;
 
     virtual bool sample(MaterialSample& sample, Resources& resources) const = 0;
-    virtual Vec3f weight(const Vec3f& wo, Resources& resources) const = 0;
-    virtual float pdf(const Vec3f& wo, Resources& resources) const = 0;
+    virtual bool evaluate(MaterialSample& sample, Resources& resources) const = 0;
 
     // TODO: Make this a virtual function, so we can return an integrator/geometry data, AND save memory->
     Integrator * interior = nullptr;
 
-    enum ScatterType { DIFFUSE, GLOSSY, SPECULAR };
+    enum ScatterType { DIFFUSE, GLOSSY, SPECULAR, SUBSURFACE };
     virtual ScatterType get_scatter_type() const = 0;
 
     enum Hemisphere { FRONT, BACK, SPHERE };

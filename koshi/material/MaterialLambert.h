@@ -6,8 +6,8 @@ template<bool REFLECT>
 struct MaterialLobeLambert : public MaterialLobe
 {
     bool sample(MaterialSample& sample, Resources& resources) const;
-    Vec3f weight(const Vec3f& wo, Resources& resources) const;
-    float pdf(const Vec3f& wo, Resources& resources) const;
+    bool evaluate(MaterialSample& sample, Resources& resources) const;
+    
     ScatterType get_scatter_type() const { return ScatterType::DIFFUSE; }
     Hemisphere get_hemisphere() const { return REFLECT ? Hemisphere::FRONT : Hemisphere::BACK; }
 };

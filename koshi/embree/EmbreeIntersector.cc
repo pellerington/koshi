@@ -125,14 +125,14 @@ void EmbreeIntersector::intersect_callback(const RTCFilterFunctionNArguments * a
     surface->material = geometry->get_attribute<Material>("material");
     surface->opacity = (surface->material) ? surface->material->opacity(surface->u, surface->v, surface->w, intersect, *context->resources) : VEC3F_ONES;
 
-    // Close any segments of this geometry
+    // Close any interiors for this geometry
     if(!surface->facing)
     {
         for(uint i = 0; i < context->intersects->size(); i++)
         {
-            Intersect * intersect = context->intersects->get(i);
-            if(intersect->geometry == geometry && intersect->tlen > 0.f)
-                intersect->tlen = RTCRayN_tfar(args->ray, args->N, 0) - intersect->t;
+            Intersect * prev_intersect = context->intersects->get(i);
+            if(prev_intersect->interior && prev_intersect->geometry == geometry)
+                prev_intersect->tlen = std::min(prev_intersect->tlen, intersect->t - prev_intersect->t);
         }
     }
 

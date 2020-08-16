@@ -52,7 +52,7 @@ class IntersectList
 {
 public:
     IntersectList(Resources& resources, const Ray& ray, const PathData * path = nullptr)
-    : ray(ray), path(path), intersects(resources.memory, 4)
+    : ray(ray), path(path), tend(FLT_MAX), intersects(resources.memory, 4)
     {}
 
     const Ray ray;

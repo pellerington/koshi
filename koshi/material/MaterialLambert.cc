@@ -48,44 +48,31 @@ bool MaterialLobeLambert<REFLECT>::sample(MaterialSample& sample, Resources& res
     sample.wo = transform * Vec3f(x, y, z);
     sample.pdf = y * INV_PI;
 #endif
-    sample.weight = color * INV_PI * sample.wo.dot(normal);
+    sample.value = color * INV_PI * sample.wo.dot(normal);
     if(!REFLECT && surface->facing) sample.wo = -sample.wo; 
 
     return true;
 }
 
 template<bool REFLECT>
-Vec3f MaterialLobeLambert<REFLECT>::weight(const Vec3f& wo, Resources& resources) const
+bool MaterialLobeLambert<REFLECT>::evaluate(MaterialSample& sample, Resources& resources) const
 {
-    // TODO: Add domain check to helpers.
     if(REFLECT && !surface->facing)
-        return VEC3F_ZERO;
+        return false;
 
-    const float n_dot_wo = normal.dot(wo);
+    const float n_dot_wo = normal.dot(sample.wo);
     const float n_dot_wi = normal.dot(wi);
 
     if((REFLECT && n_dot_wo * n_dot_wi > 0.f) || (!REFLECT && n_dot_wo * n_dot_wi < 0.f))
-        return VEC3F_ZERO;
+        return false;
 
-    return color * INV_PI * fabs(n_dot_wo);
-}
+    sample.value = color * INV_PI * fabs(n_dot_wo);
 
-template<bool REFLECT>
-float MaterialLobeLambert<REFLECT>::pdf(const Vec3f& wo, Resources& resources) const
-{
-    // TODO: Add domain check to helpers.
-    if(REFLECT && !surface->facing)
-        return 0.f;
+    #if UNIFORM_SAMPLE
+        sample.pdf = INV_TWO_PI;
+    #else
+        sample.pdf = fabs(n_dot_wo) * INV_PI;
+    #endif
 
-    const float n_dot_wo = normal.dot(wo);
-    const float n_dot_wi = normal.dot(wi);
-
-    if((REFLECT && n_dot_wo < 0.f) || (!REFLECT && n_dot_wo * n_dot_wi > 0.f))
-        return 0.f;
-
-#if UNIFORM_SAMPLE
-    return INV_TWO_PI;
-#else
-    return fabs(n_dot_wo) * INV_PI;
-#endif
+    return true;
 }

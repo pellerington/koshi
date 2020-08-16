@@ -60,41 +60,30 @@ bool MaterialLobeGGXReflect::sample(MaterialSample& sample, Resources& resources
     const float d = D(normal, h, n_dot_h, roughness_sqr);
     const float g = G1(-wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
 
-    sample.weight = (n_dot_wo > 0.f) ? (color * f * g * d) / (4.f * n_dot_wi) : VEC3F_ZERO;
+    sample.value = (n_dot_wo > 0.f) ? (color * f * g * d) / (4.f * n_dot_wi) : VEC3F_ZERO;
     sample.pdf = (d * n_dot_h) / (4.f * h_dot_wo);
 
     return sample.pdf > 0.01f;
 }
 
-Vec3f MaterialLobeGGXReflect::weight(const Vec3f& wo, Resources& resources) const
+bool MaterialLobeGGXReflect::evaluate(MaterialSample& sample, Resources& resources) const
 {
-    if(wo.dot(normal) < 0.f)
-        return VEC3F_ZERO;
+    if(sample.wo.dot(normal) < 0.f)
+        return false;
 
-    const Vec3f h = (wo - wi).normalized();
+    const Vec3f h = (sample.wo - wi).normalized();
     const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
     const float h_dot_wi = clamp(h.dot(-wi), -1.f, 1.f);
-    const float h_dot_wo = clamp(h.dot(wo), -1.f, 1.f);
+    const float h_dot_wo = clamp(h.dot(sample.wo), -1.f, 1.f);
     const float n_dot_wi = clamp(normal.dot(-wi), -1.f, 1.f);
-    const float n_dot_wo = clamp(normal.dot(wo), -1.f, 1.f);
+    const float n_dot_wo = clamp(normal.dot(sample.wo), -1.f, 1.f);
 
     const float d = D(normal, h, n_dot_h, roughness_sqr);
-    const float g = G1(-wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
+    const float g = G1(-wi, normal, h, h_dot_wi, n_dot_wi, roughness_sqr)*G1(sample.wo, normal, h, h_dot_wo, n_dot_wo, roughness_sqr);
     const Vec3f f = fresnel->Fr(fabs(h_dot_wi));
 
-    return (color * f * g * d) / (4.f * n_dot_wi);
-}
+    sample.value = (color * f * g * d) / (4.f * n_dot_wi);
+    sample.pdf = (d * n_dot_h) / (4.f * h_dot_wo);
 
-float MaterialLobeGGXReflect::pdf(const Vec3f& wo, Resources& resources) const
-{
-    if(wo.dot(normal) < 0.f)
-        return 0.f;
-
-    const Vec3f h = (wo - wi).normalized();
-    const float n_dot_h = clamp(h.dot(normal), -1.f, 1.f);
-    const float h_dot_wo = clamp(h.dot(wo), -1.f, 1.f);
-
-    const float d = D(normal, h, n_dot_h, roughness_sqr);
-
-    return (d * n_dot_h) / (4.f * h_dot_wo);
+    return true;
 }

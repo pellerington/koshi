@@ -10,8 +10,7 @@ struct MaterialLobeGGXReflect : public MaterialLobe
     float roughness_sqr;
 
     bool sample(MaterialSample& sample, Resources& resources) const;
-    Vec3f weight(const Vec3f& wo, Resources& resources) const;
-    float pdf(const Vec3f& wo, Resources& resources) const;
+    bool evaluate(MaterialSample& sample, Resources& resources) const;
 
     ScatterType get_scatter_type() const { return (roughness > EPSILON_F) ? ScatterType::GLOSSY : ScatterType::SPECULAR; }
     Hemisphere get_hemisphere() const { return Hemisphere::FRONT; }

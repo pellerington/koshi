@@ -3,12 +3,12 @@
 #include <koshi/geometry/Volume.h>
 #include <koshi/material/MaterialVolume.h>
 
-Vec3f VolumeSingleScatter::integrate(const Intersect * intersect, IntegratorData * data, Transmittance& transmittance, Resources& resources) const
+Vec3f VolumeSingleScatter::integrate(const Intersect * intersect, void * data, Transmittance& transmittance, Resources& resources) const
 {
     return VEC3F_ZERO;
 }
 
-Vec3f VolumeSingleScatter::shadow(const float& t, const Intersect * intersect, IntegratorData * data, Resources& resources) const
+Vec3f VolumeSingleScatter::shadow(const float& t, const Intersect * intersect, void * data, Resources& resources) const
 {
     const Volume * volume = dynamic_cast<const Volume*>(intersect->geometry_data);
 

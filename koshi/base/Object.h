@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <koshi/dependency/robin_hood.h>
 class Resources;
 class Intersect;
 
@@ -14,7 +15,7 @@ public:
     void set_attribute(const std::string& attribute_name, Object * object)
     {
         if(!attributes)
-            attributes = new std::unordered_map<std::string, Object *>();
+            attributes = new robin_hood::unordered_map<std::string, Object *>();
         (*attributes)[attribute_name] = object;
     }
 
@@ -33,5 +34,5 @@ public:
     virtual ~Object() { if(attributes) delete attributes; }
     
 private:
-    std::unordered_map<std::string, Object *> * attributes = nullptr;
+    robin_hood::unordered_map<std::string, Object *> * attributes = nullptr;
 };
