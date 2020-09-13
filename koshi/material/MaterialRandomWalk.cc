@@ -109,8 +109,7 @@ bool MaterialLobeRandomWalk::sample(MaterialSample& sample, Resources& resources
                 cos_phi = 1.f - 2.f * resources.random_service->rand();
             }
             float sin_phi = sqrtf(std::max(EPSILON_F, 1.f - cos_phi * cos_phi));
-            const float x = sin_phi * cosf(theta), z = sin_phi * sinf(theta), y = cos_phi;
-            wo = Transform3f::basis_transform(wo) * Vec3f(x, y, z);
+            wo = Transform3f::basis_transform(wo) * Vec3f(sin_phi * cosf(theta), cos_phi, sin_phi * sinf(theta));
 
             weight *= scatter * inv_max_density / sprob;
         }

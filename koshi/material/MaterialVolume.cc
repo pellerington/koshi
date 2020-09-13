@@ -7,15 +7,10 @@ Vec3f MaterialVolume::get_density(const Vec3f& uvw, const Intersect * intersect,
 
 Vec3f MaterialVolume::get_scatter(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const
 {
-    return VEC3F_ZERO;
+    return scatter_texture->evaluate<Vec3f>(uvw.u, uvw.v, uvw.w, intersect, resources);
 }
 
 Vec3f MaterialVolume::get_emission(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const
 {
-    return VEC3F_ZERO;
-}
-
-MaterialLobes MaterialVolume::instance(const Vec3f& uvw, const Intersect * intersect, Resources& resources) const
-{
-    return MaterialLobes(resources.memory);
+    return emission_texture->evaluate<Vec3f>(uvw.u, uvw.v, uvw.w, intersect, resources);
 }

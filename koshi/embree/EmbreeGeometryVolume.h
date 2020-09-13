@@ -48,6 +48,8 @@ public:
         Volume * volume = context->resources->memory->create<Volume>();
         intersect->geometry_data = volume;
 
+        volume->t0 = t0;
+        volume->t1 = t1;
         volume->uvw_near = (ray.get_position(t0) - geometry->get_obj_bbox().min()) / geometry->get_obj_bbox().length();
         volume->uvw_far = (ray.get_position(t1) - geometry->get_obj_bbox().min()) / geometry->get_obj_bbox().length();
 

@@ -7,6 +7,7 @@ struct Volume : public GeometryData
 {
     Vec3f uvw_near, uvw_far;
 
+    float t0, t1;
     struct Segment {
         float t0, t1;
         Vec3f max_density, min_density;

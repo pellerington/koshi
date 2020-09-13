@@ -44,7 +44,7 @@ struct MaterialLobe
     // TODO: Make this a virtual function, so we can return an integrator/geometry data, AND save memory->
     Integrator * interior = nullptr;
 
-    enum ScatterType { DIFFUSE, GLOSSY, SPECULAR, SUBSURFACE };
+    enum ScatterType { DIFFUSE, GLOSSY, SPECULAR, SUBSURFACE, VOLUME };
     virtual ScatterType get_scatter_type() const = 0;
 
     enum Hemisphere { FRONT, BACK, SPHERE };

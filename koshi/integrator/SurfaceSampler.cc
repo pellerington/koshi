@@ -54,7 +54,7 @@ Vec3f SurfaceSampler::integrate(const Intersect * intersect, void * data, Transm
 
     // Setup material data.
     MaterialLobes lobes = surface->material->instance(surface, intersect, resources);
-    if(!lobes.size()) 
+    if(!lobes.size())
         return color * shadow;
 
     // Setup light data.
@@ -103,7 +103,7 @@ Vec3f SurfaceSampler::integrate(const Intersect * intersect, void * data, Transm
         else if(scatter_type == MaterialLobe::GLOSSY)
             num_samples = SAMPLES_PER_HEMISPHERE * sqrtf(lobe->roughness);
 
-        // TODO: Why attach recursion data (nicer name) to the intersect...
+        // TODO: Why attach recursion data (nicer name) to the intersect... Should pass it through to the integrate()
         PathData next_path;
         next_path.depth = depth + 1;
         next_path.quality = quality / num_samples;
@@ -224,9 +224,9 @@ Vec3f SurfaceSampler::integrate(const Intersect * intersect, void * data, Transm
             IntersectList * intersects = resources.intersector->intersect(ray, &next_path, resources, interior_callback);
 
             Transmittance transmittance = Integrator::shadow(intersects, resources);
-            Vec3f shadow = transmittance.shadow(ray.tmax, resources);
+            Vec3f sample_shadow = transmittance.shadow(ray.tmax, resources);
 
-            color += shadow * sample.intensity * weight * inv_num_samples / sample.pdf;
+            color += sample_shadow * sample.intensity * weight * inv_num_samples / sample.pdf;
         }
     }
 
