@@ -1,0 +1,22 @@
+{
+    "Plugins": [
+        {
+            "Info": {
+                "Types": {
+                    "HdKoshiRendererPlugin": {
+                        "bases": [
+                            "HdRendererPlugin"
+                        ],
+                        "displayName": "Koshi",
+                        "priority": 99
+                    }
+                }
+            },
+            "LibraryPath": "libHdKoshi.so",
+            "Name": "HdKoshi",
+            "ResourcePath": "resources",
+            "Root": "..",
+            "Type": "library"
+        }
+    ]
+}
