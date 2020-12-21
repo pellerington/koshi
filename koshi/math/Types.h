@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <koshi/math/Vec3f.h>
+#include <koshi/math/Vec3.h>
 #include <koshi/math/Vec2.h>
 #include <koshi/math/Box3f.h>
 
@@ -18,7 +19,6 @@
 #define INV_EPSILON_F 1e16f
 
 #define RAY_OFFSET 0.000001f
-
 
 static const Vec3f VEC3F_ZERO = 0.f;
 static const Vec3f VEC3F_ONES = 1.f;

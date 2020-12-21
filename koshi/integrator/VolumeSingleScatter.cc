@@ -72,6 +72,19 @@ Vec3f VolumeSingleScatter::integrate(const Intersect * intersect, void * data, T
     if(depth > resources.settings->max_depth || quality < min_quality || depth > 1 || (!volume->material->has_scatter() && !volume->material->has_emission())) 
         return color;
 
+
+    // if(depth == 0)
+    // for(Volume::Segment * segment = volume->segment; segment; segment = segment->next)
+    //     if((segment->t1 - segment->t0) < 0.01f)
+    //         return Vec3f(0, 2, 0);
+    if(depth == 0)
+    {
+        Vec3f d(0.f);
+        for(Volume::Segment * segment = volume->segment; segment; segment = segment->next)
+            d.max(segment->max_density);
+        return d;
+    }
+
     uint num_samples = std::max(12.f * quality * resources.settings->sampling_quality, 1.f);
     // TODO: Store this in the settings.
     Integrator * scatter_integrator = resources.scene->get_object<Integrator>("default_integrator");

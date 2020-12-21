@@ -19,7 +19,7 @@ class Integrator;
 struct PathData
 {
     uint depth;
-    double quality;
+    float quality;
     // LPE
     // Interiors
     const PathData * prev_path;

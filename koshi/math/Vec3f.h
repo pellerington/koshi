@@ -4,6 +4,7 @@
 #include <ostream>
 #include <cmath>
 #include <iostream>
+#include <koshi/math/Vec3.h>
 
 class Vec3f
 {
@@ -20,6 +21,8 @@ public:
     Vec3f(const float& n) : data(_mm_setr_ps(n, n, n, 0.f)) {}
     Vec3f(const __m128& data) : data(data) {}
     Vec3f(const float * n) : data(_mm_setr_ps(n[0], n[1], n[2], 0.f)) {}
+    template<typename T>
+    Vec3f(const Vec3<T>& n) : data(_mm_setr_ps(n[0], n[1], n[2], 0.f)) {}
 
     inline float& operator[](const int& i) { return data[i]; }
     inline const float& operator[](const int& i) const { return data[i]; }
@@ -27,6 +30,10 @@ public:
     // Assignement
     inline Vec3f& operator= (const Vec3f& other) { data = other.data; return *this; }
     inline Vec3f& operator= (const float& n) { data = _mm_setr_ps(n, n, n, 0.f); return *this; }
+
+    // Casting
+    template<typename T>
+    inline operator Vec3<T>() { return Vec3<T>(x, y, z); }
 
     // Negate
     inline Vec3f operator-() const { return Vec3f(_mm_sub_ps(_mm_setzero_ps(), data)); }
@@ -44,6 +51,10 @@ public:
     inline Vec3f& operator*= (const float& n) { data = _mm_mul_ps(data, _mm_set_ps1(n)); return *this; }
     inline Vec3f operator* (const float& n) const { return Vec3f(_mm_mul_ps(data, _mm_set_ps1(n))); }
     friend inline Vec3f operator* (const float& n, const Vec3f& other) { return Vec3f(_mm_mul_ps(other.data, _mm_set_ps1(n))); }
+    template<typename T>
+    friend inline Vec3<T> operator* (const Vec3<T>& n, const Vec3f& m) { return Vec3<T>(n.x*m.x, n.y*m.y, n.z*m.z); }
+    template<typename T>
+    friend inline Vec3f operator* (const Vec3f& n, const Vec3<T>& m) { return Vec3f(n.x*m.x, n.y*m.y, n.z*m.z); }
 
     // Subtract
     inline Vec3f& operator-= (const Vec3f& other) { data = _mm_sub_ps(data, other.data); return *this; }
@@ -62,6 +73,7 @@ public:
     // Logic
     inline bool operator== (const Vec3f& v) const { return x == v.x && y == v.y && z == v.z; }
     inline bool operator< (const float& n) const { return x < n && y < n && z < n; }
+    inline bool operator<= (const float& n) const { return x <= n && y <= n && z <= n; }
     inline bool operator> (const float& n) const { return x > n && y > n && z > n; }
     inline bool operator>= (const float& n) const { return x >= n && y >= n && z >= n; }
 

@@ -53,15 +53,17 @@ public:
         volume->uvw_near = (ray.get_position(t0) - geometry->get_obj_bbox().min()) / geometry->get_obj_bbox().length();
         volume->uvw_far = (ray.get_position(t1) - geometry->get_obj_bbox().min()) / geometry->get_obj_bbox().length();
 
-        for(auto bound = geometry->get_bound().begin(); bound != geometry->get_bound().end(); ++bound)
+        // TODO: Use acceleration structure for interesect. (include as primitives?)
+        const auto acceleration_structure = geometry->get_acceleration_structure();
+        for(auto b = acceleration_structure.begin(); b != acceleration_structure.end(); ++b)
         {
-            if(intersect_bbox(ray, bound->bbox, t0, t1))
+            if(intersect_bbox(ray, b->bbox, t0, t1))
             {
                 Volume::Segment * segment = context->resources->memory->create<Volume::Segment>();
                 segment->t0 = t0;
                 segment->t1 = t1;
-                segment->min_density = bound->min_density;
-                segment->max_density = bound->max_density;
+                segment->min_density = b->min_density;
+                segment->max_density = b->max_density;
 
                 // Find the position of the segment.
                 Volume::Segment ** position = &volume->segment;

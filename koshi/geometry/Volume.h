@@ -14,7 +14,7 @@ struct Volume : public GeometryData
         Segment * next;
     };
     Segment * segment = nullptr;
-    // Add function to access sement using [t].
+    // Add function to access sement using [t]?
 
     // Vec3f opacity;
 

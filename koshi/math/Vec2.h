@@ -64,4 +64,4 @@ public:
 
 typedef Vec2<float> Vec2f;
 typedef Vec2<int> Vec2i;
-typedef Vec2<uint> Vec2u;
+typedef Vec2<unsigned int> Vec2u;
