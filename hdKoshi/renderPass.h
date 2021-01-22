@@ -34,6 +34,7 @@ protected:
 
     // HdEmbreeRenderBuffer colorBuffer;
 
+    Koshi::Scene * scene;
     Koshi::RenderOptix render;
 
 };

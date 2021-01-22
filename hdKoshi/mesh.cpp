@@ -31,9 +31,14 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-HdKoshiMesh::HdKoshiMesh(/*Koshi::Scene * scene,*/ SdfPath const& id, SdfPath const& instancerId)
-: HdMesh(id, instancerId), geometry(nullptr)
+HdKoshiMesh::HdKoshiMesh(Koshi::Scene * scene, SdfPath const& id, SdfPath const& instancerId)
+: HdMesh(id, instancerId), scene(scene), geometry(nullptr)
 {
+}
+
+HdKoshiMesh::~HdKoshiMesh()
+{
+    scene->removeGeometry(GetId().GetString());
 }
 
 HdDirtyBits HdKoshiMesh::GetInitialDirtyBitsMask() const
@@ -56,8 +61,8 @@ void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderPa
     std::cout << "* (multithreaded) Sync Tiny Mesh id=" << GetId() << std::endl;
 
     const SdfPath& id = GetId();
-    Koshi::Scene * scene = ((HdKoshiRenderParam*)renderParam)->getScene();
 
+    // If we don't have a geometry create our geometry.
     if(!geometry)
     {
         geometry = std::make_shared<Koshi::GeometryMesh>();
@@ -72,9 +77,10 @@ void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderPa
         HdMeshUtil meshUtil(&topology, GetId());
         meshUtil.ComputeTriangleIndices(&triangulatedIndices, &trianglePrimitiveParams);
 
-        geometry->setAttribute("vertices", Koshi::Format::FLOAT32, points.size(), 3, points.cdata(), triangulatedIndices.size(), (uint32_t*)triangulatedIndices.cdata());
+        geometry->setAttribute("vertices", Koshi::Format::FLOAT32, points.size(), 3, points.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
 
-        scene->addGeometry(GetId().GetAsString(), geometry.get());
+        scene->addGeometry(GetId().GetString(), geometry.get());
+        // scene->addGeometry(GetId().GetAsString(), geometry.get());
     }
 }
 

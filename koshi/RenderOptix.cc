@@ -42,7 +42,7 @@ RenderOptix::RenderOptix()
         module_compile_options.debugLevel           = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO;
 
         pipeline_compile_options.usesMotionBlur        = false;
-        pipeline_compile_options.traversableGraphFlags = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS;
+        pipeline_compile_options.traversableGraphFlags = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
         pipeline_compile_options.numPayloadValues      = 2;
         pipeline_compile_options.numAttributeValues    = 3;
 
@@ -179,10 +179,8 @@ void RenderOptix::start()
 {
     if(!camera || !scene) return; // TODO: Should error here
 
-    IntersectorOptix * intersector = new IntersectorOptix(scene, context);
-
-    // CUstream stream;
-    // CUDA_CHECK(cudaStreamCreate( &stream ));
+    if(!intersector)
+        intersector = new IntersectorOptix(scene, context);
 
     Resources resources;
 
@@ -207,7 +205,7 @@ void RenderOptix::start()
     OPTIX_CHECK(optixLaunch(pipeline, 0, d_resources, sizeof(Resources), &sbt, camera->getResolution().x, camera->getResolution().y, /*depth=*/1));
     CUDA_SYNC_CHECK();
 
-    // TODO: Free "resources" at some point
+    // TODO: Free "resources" and "aovs" at some point.
 }
 
 RenderOptix::~RenderOptix()

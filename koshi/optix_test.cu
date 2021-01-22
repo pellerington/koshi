@@ -31,7 +31,7 @@ extern "C" __global__ void __raygen__rg()
     if(intersects.size() > 0)
     {
         Intersect& intersect = intersects[0];
-        resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(intersect.uvw0[0], intersect.uvw0[1], 0.f, 1.f));
+        resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(intersect.uvw.u, intersect.uvw.v, intersect.uvw.w, 1.f));
     }
 }
 
@@ -42,7 +42,23 @@ extern "C" __global__ void __miss__ms()
 extern "C" __global__ void __closesthit__ch() 
 {
     IntersectList * intersects = unpackIntersects();
+    const Ray& ray = intersects->getRay();
+
     Intersect& intersect = intersects->push();
+    
+    // Geometry = something...
+    intersect.prim = optixGetPrimitiveIndex();
+
+    intersect.t = optixGetRayTmax();
+
+    // World to Object ?
+    // Material * material / Integrator * integrator;
+    
+    // TODO: Should we store position or have it be calculated from t0.
+    intersect.position = ray.origin + intersect.t * ray.direction;
+    
+    // intersect.normal = ;
+
     float2 uvs = optixGetTriangleBarycentrics();
-    intersect.uvw0 = Vec3f(uvs.x, uvs.y, 0.f);
+    intersect.uvw = Vec3f(uvs.x, uvs.y, 0.f);
 }

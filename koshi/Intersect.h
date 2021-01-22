@@ -9,14 +9,13 @@ class Geometry;
 struct Intersect
 {
     Geometry * geometry;
-    uint primId;
+    uint prim;
     // World to Object ?
     // Material * material / Integrator * integrator;
     Vec3f position;
     Vec3f normal;
-    float t0, t1;
-    Vec3f uvw0;
-    Vec3f uvw1;
+    float t, t_max;
+    Vec3f uvw, uvw_max;
 };
 
 KOSHI_CLOSE_NAMESPACE

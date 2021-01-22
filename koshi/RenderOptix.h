@@ -55,12 +55,13 @@ public:
     Aov * getAov(const std::string& name);
     Aov * addAov(const std::string& name, const uint& channels);
 
-    // void stop();
     void reset();
     // void pause();
     void start();
 
 private:
+    IntersectorOptix * intersector = nullptr;
+
     Scene * scene;
     Camera * camera;
     std::vector<Aov> aovs;

@@ -107,7 +107,7 @@ HdRprim * HdKoshiRenderDelegate::CreateRprim(const TfToken& typeId, const SdfPat
     std::cout << "Create Rprim type=" << typeId.GetText() << " id=" << rprimId << " instancerId=" << instancerId << std::endl;
 
     if (typeId == HdPrimTypeTokens->mesh) {
-        return new HdKoshiMesh(rprimId, instancerId);
+        return new HdKoshiMesh(&scene, rprimId, instancerId);
     } else {
         TF_CODING_ERROR("Unknown Rprim type=%s id=%s", typeId.GetText(), rprimId.GetText());
     }

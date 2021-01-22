@@ -10,7 +10,7 @@
 PXR_NAMESPACE_OPEN_SCOPE
 
 HdKoshiRenderPass::HdKoshiRenderPass(Koshi::Scene * scene, HdRenderIndex * index, const HdRprimCollection& collection)
-: HdRenderPass(index, collection)
+: HdRenderPass(index, collection), scene(scene)
 {
     render.setScene(scene);
     std::cout << "Creating renderPass" << std::endl;
@@ -25,6 +25,12 @@ void
 HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, const TfTokenVector& renderTags)
 {
     render.reset();
+
+    // scene->updateDirtiness();
+    
+    // // ADD A INTERSECTOR(?) AND A LIST OF GEOMTRY (AND CAMERA?) TO SCENE SO THEY WILL WORK WITH DIRTINESS
+    
+    // scene->preRender(); // ???
 
     GfVec4f vp = renderPassState->GetViewport();
     const Koshi::Vec2u resolution(vp[2], vp[3]);

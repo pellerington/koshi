@@ -4,6 +4,7 @@
 #include "pxr/imaging/hd/mesh.h"
 
 #include <koshi/GeometryMesh.h>
+#include <koshi/Scene.h>
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -35,10 +36,10 @@ public:
     ///   \param id The scene-graph path to this mesh.
     ///   \param instancerId If specified, the HdInstancer at this id uses
     ///                      this mesh as a prototype.
-    HdKoshiMesh(SdfPath const& id, SdfPath const& instancerId = SdfPath());
+    HdKoshiMesh(Koshi::Scene * scene, SdfPath const& id, SdfPath const& instancerId = SdfPath());
 
     /// HdTinyMesh destructor.
-    ~HdKoshiMesh() override = default;
+    ~HdKoshiMesh();
 
     /// Inform the scene graph which state needs to be downloaded in the
     /// first Sync() call: in this case, topology and points data to build
@@ -110,6 +111,7 @@ protected:
     VtVec3iArray triangulatedIndices;
     VtIntArray trianglePrimitiveParams;
 
+    Koshi::Scene * scene;
     std::shared_ptr<Koshi::GeometryMesh> geometry;
 
     // This class does not support copying.

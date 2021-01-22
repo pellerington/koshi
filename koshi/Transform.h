@@ -5,6 +5,8 @@
 
 KOSHI_OPEN_NAMESPACE
 
+// TODO: REMOVE LAST ROW...
+
 class Transform
 {
 public:
@@ -16,7 +18,7 @@ public:
     {
     }
 
-    DEVICE_FUNCTION static Transform fromData(const float * d, bool rowCol = true)
+    DEVICE_FUNCTION static Transform fromData(const float * d, const bool& rowCol = true)
     {
         Transform t;
         if(rowCol)
@@ -36,7 +38,25 @@ public:
         return t;
     }
 
-    DEVICE_FUNCTION static Transform fromData(const double * d, bool rowCol = true)
+    DEVICE_FUNCTION void copy(float * d, const bool& rowCol = true) const
+    {
+        // TODO: REMOVE THESE BRANCHES, BAD FOR GPU, HAVE EXPLICIT ROW COL vs COL ROW FORMATs
+        // TODO: This works with a 4x3 matrix...
+        // TODO: THIS should have a double counterpart
+        if(rowCol)
+        {
+            d[0] = data[0]; d[1] = data[1]; d[2] = data[2]; d[3] = data[3];
+            d[4] = data[4]; d[5] = data[5]; d[6] = data[6]; d[7] = data[7];
+            d[8] = data[8]; d[9] = data[9]; d[10] = data[10]; d[11] = data[11];
+        }
+        else
+        {
+            // SOMETHING...
+        }
+    }
+
+
+    DEVICE_FUNCTION static Transform fromData(const double * d, const bool& rowCol = true)
     {
         Transform t;
         if(rowCol)
