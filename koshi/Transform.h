@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdio>
+
 #include <koshi/Vec3.h>
 #include <koshi/Ray.h>
 

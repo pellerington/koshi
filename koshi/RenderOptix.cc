@@ -9,6 +9,8 @@
 #include <koshi/OptixHelpers.h>
 #include <koshi/Aov.h>
 
+#include <koshi/GeometryMesh.h>
+
 KOSHI_OPEN_NAMESPACE
 
 RenderOptix::RenderOptix()
@@ -100,38 +102,6 @@ RenderOptix::RenderOptix()
         OPTIX_CHECK(optixUtilComputeStackSizes(&stack_sizes, max_trace_depth, 0 /*maxCCDepth*/, 0 /*maxDCDEpth*/, &direct_callable_stack_size_from_traversal, &direct_callable_stack_size_from_state, &continuation_stack_size));
         OPTIX_CHECK(optixPipelineSetStackSize(pipeline, direct_callable_stack_size_from_traversal, direct_callable_stack_size_from_state, continuation_stack_size, 1/*maxTraversableDepth*/));
     }
-
-    // Set up shader binding table
-    {
-        CUdeviceptr  raygen_record;
-        const size_t raygen_record_size = sizeof(RayGenSbtRecord);
-        CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&raygen_record), raygen_record_size ));
-        RayGenSbtRecord rg_sbt;
-        OPTIX_CHECK(optixSbtRecordPackHeader(raygen_prog_group, &rg_sbt));
-        CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(raygen_record), &rg_sbt, raygen_record_size, cudaMemcpyHostToDevice));
-
-        CUdeviceptr miss_record;
-        size_t      miss_record_size = sizeof(MissSbtRecord);
-        CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&miss_record), miss_record_size));
-        RayGenSbtRecord ms_sbt;
-        OPTIX_CHECK(optixSbtRecordPackHeader(miss_prog_group, &ms_sbt));
-        CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(miss_record), &ms_sbt, miss_record_size, cudaMemcpyHostToDevice));
-
-        CUdeviceptr hitgroup_record;
-        size_t      hitgroup_record_size = sizeof(HitGroupSbtRecord);
-        CUDA_CHECK(cudaMalloc( reinterpret_cast<void**>(&hitgroup_record), hitgroup_record_size));
-        HitGroupSbtRecord hg_sbt;
-        OPTIX_CHECK(optixSbtRecordPackHeader(hitgroup_prog_group, &hg_sbt));
-        CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(hitgroup_record), &hg_sbt, hitgroup_record_size, cudaMemcpyHostToDevice));
-
-        sbt.raygenRecord                = raygen_record;
-        sbt.missRecordBase              = miss_record;
-        sbt.missRecordStrideInBytes     = sizeof( MissSbtRecord );
-        sbt.missRecordCount             = 1;
-        sbt.hitgroupRecordBase          = hitgroup_record;
-        sbt.hitgroupRecordStrideInBytes = sizeof( HitGroupSbtRecord );
-        sbt.hitgroupRecordCount         = 1;
-    }
 }
 
 void RenderOptix::setScene(Scene * _scene)
@@ -195,34 +165,80 @@ void RenderOptix::start()
     // Copy Aovs to Device.
     resources.aovs_size = aovs.size();
     CUDA_CHECK(cudaMalloc(&resources.aovs, sizeof(Aov) * aovs.size()));
-    for(uint i = 0; i < aovs.size(); i++)
-        CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(&resources.aovs[i]), &aovs[i], sizeof(Aov), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.aovs), aovs.data(), sizeof(Aov) * aovs.size(), cudaMemcpyHostToDevice));
 
+    // Copy Scene to Device.
+    DeviceScene device_scene(scene);
+    CUDA_CHECK(cudaMalloc(&resources.scene, sizeof(DeviceScene)));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.scene), &device_scene, sizeof(DeviceScene), cudaMemcpyHostToDevice));
+
+    // Copy Resrouces to device.
     CUdeviceptr d_resources;
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_resources), sizeof(Resources)));
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_resources), &resources, sizeof(Resources), cudaMemcpyHostToDevice));
 
+    // Set up shader binding table
+    CUdeviceptr  raygen_record;
+    const size_t raygen_record_size = sizeof(RayGenSbtRecord);
+    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&raygen_record), raygen_record_size ));
+    RayGenSbtRecord rg_sbt;
+    OPTIX_CHECK(optixSbtRecordPackHeader(raygen_prog_group, &rg_sbt));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(raygen_record), &rg_sbt, raygen_record_size, cudaMemcpyHostToDevice));
+
+    CUdeviceptr miss_record;
+    size_t      miss_record_size = sizeof(MissSbtRecord);
+    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&miss_record), miss_record_size));
+    RayGenSbtRecord ms_sbt;
+    OPTIX_CHECK(optixSbtRecordPackHeader(miss_prog_group, &ms_sbt));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(miss_record), &ms_sbt, miss_record_size, cudaMemcpyHostToDevice));
+
+    CUdeviceptr hitgroup_record;
+    size_t      hitgroup_record_size = device_scene.num_geometries * sizeof(HitGroupSbtRecord);
+    CUDA_CHECK(cudaMalloc( reinterpret_cast<void**>(&hitgroup_record), hitgroup_record_size));
+    std::vector<HitGroupSbtRecord> hg_sbt(device_scene.num_geometries);
+    for(uint i = 0; i < hg_sbt.size(); i++)
+    {
+        hg_sbt[i].data.geometry_id = i;
+        OPTIX_CHECK(optixSbtRecordPackHeader(hitgroup_prog_group, &hg_sbt[i]));
+    }
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(hitgroup_record), hg_sbt.data(), hitgroup_record_size, cudaMemcpyHostToDevice));
+
+    OptixShaderBindingTable sbt = {};
+    sbt.raygenRecord                = raygen_record;
+    sbt.missRecordBase              = miss_record;
+    sbt.missRecordStrideInBytes     = sizeof( MissSbtRecord );
+    sbt.missRecordCount             = 1;
+    sbt.hitgroupRecordBase          = hitgroup_record;
+    sbt.hitgroupRecordStrideInBytes = sizeof( HitGroupSbtRecord );
+    sbt.hitgroupRecordCount         = 2;
+
+    // Perform the actual intersection.
     OPTIX_CHECK(optixLaunch(pipeline, 0, d_resources, sizeof(Resources), &sbt, camera->getResolution().x, camera->getResolution().y, /*depth=*/1));
     CUDA_SYNC_CHECK();
 
-    // TODO: Free "resources" and "aovs" at some point.
+    // Free SBT.
+    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.raygenRecord)));
+    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.missRecordBase)));
+    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.hitgroupRecordBase)));
+
+    // Free resources.
+    CUDA_CHECK(cudaFree(resources.camera));
+    CUDA_CHECK(cudaFree(resources.intersector));
+    CUDA_CHECK(cudaFree(resources.aovs));
+    CUDA_CHECK(cudaFree(resources.scene));
+    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(d_resources)));
 }
 
 RenderOptix::~RenderOptix()
 {
-    std::cout << "Deleteing Render" << "\n";
     // Cleanup
-    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.raygenRecord)));
-    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.missRecordBase)));
-    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.hitgroupRecordBase)));
+    std::cout << "Deleteing Render" << "\n";
     OPTIX_CHECK(optixPipelineDestroy(pipeline));
     OPTIX_CHECK(optixProgramGroupDestroy(raygen_prog_group));
     OPTIX_CHECK(optixProgramGroupDestroy(miss_prog_group));
     OPTIX_CHECK(optixProgramGroupDestroy(hitgroup_prog_group));
     OPTIX_CHECK(optixModuleDestroy(module));
     OPTIX_CHECK(optixDeviceContextDestroy(context));
-
-    // TODO: Delete AOVS
 }
 
 KOSHI_CLOSE_NAMESPACE

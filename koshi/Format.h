@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <koshi/Koshi.h>
 
 KOSHI_OPEN_NAMESPACE

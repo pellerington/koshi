@@ -20,7 +20,7 @@ class IntersectorOptix
 public:
     IntersectorOptix(Scene * scene, OptixDeviceContext& context);
 
-#ifdef __CUDACC__
+#ifdef CUDA_COMPILE
     DEVICE_FUNCTION IntersectList intersect(const Ray& ray)
     {
         float3 origin = make_float3(ray.origin.x, ray.origin.y, ray.origin.z);
@@ -36,7 +36,7 @@ public:
 
         optixTrace(traversable_handle, 
             origin, direction,
-            0.0f /*tmin*/, 1e16f /*tmax*/ , 0.0f /*time*/,
+            ray.tmin, ray.tmax, 0.0f /*time*/,
             OptixVisibilityMask(255), OPTIX_RAY_FLAG_NONE,
             0,      // SBT offset   -- See SBT discussion
             1,      // SBT stride   -- See SBT discussion

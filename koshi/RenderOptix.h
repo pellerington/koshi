@@ -23,6 +23,7 @@ struct MissData
 
 struct HitGroupData
 {
+    uint geometry_id;
 };
 
 template <typename T>
@@ -37,8 +38,12 @@ typedef SbtRecord<HitGroupData>   HitGroupSbtRecord;
 
 struct Resources
 {
+    DeviceScene * scene;
+
     Camera * camera;
+    
     Intersector * intersector;
+
     Aov * aovs;
     uint aovs_size;
 };
@@ -73,7 +78,6 @@ private:
     OptixProgramGroup hitgroup_prog_group;
     OptixProgramGroup miss_prog_group;
     OptixPipeline pipeline;
-    OptixShaderBindingTable sbt = {};
 
 };
 

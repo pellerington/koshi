@@ -1,8 +1,12 @@
 #include <optix.h>
 #include <optix_device.h>
 
+#include <cfloat>
+
 #include <koshi/RenderOptix.h>
 #include <koshi/IntersectList.h>
+
+#include <koshi/GeometryMesh.h>
 
 using namespace Koshi;
 
@@ -26,12 +30,38 @@ extern "C" __global__ void __raygen__rg()
     const uint3 dim = optixGetLaunchDimensions();
 
     const Ray ray = resources.camera->sample(idx.x, idx.y);
-    IntersectList intersects = resources.intersector->intersect(ray);
+
+    const IntersectList intersects = resources.intersector->intersect(ray);
 
     if(intersects.size() > 0)
     {
-        Intersect& intersect = intersects[0];
-        resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(intersect.uvw.u, intersect.uvw.v, intersect.uvw.w, 1.f));
+        const Intersect& intersect = intersects[0];
+
+        if(!intersect.facing)
+        {
+            resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(0.f, 0.f, 0.f, 1.f));
+            return;
+        }
+
+        Vec3f light_pos = ray.origin;//Vec3f(0.107834, -50, 200.f);
+
+        Ray shadow_ray;
+        shadow_ray.origin = intersect.position + intersect.normal * 0.0001f;
+        shadow_ray.direction = (light_pos - shadow_ray.origin).normalize();
+        shadow_ray.tmin = 0.f;
+        shadow_ray.tmax = (light_pos - shadow_ray.origin).length() - 0.0001f;
+
+        const IntersectList shadow_intersects = resources.intersector->intersect(shadow_ray);
+
+        if(shadow_intersects.size() > 0)
+        {
+            resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(0.f, 0.f, 0.f, 1.f));
+        }
+        else
+        {
+            float color = intersect.normal.dot(shadow_ray.direction);
+            resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, color, color, 1.f));
+        }
     }
 }
 
@@ -43,22 +73,31 @@ extern "C" __global__ void __closesthit__ch()
 {
     IntersectList * intersects = unpackIntersects();
     const Ray& ray = intersects->getRay();
-
     Intersect& intersect = intersects->push();
     
-    // Geometry = something...
     intersect.prim = optixGetPrimitiveIndex();
 
-    intersect.t = optixGetRayTmax();
+    intersect.t = intersect.t_max = optixGetRayTmax();
 
-    // World to Object ?
-    // Material * material / Integrator * integrator;
-    
-    // TODO: Should we store position or have it be calculated from t0.
     intersect.position = ray.origin + intersect.t * ray.direction;
-    
-    // intersect.normal = ;
 
     float2 uvs = optixGetTriangleBarycentrics();
-    intersect.uvw = Vec3f(uvs.x, uvs.y, 0.f);
+    intersect.uvw = intersect.uvw_max = Vec3f(uvs.x, uvs.y, 0.f);
+
+    HitGroupData * sbt_data = reinterpret_cast<HitGroupData*>(optixGetSbtDataPointer());
+    intersect.geometry = resources.scene->d_geometries[sbt_data->geometry_id];
+
+    GeometryMesh * geometry_mesh = (GeometryMesh *)intersect.geometry;
+    GeometryMeshAttribute * vertices = geometry_mesh->getAttribute("vertices");
+    const uint p0 = vertices->d_indices[intersect.prim*vertices->indices_stride+0]*vertices->data_stride;
+    const uint p1 = vertices->d_indices[intersect.prim*vertices->indices_stride+1]*vertices->data_stride;
+    const uint p2 = vertices->d_indices[intersect.prim*vertices->indices_stride+2]*vertices->data_stride;
+    const Vec3f v0 = Vec3f(((float*)vertices->d_data)[p0+0], ((float*)vertices->d_data)[p0+1], ((float*)vertices->d_data)[p0+2]);
+    const Vec3f v1 = Vec3f(((float*)vertices->d_data)[p1+0], ((float*)vertices->d_data)[p1+1], ((float*)vertices->d_data)[p1+2]);
+    const Vec3f v2 = Vec3f(((float*)vertices->d_data)[p2+0], ((float*)vertices->d_data)[p2+1], ((float*)vertices->d_data)[p2+2]);
+    intersect.normal = Vec3f::cross(v1 - v0, v2 - v0).normalize();
+    float3 world_normal = optixTransformNormalFromObjectToWorldSpace(make_float3(intersect.normal.x, intersect.normal.y, intersect.normal.z));
+    intersect.normal = Vec3f(world_normal.x, world_normal.y, world_normal.z);
+
+    intersect.facing = optixIsFrontFaceHit();
 }

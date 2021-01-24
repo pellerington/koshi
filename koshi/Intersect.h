@@ -14,6 +14,7 @@ struct Intersect
     // Material * material / Integrator * integrator;
     Vec3f position;
     Vec3f normal;
+    bool facing;
     float t, t_max;
     Vec3f uvw, uvw_max;
 };

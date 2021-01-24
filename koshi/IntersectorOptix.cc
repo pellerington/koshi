@@ -19,13 +19,15 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
     instances.resize(geometries.size());
     uint i = 0;
 
-    for(auto it = geometries.begin(); it != geometries.end(); ++it)
+    for(auto it = geometries.begin(); it != geometries.end(); ++it, i++)
     {
+        // TODO: We can only handle GeometryMesh at the moment.
         GeometryMesh * geometry = dynamic_cast<GeometryMesh*>(it->second);
         if(!geometry) continue;
         GeometryMeshAttribute * vertices = geometry->getAttribute("vertices");
         if(!vertices || vertices->format != Format::FLOAT32) continue;
 
+        // TODO: If a geometry changes simply delete it from our traversables?
         if(traversables.find(geometry) == traversables.end())
         {
             // Use default options for simplicity.
@@ -45,7 +47,10 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
             triangle_input.triangleArray.numIndexTriplets    = static_cast<uint32_t>(vertices->indices_size);
             triangle_input.triangleArray.indexBuffer         = (CUdeviceptr)vertices->d_indices;;
             triangle_input.triangleArray.flags         = triangle_input_flags;
-            triangle_input.triangleArray.numSbtRecords = 1;
+            triangle_input.triangleArray.numSbtRecords               = 1;
+            triangle_input.triangleArray.sbtIndexOffsetBuffer        = 0; 
+            triangle_input.triangleArray.sbtIndexOffsetSizeInBytes   = 0; 
+            triangle_input.triangleArray.sbtIndexOffsetStrideInBytes = 0; 
 
             // Allocate the gas buffers.
             OptixAccelBufferSizes gas_buffer_sizes;
@@ -64,16 +69,12 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
         }
 
         geometry->get_obj_to_world().copy(instances[i].transform);
-        instances[i].instanceId = i;
+        instances[i].instanceId = 0;
         instances[i].visibilityMask = 255;
-        instances[i].sbtOffset = 0;
+        instances[i].sbtOffset = i;
         instances[i].flags = OPTIX_INSTANCE_FLAG_NONE;
         instances[i].traversableHandle = traversables[geometry].traversable_handle;
-
-        i++;
     }
-
-    // std::cout << "Made Instaces: " << i << std::endl;
 
     // Use default options for simplicity.
     OptixAccelBuildOptions accel_options = {};
