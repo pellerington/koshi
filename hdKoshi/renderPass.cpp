@@ -37,7 +37,7 @@ HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, c
     GfMatrix4d view = renderPassState->GetWorldToViewMatrix();
     GfMatrix4d proj = renderPassState->GetProjectionMatrix();
 
-    Koshi::Camera camera(resolution, Koshi::Transform::fromData(view.data(), false), Koshi::Transform::fromData(proj.data(), false));
+    Koshi::Camera camera(resolution, Koshi::Transform::fromColumnFirstData(view.data()), Koshi::Transform::fromColumnFirstData(proj.data()));
     render.setCamera(&camera);
     render.addAov("color", 4);
 

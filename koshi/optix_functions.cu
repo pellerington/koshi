@@ -61,11 +61,8 @@ extern "C" __global__ void __raygen__rg()
         {
             GeometryMeshAttribute * normals = ((GeometryMesh *)intersect.geometry)->getAttribute("normals");
             GeometryMeshAttribute * display_color = ((GeometryMesh *)intersect.geometry)->getAttribute("displayColor");
-
             Vec3f color(1.f);
-
-            // TODO: Smooth normals need to be transformed.
-            color *= (normals) ? max(((Vec3f)normals->evaluate(intersect)).dot(shadow_ray.direction), 0.f) : intersect.normal.dot(shadow_ray.direction);
+            color *= (normals) ? max(intersect.obj_to_world.multiply<false>(normals->evaluate(intersect)).dot(shadow_ray.direction), 0.f) : intersect.normal.dot(shadow_ray.direction);
             color *= (display_color) ? (Vec3f)display_color->evaluate(intersect) : 1.f;
             resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
         }
@@ -84,9 +81,9 @@ extern "C" __global__ void __closesthit__ch()
     
     intersect.prim = optixGetPrimitiveIndex();
 
-    // float m[12];
-    // optixGetObjectToWorldTransformMatrix(m);	
-
+    float m[12];
+    optixGetObjectToWorldTransformMatrix(m);	
+    intersect.obj_to_world = Transform::fromData(m);
 
     intersect.t = intersect.t_max = optixGetRayTmax();
 
@@ -107,9 +104,7 @@ extern "C" __global__ void __closesthit__ch()
     const Vec3f v0 = Vec3f(((float*)vertices->d_data)[p0+0], ((float*)vertices->d_data)[p0+1], ((float*)vertices->d_data)[p0+2]);
     const Vec3f v1 = Vec3f(((float*)vertices->d_data)[p1+0], ((float*)vertices->d_data)[p1+1], ((float*)vertices->d_data)[p1+2]);
     const Vec3f v2 = Vec3f(((float*)vertices->d_data)[p2+0], ((float*)vertices->d_data)[p2+1], ((float*)vertices->d_data)[p2+2]);
-    intersect.normal = Vec3f::cross(v1 - v0, v2 - v0).normalize();
-    float3 world_normal = optixTransformNormalFromObjectToWorldSpace(make_float3(intersect.normal.x, intersect.normal.y, intersect.normal.z));
-    intersect.normal = Vec3f(world_normal.x, world_normal.y, world_normal.z);
+    intersect.normal = intersect.obj_to_world.multiply<false>(Vec3f::cross(v1 - v0, v2 - v0).normalize());
 
     intersect.facing = optixIsFrontFaceHit();
 }

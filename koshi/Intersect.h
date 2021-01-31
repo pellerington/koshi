@@ -1,6 +1,7 @@
 #pragma once
 
 #include <koshi/Vec3.h>
+#include <koshi/Transform.h>
 
 KOSHI_OPEN_NAMESPACE
 
@@ -10,7 +11,7 @@ struct Intersect
 {
     Geometry * geometry;
     uint prim;
-    // World to Object ?
+    Transform obj_to_world;
     // Material * material / Integrator * integrator;
     Vec3f position;
     Vec3f normal;

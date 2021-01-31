@@ -11,8 +11,8 @@ KOSHI_OPEN_NAMESPACE
 class Camera
 {
 public:
-    Camera(const Vec2u& resolution, const Transform& transform, const Transform& projection)
-    : resolution(resolution), transform(transform), inv_transform(transform.inverse()), projection(projection), inv_projection(projection.inverse())
+    Camera(const Vec2u& resolution, const Transform& world_to_obj, const Transform& projection)
+    : resolution(resolution), world_to_obj(world_to_obj), obj_to_world(world_to_obj.inverse()), projection(projection), inv_projection(projection.inverse())
     {
     }
 
@@ -25,7 +25,7 @@ public:
         Ray ray;
         ray.origin = Vec3f(0.f);
         ray.direction = inv_projection * ndc;
-        ray *= inv_transform;
+        ray *= obj_to_world;
         ray.direction.normalize();
         ray.tmin = 0.f;
         ray.tmax = FLT_MAX;
@@ -34,8 +34,8 @@ public:
 
 private:
     Vec2u resolution;
-    Transform transform;
-    Transform inv_transform;
+    Transform world_to_obj;
+    Transform obj_to_world;
     Transform projection;
     Transform inv_projection;
 

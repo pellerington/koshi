@@ -87,7 +87,7 @@ void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderPa
         geometry = std::make_shared<Koshi::GeometryMesh>();
 
         GfMatrix4f transform = GfMatrix4f(sceneDelegate->GetTransform(id));
-        geometry->setTransform(Koshi::Transform::fromData(transform.data(), false));
+        geometry->setTransform(Koshi::Transform::fromColumnFirstData(transform.data()));
 
         _MeshReprConfig::DescArray descs = _GetReprDesc(reprToken);
         const HdMeshReprDesc& desc = descs[0];

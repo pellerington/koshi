@@ -15,110 +15,95 @@ public:
     DEVICE_FUNCTION Transform() 
     : data{ 1.f, 0.f, 0.f, 0.f,
             0.f, 1.f, 0.f, 0.f,
-            0.f, 0.f, 1.f, 0.f,
-            0.f, 0.f, 0.f, 1.f }
+            0.f, 0.f, 1.f, 0.f }
     {
     }
 
-    DEVICE_FUNCTION static Transform fromData(const float * d, const bool& rowCol = true)
+    DEVICE_FUNCTION static Transform fromData(const float * d)
     {
         Transform t;
-        if(rowCol)
-        {
-            t.data[0] = d[0];  t.data[1] = d[1];  t.data[2] = d[2];  t.data[3] = d[3];
-            t.data[4] = d[4];  t.data[5] = d[5];  t.data[6] = d[6];  t.data[7] = d[7];
-            t.data[8] = d[8];  t.data[9] = d[9];  t.data[10] = d[10];  t.data[11] = d[11];
-            t.data[12] = d[12];  t.data[13] = d[13];  t.data[14] = d[14];  t.data[15] = d[15];
-        }
-        else
-        {
-            t.data[0] = d[0];  t.data[1] = d[4];  t.data[2] = d[8];  t.data[3] = d[12];
-            t.data[4] = d[1];  t.data[5] = d[5];  t.data[6] = d[9];  t.data[7] = d[13];
-            t.data[8] = d[2];  t.data[9] = d[6];  t.data[10] = d[10];  t.data[11] = d[14];
-            t.data[12] = d[3];  t.data[13] = d[7];  t.data[14] = d[11];  t.data[15] = d[15];
-        }
+        t.data[0] = d[0];  t.data[1] = d[1];  t.data[2] = d[2];  t.data[3] = d[3];
+        t.data[4] = d[4];  t.data[5] = d[5];  t.data[6] = d[6];  t.data[7] = d[7];
+        t.data[8] = d[8];  t.data[9] = d[9];  t.data[10] = d[10];  t.data[11] = d[11];
         return t;
     }
 
-    DEVICE_FUNCTION void copy(float * d, const bool& rowCol = true) const
+    DEVICE_FUNCTION static Transform fromColumnFirstData(const float * d)
     {
-        // TODO: REMOVE THESE BRANCHES, BAD FOR GPU, HAVE EXPLICIT ROW COL vs COL ROW FORMATs
-        // TODO: This works with a 4x3 matrix...
-        // TODO: THIS should have a double counterpart
-        if(rowCol)
-        {
-            d[0] = data[0]; d[1] = data[1]; d[2] = data[2]; d[3] = data[3];
-            d[4] = data[4]; d[5] = data[5]; d[6] = data[6]; d[7] = data[7];
-            d[8] = data[8]; d[9] = data[9]; d[10] = data[10]; d[11] = data[11];
-        }
-        else
-        {
-            // SOMETHING...
-        }
+        // Assume size 16 input if columf first.
+        Transform t;
+        t.data[0] = d[0];  t.data[1] = d[4];  t.data[2] = d[8];  t.data[3] = d[12];
+        t.data[4] = d[1];  t.data[5] = d[5];  t.data[6] = d[9];  t.data[7] = d[13];
+        t.data[8] = d[2];  t.data[9] = d[6];  t.data[10] = d[10];  t.data[11] = d[14];
+        return t;
     }
 
-
-    DEVICE_FUNCTION static Transform fromData(const double * d, const bool& rowCol = true)
+    DEVICE_FUNCTION static Transform fromData(const double * d)
     {
         Transform t;
-        if(rowCol)
-        {
-            t.data[0] = d[0];  t.data[1] = d[1];  t.data[2] = d[2];  t.data[3] = d[3];
-            t.data[4] = d[4];  t.data[5] = d[5];  t.data[6] = d[6];  t.data[7] = d[7];
-            t.data[8] = d[8];  t.data[9] = d[9];  t.data[10] = d[10];  t.data[11] = d[11];
-            t.data[12] = d[12];  t.data[13] = d[13];  t.data[14] = d[14];  t.data[15] = d[15];
-        }
-        else
-        {
-            t.data[0] = d[0];  t.data[1] = d[4];  t.data[2] = d[8];  t.data[3] = d[12];
-            t.data[4] = d[1];  t.data[5] = d[5];  t.data[6] = d[9];  t.data[7] = d[13];
-            t.data[8] = d[2];  t.data[9] = d[6];  t.data[10] = d[10];  t.data[11] = d[14];
-            t.data[12] = d[3];  t.data[13] = d[7];  t.data[14] = d[11];  t.data[15] = d[15];
-        }
+        t.data[0] = d[0];  t.data[1] = d[1];  t.data[2] = d[2];  t.data[3] = d[3];
+        t.data[4] = d[4];  t.data[5] = d[5];  t.data[6] = d[6];  t.data[7] = d[7];
+        t.data[8] = d[8];  t.data[9] = d[9];  t.data[10] = d[10];  t.data[11] = d[11];
         return t;
+    }
+
+    DEVICE_FUNCTION static Transform fromColumnFirstData(const double * d)
+    {
+        // Assume size 16 input if columf first.
+        Transform t;
+        t.data[0] = d[0];  t.data[1] = d[4];  t.data[2] = d[8];  t.data[3] = d[12];
+        t.data[4] = d[1];  t.data[5] = d[5];  t.data[6] = d[9];  t.data[7] = d[13];
+        t.data[8] = d[2];  t.data[9] = d[6];  t.data[10] = d[10];  t.data[11] = d[14];
+        return t;
+    }
+
+    DEVICE_FUNCTION void copy(float * d) const
+    {
+        d[0] = data[0]; d[1] = data[1]; d[2] = data[2]; d[3] = data[3];
+        d[4] = data[4]; d[5] = data[5]; d[6] = data[6]; d[7] = data[7];
+        d[8] = data[8]; d[9] = data[9]; d[10] = data[10]; d[11] = data[11];
     }
 
     DEVICE_FUNCTION Transform inverse() const
     {
         Transform inv;
-
-        inv.data[0] = data[5] * data[10] * data[15] - data[5] * data[11] * data[14] - data[9] * data[6] * data[15] + data[9] * data[7] * data[14] + data[13] * data[6] * data[11] - data[13] * data[7] * data[10];
-        inv.data[4] = -data[4] * data[10] * data[15] + data[4] * data[11] * data[14] + data[8] * data[6] * data[15] - data[8] * data[7] * data[14] - data[12] * data[6] * data[11] + data[12] * data[7] * data[10];
-        inv.data[8] = data[4] * data[9] * data[15] - data[4] * data[11] * data[13] - data[8] * data[5] * data[15] + data[8] * data[7] * data[13] + data[12] * data[5] * data[11] - data[12] * data[7] * data[9];
-        inv.data[12] = -data[4] * data[9] * data[14] + data[4] * data[10] * data[13] + data[8] * data[5] * data[14] - data[8] * data[6] * data[13] - data[12] * data[5] * data[10] + data[12] * data[6] * data[9];
-        inv.data[1] = -data[1] * data[10] * data[15] + data[1] * data[11] * data[14] + data[9] * data[2] * data[15] - data[9] * data[3] * data[14] - data[13] * data[2] * data[11] + data[13] * data[3] * data[10];
-        inv.data[5] = data[0] * data[10] * data[15] - data[0] * data[11] * data[14] - data[8] * data[2] * data[15] + data[8] * data[3] * data[14] + data[12] * data[2] * data[11] - data[12] * data[3] * data[10];
-        inv.data[9] = -data[0] * data[9] * data[15] + data[0] * data[11] * data[13] + data[8] * data[1] * data[15] - data[8] * data[3] * data[13] - data[12] * data[1] * data[11] + data[12] * data[3] * data[9];
-        inv.data[13] = data[0] * data[9] * data[14] - data[0] * data[10] * data[13] - data[8] * data[1] * data[14] + data[8] * data[2] * data[13] + data[12] * data[1] * data[10] - data[12] * data[2] * data[9];
-        inv.data[2] = data[1] * data[6] * data[15] - data[1] * data[7] * data[14] - data[5] * data[2] * data[15] + data[5] * data[3] * data[14] + data[13] * data[2] * data[7] - data[13] * data[3] * data[6];
-        inv.data[6] = -data[0] * data[6] * data[15] + data[0] * data[7] * data[14] + data[4] * data[2] * data[15] - data[4] * data[3] * data[14] - data[12] * data[2] * data[7] + data[12] * data[3] * data[6];
-        inv.data[10] = data[0] * data[5] * data[15] - data[0] * data[7] * data[13] - data[4] * data[1] * data[15] + data[4] * data[3] * data[13] + data[12] * data[1] * data[7] - data[12] * data[3] * data[5];
-        inv.data[14] = -data[0] * data[5] * data[14] + data[0] * data[6] * data[13] + data[4] * data[1] * data[14] - data[4] * data[2] * data[13] - data[12] * data[1] * data[6] + data[12] * data[2] * data[5];
+        inv.data[0] = data[5] * data[10] - data[9] * data[6];
+        inv.data[4] = -data[4] * data[10] + data[8] * data[6];
+        inv.data[8] = data[4] * data[9] - data[8] * data[5];
+        inv.data[1] = -data[1] * data[10] + data[9] * data[2];
+        inv.data[5] = data[0] * data[10] - data[8] * data[2];
+        inv.data[9] = -data[0] * data[9] + data[8] * data[1];
+        inv.data[2] = data[1] * data[6] - data[5] * data[2];
+        inv.data[6] = -data[0] * data[6] + data[4] * data[2];
+        inv.data[10] = data[0] * data[5] - data[4] * data[1];
         inv.data[3] = -data[1] * data[6] * data[11] + data[1] * data[7] * data[10] + data[5] * data[2] * data[11] - data[5] * data[3] * data[10] - data[9] * data[2] * data[7] + data[9] * data[3] * data[6];
         inv.data[7] = data[0] * data[6] * data[11] - data[0] * data[7] * data[10] - data[4] * data[2] * data[11] + data[4] * data[3] * data[10] + data[8] * data[2] * data[7] - data[8] * data[3] * data[6];
         inv.data[11] = -data[0] * data[5] * data[11] + data[0] * data[7] * data[9] + data[4] * data[1] * data[11] - data[4] * data[3] * data[9] - data[8] * data[1] * data[7] + data[8] * data[3] * data[5];
-        inv.data[15] = data[0] * data[5] * data[10] - data[0] * data[6] * data[9] - data[4] * data[1] * data[10] + data[4] * data[2] * data[9] + data[8] * data[1] * data[6] - data[8] * data[2] * data[5];
-
-        float inv_det = 1.f / (data[0] * inv.data[0] + data[1] * inv.data[4] + data[2] * inv.data[8] + data[3] * inv.data[12]);
-        for (int i = 0; i < 16; i++)
+        float inv_det = 1.f / (data[0] * inv.data[0] + data[1] * inv.data[4] + data[2] * inv.data[8]);
+        for (int i = 0; i < 12; i++)
             inv.data[i] = inv.data[i] * inv_det;
         return inv;
     }
 
-    DEVICE_FUNCTION Vec3f multiply(const Vec3f& v, const bool translate = true) const
+    template<bool translate>
+    DEVICE_FUNCTION Vec3f multiply(const Vec3f& v) const
     {
-        if(!translate)
-            return Vec3f(
-                data[0] * v.x + data[1] * v.y + data[2] * v.z,
-                data[4] * v.x + data[5] * v.y + data[6] * v.z,
-                data[8] * v.x + data[9] * v.y + data[10] * v.z
-            );
-        else
+        if(translate)
+        {
             return Vec3f(
                 data[0] * v.x + data[1] * v.y + data[2] * v.z + data[3],
                 data[4] * v.x + data[5] * v.y + data[6] * v.z + data[7],
                 data[8] * v.x + data[9] * v.y + data[10] * v.z + data[11]
             );
+        }
+        else
+        {
+            return Vec3f(
+                data[0] * v.x + data[1] * v.y + data[2] * v.z,
+                data[4] * v.x + data[5] * v.y + data[6] * v.z,
+                data[8] * v.x + data[9] * v.y + data[10] * v.z
+            );
+        }
     }
 
     DEVICE_FUNCTION Vec3f operator*(const Vec3f& v) const
@@ -133,15 +118,15 @@ public:
     DEVICE_FUNCTION Ray operator*(const Ray& ray) const
     {
         Ray transformed_ray = ray;
-        transformed_ray.origin = multiply(ray.origin, true);
-        transformed_ray.direction = multiply(ray.direction, false);
+        transformed_ray.origin = multiply<true>(ray.origin);
+        transformed_ray.direction = multiply<false>(ray.direction);
         return transformed_ray;
     }
 
     DEVICE_FUNCTION friend Ray& operator*=(Ray& ray, const Transform& transform)
     {
-        ray.origin = transform.multiply(ray.origin, true);
-        ray.direction = transform.multiply(ray.direction, false);
+        ray.origin = transform.multiply<true>(ray.origin);
+        ray.direction = transform.multiply<false>(ray.direction);
         return ray;
     }
 
@@ -288,32 +273,16 @@ public:
     //     return true;
     // }
 
-    // friend std::ostream& operator<<(std::ostream& os, const Transform3f& t)
-    // {
-    //     os << "{" << t.rows[0][0] << " " << t.rows[0][1] << " " << t.rows[0][2] << " " << t.rows[0][3] << "\n";
-    //     os << " " << t.rows[1][0] << " " << t.rows[1][1] << " " << t.rows[1][2] << " " << t.rows[1][3] << "\n";
-    //     os << " " << t.rows[2][0] << " " << t.rows[2][1] << " " << t.rows[2][2] << " " << t.rows[2][3] << "\n";
-    //     os << " " << t.rows[3][0] << " " << t.rows[3][1] << " " << t.rows[3][2] << " " << t.rows[3][3] << "}\n";
-    //     return os;
-    // }
-
-    // inline const float * get_array() const 
-    // {
-    //     for(uint y = 0; y < 4; y++)
-    //     for(uint x = 0; x < 4; x++)
-    //     carray[y * 4 + x] = rows[y][x];
-    //     return carray;
-    // }
-
     DEVICE_FUNCTION void print()
     {
-        printf("%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n\n", 
-        data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], 
-        data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15]);
+        printf("%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n\n", 
+        data[0], data[1], data[2], data[3], 
+        data[4], data[5], data[6], data[7], 
+        data[8], data[9], data[10], data[11]);
     }
 
 private:
-    float data[16];
+    float data[12];
 
 };
 
