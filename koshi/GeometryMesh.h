@@ -1,10 +1,13 @@
 #pragma once
 
 #include <cuda_runtime.h>
+#include <algorithm>
 
+#include <koshi/Vec4.h>
 #include <koshi/Geometry.h>
 #include <koshi/Format.h>
 #include <koshi/OptixHelpers.h>
+#include <koshi/Intersect.h>
 
 // TODO: Remove this limitation. 
 #define MAX_MESH_ATTRIBUTES 16
@@ -17,14 +20,12 @@ struct GeometryMeshAttribute {
     {
     public:
         AttributeName() {}
-
         AttributeName(const std::string& name)
         {
             uint size = std::min(MAX_ATTRIBUTE_NAME_LENGTH, (uint)name.size());
             name.copy(data, size);
             data[size] = '\0';
         }
-
         DEVICE_FUNCTION bool operator==(const char * name)
         {
             for(uint i = 0; i < MAX_ATTRIBUTE_NAME_LENGTH; i++)
@@ -34,19 +35,18 @@ struct GeometryMeshAttribute {
             }
             return true;
         }
-
         bool operator==(const std::string& name)
         {
             return std::string(data) == name;
         }
-
     private:
         char data[MAX_ATTRIBUTE_NAME_LENGTH+1];
         
     } name;
 
     Format format;
-    // Type type = PerVertices / PerFace
+    enum Type { NONE, CONSTANT, UNIFORM, VERTICES, FACE  } type;
+    // Ownership
 
     const void * data;
     void * d_data;
@@ -59,7 +59,34 @@ struct GeometryMeshAttribute {
     uint indices_size;
     uint indices_stride;
 
-    // OWNERESHIP?
+    DEVICE_FUNCTION Vec4f evaluate(const Intersect& intersect)
+    {
+        Vec4f out;
+        uint size = (data_stride < 4u) ? data_stride : 4u;
+        switch (type)
+        {
+        case CONSTANT: {
+            for(uint i = 0; i < size; i++)
+                out[i] = ((float*)d_data)[i];
+            return out;
+        }
+        // case UNIFORM:
+        //     // Is this how uniform works???
+        //     for(uint i = 0; i < size; i++)
+        //         out[i] = ((float*)d_data)[intersect.prim*data_stride + i];
+        //     return out;
+        case VERTICES: {
+            const uint32_t p0 = d_indices[intersect.prim*indices_stride+0]*data_stride;
+            const uint32_t p1 = d_indices[intersect.prim*indices_stride+1]*data_stride;
+            const uint32_t p2 = d_indices[intersect.prim*indices_stride+2]*data_stride;
+            for(uint i = 0; i < size; i++)
+                out[i] = ((float*)d_data)[p0+i] * (1.f - intersect.uvw.u - intersect.uvw.v) + ((float*)d_data)[p1+i] * intersect.uvw.u + ((float*)d_data)[p2+i] * intersect.uvw.v;
+            return out;
+        }
+        default:
+            return out;
+        }
+    }
 };
 
 class GeometryMesh : public Geometry
@@ -70,7 +97,7 @@ public:
 
     GeometryType type() { return GeometryType::MESH; }
 
-    void setAttribute(const std::string& name, const Format& format, const uint& data_size, const uint& data_stride, const void * data, const uint& indices_size, const uint& indices_stride, const uint * indices);
+    void setAttribute(const std::string& name, const Format& format, const GeometryMeshAttribute::Type& type, const uint& data_size, const uint& data_stride, const void * data, const uint& indices_size, const uint& indices_stride, const uint * indices);
 
     DEVICE_FUNCTION GeometryMeshAttribute * getAttribute(const char * name)
     {

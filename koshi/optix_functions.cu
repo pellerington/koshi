@@ -43,7 +43,7 @@ extern "C" __global__ void __raygen__rg()
             return;
         }
 
-        Vec3f light_pos = ray.origin;//Vec3f(0.107834, -50, 200.f);
+        Vec3f light_pos = ray.origin;//Vec3f(-30, -80, 200.f);//
 
         Ray shadow_ray;
         shadow_ray.origin = intersect.position + intersect.normal * 0.0001f;
@@ -59,8 +59,15 @@ extern "C" __global__ void __raygen__rg()
         }
         else
         {
-            float color = intersect.normal.dot(shadow_ray.direction);
-            resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, color, color, 1.f));
+            GeometryMeshAttribute * normals = ((GeometryMesh *)intersect.geometry)->getAttribute("normals");
+            GeometryMeshAttribute * display_color = ((GeometryMesh *)intersect.geometry)->getAttribute("displayColor");
+
+            Vec3f color(1.f);
+
+            // TODO: Smooth normals need to be transformed.
+            color *= (normals) ? max(((Vec3f)normals->evaluate(intersect)).dot(shadow_ray.direction), 0.f) : intersect.normal.dot(shadow_ray.direction);
+            color *= (display_color) ? (Vec3f)display_color->evaluate(intersect) : 1.f;
+            resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
         }
     }
 }
@@ -72,10 +79,14 @@ extern "C" __global__ void __miss__ms()
 extern "C" __global__ void __closesthit__ch() 
 {
     IntersectList * intersects = unpackIntersects();
-    const Ray& ray = intersects->getRay();
+    const Ray& ray = intersects-> getRay();
     Intersect& intersect = intersects->push();
     
     intersect.prim = optixGetPrimitiveIndex();
+
+    // float m[12];
+    // optixGetObjectToWorldTransformMatrix(m);	
+
 
     intersect.t = intersect.t_max = optixGetRayTmax();
 
@@ -87,6 +98,7 @@ extern "C" __global__ void __closesthit__ch()
     HitGroupData * sbt_data = reinterpret_cast<HitGroupData*>(optixGetSbtDataPointer());
     intersect.geometry = resources.scene->d_geometries[sbt_data->geometry_id];
 
+    // TODO: Move this into it's own function.
     GeometryMesh * geometry_mesh = (GeometryMesh *)intersect.geometry;
     GeometryMeshAttribute * vertices = geometry_mesh->getAttribute("vertices");
     const uint p0 = vertices->d_indices[intersect.prim*vertices->indices_stride+0]*vertices->data_stride;

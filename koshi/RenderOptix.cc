@@ -51,7 +51,7 @@ RenderOptix::RenderOptix()
         pipeline_compile_options.exceptionFlags        = OPTIX_EXCEPTION_FLAG_NONE;
         pipeline_compile_options.pipelineLaunchParamsVariableName = "resources";
 
-        std::ifstream ptx_file("/home/peter/KoshiPU/plugin/ptx/optix_test.ptx");
+        std::ifstream ptx_file("/home/peter/KoshiPU/plugin/ptx/optix_functions.ptx");
         const std::string ptx((std::istreambuf_iterator<char>(ptx_file)), (std::istreambuf_iterator<char>()));
 
         OPTIX_CHECK_LOG(optixModuleCreateFromPTX(context, &module_compile_options, &pipeline_compile_options, ptx.c_str(), ptx.size(), log, &sizeof_log, &module));

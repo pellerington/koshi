@@ -11,12 +11,13 @@ GeometryMesh::~GeometryMesh()
     }
 }
 
-void GeometryMesh::setAttribute(const std::string& name, const Format& format, const uint& data_size, const uint& data_stride, const void * data, const uint& indices_size, const uint& indices_stride, const uint * indices)
+void GeometryMesh::setAttribute(const std::string& name, const Format& format, const GeometryMeshAttribute::Type& type, const uint& data_size, const uint& data_stride, const void * data, const uint& indices_size, const uint& indices_stride, const uint * indices)
 {
     auto setAttribute = [&](const uint& i)
     {
         attributes[i].name = name;
         attributes[i].format = format;
+        attributes[i].type = type;
         attributes[i].data = data;
         attributes[i].data_size = data_size;
         attributes[i].data_stride = data_stride;

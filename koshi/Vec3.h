@@ -61,6 +61,7 @@ public:
     DEVICE_FUNCTION T length() const { return sqrt(x*x + y*y + z*z); }
     DEVICE_FUNCTION Vec3<T>& normalize() { T l = length(); x /= l; y /= l; z /= l; return *this; }
 
+    DEVICE_FUNCTION void print() const { printf("(%f, %f, %f)\n", x, y, z); }
 };
 
 typedef Vec3<float> Vec3f;

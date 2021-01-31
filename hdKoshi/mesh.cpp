@@ -26,7 +26,10 @@
 #include <iostream>
 #include "pxr/imaging/hd/mesh.h"
 #include "pxr/base/gf/matrix4f.h"
+#include "pxr/base/gf/vec2f.h"
 #include "pxr/imaging/hd/meshUtil.h"
+#include "pxr/imaging/hd/smoothNormals.h"
+#include "pxr/imaging/hd/vertexAdjacency.h"
 #include "renderParam.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -43,7 +46,20 @@ HdKoshiMesh::~HdKoshiMesh()
 
 HdDirtyBits HdKoshiMesh::GetInitialDirtyBitsMask() const
 {
-    return HdChangeTracker::Clean | HdChangeTracker::DirtyTransform;
+    int mask = HdChangeTracker::Clean
+        | HdChangeTracker::InitRepr
+        | HdChangeTracker::DirtyPoints
+        | HdChangeTracker::DirtyTopology
+        | HdChangeTracker::DirtyTransform
+        | HdChangeTracker::DirtyVisibility
+        | HdChangeTracker::DirtyCullStyle
+        | HdChangeTracker::DirtyDoubleSided
+        | HdChangeTracker::DirtyDisplayStyle
+        | HdChangeTracker::DirtySubdivTags
+        | HdChangeTracker::DirtyPrimvar
+        | HdChangeTracker::DirtyNormals
+        | HdChangeTracker::DirtyInstancer;
+    return (HdDirtyBits)mask;
 }
 
 HdDirtyBits HdKoshiMesh::_PropagateDirtyBits(HdDirtyBits bits) const
@@ -58,26 +74,109 @@ void HdKoshiMesh::_InitRepr(TfToken const &reprToken, HdDirtyBits *dirtyBits)
 
 void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderParam, HdDirtyBits * dirtyBits, const TfToken& reprToken)
 {
-    std::cout << "* (multithreaded) Sync Tiny Mesh id=" << GetId() << std::endl;
+    // std::cout << "* (multithreaded) Sync Tiny Mesh id=" << GetId() << std::endl;
 
     const SdfPath& id = GetId();
 
-    // If we don't have a geometry create our geometry.
+    // If we don't have a geometry yet create our geometry.
     if(!geometry)
     {
+        if(GetPrimvar(sceneDelegate, HdTokens->points).IsEmpty())
+            return; // TODO: We should error here.
+
         geometry = std::make_shared<Koshi::GeometryMesh>();
 
         GfMatrix4f transform = GfMatrix4f(sceneDelegate->GetTransform(id));
         geometry->setTransform(Koshi::Transform::fromData(transform.data(), false));
 
-        VtValue value = sceneDelegate->Get(id, HdTokens->points);
-        points = value.Get<VtVec3fArray>();
+        _MeshReprConfig::DescArray descs = _GetReprDesc(reprToken);
+        const HdMeshReprDesc& desc = descs[0];
+
         HdDisplayStyle const displayStyle = sceneDelegate->GetDisplayStyle(id);
         topology = HdMeshTopology(GetMeshTopology(sceneDelegate), displayStyle.refineLevel);
         HdMeshUtil meshUtil(&topology, GetId());
         meshUtil.ComputeTriangleIndices(&triangulatedIndices, &trianglePrimitiveParams);
 
-        geometry->setAttribute("vertices", Koshi::Format::FLOAT32, points.size(), 3, points.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
+        // TODO: We should name vertices the same as HdTokens->points and have a way for the intersector to acccess the right one.
+        VtValue value = GetPrimvar(sceneDelegate, HdTokens->points);
+        points = value.Get<VtVec3fArray>();
+        geometry->setAttribute("vertices", Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::VERTICES, points.size(), 3, points.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
+
+        // Set our constant primvars
+        HdPrimvarDescriptorVector constant_primvars = GetPrimvarDescriptors(sceneDelegate, HdInterpolation::HdInterpolationConstant);
+        for (const HdPrimvarDescriptor& pv: constant_primvars) 
+        {
+            // Ignore some primvars
+			if (pv.name == HdTokens->points || pv.name.GetString().substr(0, 2) == "__")
+				continue;
+
+            primvars.push_back(GetPrimvar(sceneDelegate, pv.name));
+            VtValue& value = primvars[primvars.size()-1];
+
+            if(value.IsHolding<VtVec3fArray>())
+            {
+                // TODO: Should we be storing this array instead of the TfValue?
+                const auto& array = value.Get<VtVec3fArray>();
+                geometry->setAttribute(pv.name, Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::CONSTANT, array.size(), 3, array.cdata(), 0, 0, nullptr);
+            }
+            if(value.IsHolding<VtVec2fArray>())
+            {
+                // TODO: Should we be storing this array instead of the TfValue?
+                const auto& array = value.Get<VtVec2fArray>();
+                geometry->setAttribute(pv.name, Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::CONSTANT, array.size(), 2, array.cdata(), 0, 0, nullptr);
+            }
+	        else if (value.IsHolding<VtFloatArray>())
+            {
+                // TODO: Should we be storing this array instead of the TfValue?
+                const auto& array = value.Get<VtFloatArray>();
+                geometry->setAttribute(pv.name, Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::CONSTANT, array.size(), 1, array.cdata(), 0, 0, nullptr);
+            }
+        }
+
+        // Smooth normals required, but not supplied.
+        if(!desc.flatShadingEnabled && !geometry->getAttribute(HdTokens->normals.data()))
+        {
+            Hd_VertexAdjacency adjacency;
+            adjacency.BuildAdjacencyTable(&topology);
+            normals = Hd_SmoothNormals::ComputeSmoothNormals(&adjacency, points.size(), points.cdata());
+
+            geometry->setAttribute("normals", Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::VERTICES, normals.size(), 3, normals.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
+            // TODO: set geomtry normals attribute ID here.
+        }
+
+        // 	if (!_primvars.HasNormals() && _smoothNormals)
+        // 	{
+        // 		/*
+        // 			If the topology is dirty, update the adjacency table, a processed
+        // 			form of the topology that helps calculate smooth normals quickly.
+        // 		*/
+        // 		if (dirty_topology)
+        // 		{
+        // 			_adjacency.BuildAdjacencyTable(&_topology);
+        // 		}
+        // 		/*
+        // 			If the points are dirty, or the topology above changed, update the
+        // 			smooth normals.
+        // 		*/
+        // 		if( dirty_topology || dirty_points )
+        // 		{
+        // 			const VtVec3fArray &points = _primvars.GetPoints();
+        // 			VtVec3fArray normals = Hd_SmoothNormals::ComputeSmoothNormals(
+        // 				&_adjacency, points.size(), points.cdata());
+
+        // 			nsi.SetAttribute(_base.Shape(), (
+        // 				*NSI::Argument("N")
+        // 					.SetType(NSITypeNormal)
+        // 					->SetCount(normals.size())
+        // 					->SetValuePointer(normals.cdata()),
+        // 				*NSI::Argument("N.indices")
+        // 					.SetType(NSITypeInteger)
+        // 					->SetCount(_faceVertexIndices.size())
+        // 					->SetValuePointer(_faceVertexIndices.cdata())));
+        // 		}
+
+
+
 
         scene->addGeometry(GetId().GetString(), geometry.get());
         // scene->addGeometry(GetId().GetAsString(), geometry.get());

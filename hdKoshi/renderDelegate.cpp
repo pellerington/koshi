@@ -26,6 +26,7 @@
 #include "renderBuffer.h"
 #include "renderPass.h"
 #include <pxr/imaging/hd/camera.h>
+#include <pxr/imaging/hd/extComputation.h>
 
 #include <iostream>
 
@@ -39,6 +40,7 @@ const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_RPRIM_TYPES =
 const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_SPRIM_TYPES =
 {
     HdPrimTypeTokens->camera,
+    HdPrimTypeTokens->extComputation,
 };
 
 const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_BPRIM_TYPES =
@@ -127,6 +129,8 @@ HdSprim * HdKoshiRenderDelegate::CreateSprim(const TfToken& typeId, const SdfPat
     // TODO: these should be switch statements.
     if (typeId == HdPrimTypeTokens->camera) {
         return new HdCamera(sprimId);
+    } else if (typeId == HdPrimTypeTokens->extComputation) {
+        return new HdExtComputation(sprimId);
     }
     return nullptr;
 }
@@ -137,6 +141,8 @@ HdSprim * HdKoshiRenderDelegate::CreateFallbackSprim(const TfToken& typeId)
 
     if (typeId == HdPrimTypeTokens->camera) {
         return new HdCamera(SdfPath::EmptyPath());
+    } else if (typeId == HdPrimTypeTokens->extComputation) {
+        return new HdExtComputation(SdfPath::EmptyPath());
     }
     return nullptr;
 }

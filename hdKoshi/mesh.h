@@ -106,10 +106,13 @@ protected:
     // See HdRprim::PropagateRprimDirtyBits()
     HdDirtyBits _PropagateDirtyBits(HdDirtyBits bits) const override;
 
-    VtVec3fArray points;
     HdMeshTopology topology;
     VtVec3iArray triangulatedIndices;
     VtIntArray trianglePrimitiveParams;
+
+    VtVec3fArray points;
+    VtVec3fArray normals;
+    std::vector<VtValue> primvars;
 
     Koshi::Scene * scene;
     std::shared_ptr<Koshi::GeometryMesh> geometry;

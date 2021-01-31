@@ -11,7 +11,6 @@ KOSHI_OPEN_NAMESPACE
 class Scene 
 {
 public:
-
     void addGeometry(const std::string& name, Geometry * geometry) 
     { 
         std::lock_guard<std::mutex> guard(geometry_mutex);
@@ -37,7 +36,7 @@ public:
     {
         // Copy our geometries...
         const std::unordered_map<std::string, Geometry*>& scene_geometries = scene->getGeometries();
-        geometry_list.resize(scene_geometries.size());
+        geometries.resize(scene_geometries.size());
         num_geometries = scene_geometries.size();
         uint i = 0;
         for(auto it = scene_geometries.begin(); it != scene_geometries.end(); ++it, i++)
@@ -47,21 +46,21 @@ public:
             if(!geometry) continue;
             GeometryMeshAttribute * vertices = geometry->getAttribute("vertices");
             if(!vertices || vertices->format != Format::FLOAT32) continue;
-            CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&geometry_list[i]), sizeof(GeometryMesh)));
-            CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(geometry_list[i]), geometry, sizeof(GeometryMesh), cudaMemcpyHostToDevice));
+            CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&geometries[i]), sizeof(GeometryMesh)));
+            CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(geometries[i]), geometry, sizeof(GeometryMesh), cudaMemcpyHostToDevice));
         }
-        CUDA_CHECK(cudaMalloc(&d_geometries, sizeof(Geometry*) * geometry_list.size()));
-        CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_geometries), geometry_list.data(), sizeof(Geometry*) * geometry_list.size(), cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMalloc(&d_geometries, sizeof(Geometry*) * geometries.size()));
+        CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_geometries), geometries.data(), sizeof(Geometry*) * geometries.size(), cudaMemcpyHostToDevice));
     }
 
     ~DeviceScene()
     {
-        for(uint i = 0; i < geometry_list.size(); i++)
-            CUDA_CHECK(cudaFree(geometry_list[i]));
+        for(uint i = 0; i < geometries.size(); i++)
+            CUDA_CHECK(cudaFree(geometries[i]));
         CUDA_CHECK(cudaFree(d_geometries));
     }
 
-    std::vector<Geometry*> geometry_list;
+    std::vector<Geometry*> geometries;
 
     uint num_geometries;
     Geometry ** d_geometries;
