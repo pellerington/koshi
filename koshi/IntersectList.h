@@ -16,6 +16,8 @@ public:
     DEVICE_FUNCTION const uint& size() const { return intersects_size; }
     DEVICE_FUNCTION Intersect& operator[](const int& i) { return intersects[i]; }
     DEVICE_FUNCTION const Intersect& operator[](const int& i) const { return intersects[i]; }
+    DEVICE_FUNCTION bool empty() const { return intersects_size == 0; }
+
     // DEVICE_FUNCTION void finalize(const double& tmax)
 
     DEVICE_FUNCTION void setRay(const Ray& _ray) { ray = _ray; }

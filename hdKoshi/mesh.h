@@ -110,9 +110,7 @@ protected:
     VtVec3iArray triangulatedIndices;
     VtIntArray trianglePrimitiveParams;
 
-    VtVec3fArray points;
-    VtVec3fArray normals;
-    std::vector<VtValue> primvars;
+    std::unordered_map<std::string, VtValue> primvars;
 
     Koshi::Scene * scene;
     std::shared_ptr<Koshi::GeometryMesh> geometry;

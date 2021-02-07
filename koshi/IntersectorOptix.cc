@@ -24,8 +24,9 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
         // TODO: We can only handle GeometryMesh at the moment.
         GeometryMesh * geometry = dynamic_cast<GeometryMesh*>(it->second);
         if(!geometry) continue;
-        GeometryMeshAttribute * vertices = geometry->getAttribute("vertices");
-        if(!vertices || vertices->format != Format::FLOAT32) continue;
+        if(!geometry->hasVerticesAttribute()) continue;
+        GeometryMeshAttribute * vertices = geometry->getVerticesAttribute();
+        if(vertices->format != Format::FLOAT32) continue;
 
         // TODO: If a geometry changes simply delete it from our traversables?
         if(traversables.find(geometry) == traversables.end())
@@ -71,7 +72,7 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
         geometry->get_obj_to_world().copy(instances[i].transform);
         instances[i].instanceId = 0;
         instances[i].visibilityMask = 255;
-        instances[i].sbtOffset = i;
+        instances[i].sbtOffset = i; // TODO: This should match the DeviceScene ID.
         instances[i].flags = OPTIX_INSTANCE_FLAG_NONE;
         instances[i].traversableHandle = traversables[geometry].traversable_handle;
     }

@@ -57,6 +57,19 @@ public:
         return t;
     }
 
+    DEVICE_FUNCTION static Transform Local(const Vec3f& v)
+    {
+        const Vec3f v0 = fabs(v.x) > fabs(v.y) ? Vec3f(v[2], 0, -v[0]).normalize() : Vec3f(0, -v[2], v[1]).normalize();
+        const Vec3f v1 = v0.cross(v);
+
+        Transform t;
+        t.data[0] = v0[0]; t.data[1] = v1[0]; t.data[2] = v[0]; t.data[3] = 0.f;
+        t.data[4] = v0[1]; t.data[5] = v1[1]; t.data[6] = v[1]; t.data[7] = 0.f;
+        t.data[8] = v0[2]; t.data[9] = v1[2]; t.data[10] = v[2]; t.data[11] = 0.f;
+        return t;
+    }
+
+
     DEVICE_FUNCTION void copy(float * d) const
     {
         d[0] = data[0]; d[1] = data[1]; d[2] = data[2]; d[3] = data[3];

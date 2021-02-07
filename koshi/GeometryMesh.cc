@@ -4,7 +4,7 @@ KOSHI_OPEN_NAMESPACE
 
 GeometryMesh::~GeometryMesh()
 {
-    for(uint i = 0; i < attributes_size; i++)
+    for(uint i = 0; i < num_attributes; i++)
     {
         CUDA_CHECK(cudaFree(attributes[i].d_data));
         CUDA_CHECK(cudaFree(attributes[i].d_indices));
@@ -33,7 +33,7 @@ void GeometryMesh::setAttribute(const std::string& name, const Format& format, c
         CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(attributes[i].d_indices), attributes[i].indices, sizeof(uint32_t)*indices_size*indices_stride, cudaMemcpyHostToDevice));
     };
 
-    for(uint i = 0; i < attributes_size; i++)
+    for(uint i = 0; i < num_attributes; i++)
         if(attributes[i].name == name)
         {
             CUDA_CHECK(cudaFree(attributes[i].d_data));
@@ -42,11 +42,11 @@ void GeometryMesh::setAttribute(const std::string& name, const Format& format, c
             return;
         }
 
-    if(attributes_size == MAX_MESH_ATTRIBUTES)
+    if(num_attributes == MAX_GEOMETRY_MESH_ATTRIBUTES)
         return; // ERROR HERE
     
-    setAttribute(attributes_size);
-    attributes_size++;
+    setAttribute(num_attributes);
+    num_attributes++;
 
     // TODO: SET DIRTY HERE...
 }

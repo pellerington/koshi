@@ -41,6 +41,7 @@ const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_SPRIM_TYPES =
 {
     HdPrimTypeTokens->camera,
     HdPrimTypeTokens->extComputation,
+    HdPrimTypeTokens->material,
 };
 
 const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_BPRIM_TYPES =

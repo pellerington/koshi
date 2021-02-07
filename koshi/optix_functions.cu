@@ -8,6 +8,8 @@
 
 #include <koshi/GeometryMesh.h>
 
+#include <koshi/material/Material.h>
+
 using namespace Koshi;
 
 extern "C" 
@@ -43,29 +45,57 @@ extern "C" __global__ void __raygen__rg()
             return;
         }
 
-        Vec3f light_pos = ray.origin;//Vec3f(-30, -80, 200.f);//
+        LobeArray lobes;
+        generate_material(lobes, intersect);
 
-        Ray shadow_ray;
-        shadow_ray.origin = intersect.position + intersect.normal * 0.0001f;
-        shadow_ray.direction = (light_pos - shadow_ray.origin).normalize();
-        shadow_ray.tmin = 0.f;
-        shadow_ray.tmax = (light_pos - shadow_ray.origin).length() - 0.0001f;
+        const Lambert * lambert = (const Lambert *)lobes[0];
 
-        const IntersectList shadow_intersects = resources.intersector->intersect(shadow_ray);
-
-        if(shadow_intersects.size() > 0)
+        Vec3f color = 0.f;
+        for(float x = 0.f; x < 8.f; x++)
+        for(float y = 0.f; y < 8.f; y++)
         {
-            resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(0.f, 0.f, 0.f, 1.f));
+            Sample sample;
+            lambert->sample(sample, Vec2f((x+0.5f)/8.f, (y+0.5f)/8.f), intersect, ray.direction);
+
+            Ray shadow_ray;
+            shadow_ray.origin = intersect.position + intersect.normal * ((lobes[0]->getSide() == Lobe::FRONT) ? 0.0001f : -0.0001f); // TODO: Replace this with ray_bias;
+            shadow_ray.direction = sample.wo;
+            shadow_ray.tmin = 0.f;
+            shadow_ray.tmax = FLT_MAX;
+            const IntersectList shadow_intersects = resources.intersector->intersect(shadow_ray);
+
+            if(shadow_intersects.empty())
+            {
+                color += sample.value / sample.pdf;
+            }
         }
-        else
-        {
-            GeometryMeshAttribute * normals = ((GeometryMesh *)intersect.geometry)->getAttribute("normals");
-            GeometryMeshAttribute * display_color = ((GeometryMesh *)intersect.geometry)->getAttribute("displayColor");
-            Vec3f color(1.f);
-            color *= (normals) ? max(intersect.obj_to_world.multiply<false>(normals->evaluate(intersect)).dot(shadow_ray.direction), 0.f) : intersect.normal.dot(shadow_ray.direction);
-            color *= (display_color) ? (Vec3f)display_color->evaluate(intersect) : 1.f;
-            resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
-        }
+        color /= 8.f*8.f;
+
+        resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
+
+        // Vec3f light_pos = ray.origin;//Vec3f(-30, -80, 200.f);//
+
+        // Ray shadow_ray;
+        // shadow_ray.origin = intersect.position + intersect.normal * 0.0001f;
+        // shadow_ray.direction = (light_pos - shadow_ray.origin).normalize();
+        // shadow_ray.tmin = 0.f;
+        // shadow_ray.tmax = (light_pos - shadow_ray.origin).length() - 0.0001f;
+
+        // const IntersectList shadow_intersects = resources.intersector->intersect(shadow_ray);
+
+        // if(shadow_intersects.size() > 0)
+        // {
+        //     resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(0.f, 0.f, 0.f, 1.f));
+        // }
+        // else
+        // {
+        //     GeometryMeshAttribute * normals = ((GeometryMesh *)intersect.geometry)->getAttribute("normals");
+        //     GeometryMeshAttribute * display_color = ((GeometryMesh *)intersect.geometry)->getAttribute("displayColor");
+        //     Vec3f color(1.f);
+        //     color *= (normals) ? max(intersect.obj_to_world.multiply<false>(normals->evaluate(intersect)).dot(shadow_ray.direction), 0.f) : intersect.normal.dot(shadow_ray.direction);
+        //     color *= (display_color) ? (Vec3f)display_color->evaluate(intersect) : 1.f;
+        //     resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
+        // }
     }
 }
 
@@ -97,7 +127,7 @@ extern "C" __global__ void __closesthit__ch()
 
     // TODO: Move this into it's own function.
     GeometryMesh * geometry_mesh = (GeometryMesh *)intersect.geometry;
-    GeometryMeshAttribute * vertices = geometry_mesh->getAttribute("vertices");
+    GeometryMeshAttribute * vertices = geometry_mesh->getVerticesAttribute();
     const uint p0 = vertices->d_indices[intersect.prim*vertices->indices_stride+0]*vertices->data_stride;
     const uint p1 = vertices->d_indices[intersect.prim*vertices->indices_stride+1]*vertices->data_stride;
     const uint p2 = vertices->d_indices[intersect.prim*vertices->indices_stride+2]*vertices->data_stride;

@@ -43,9 +43,6 @@ public:
         {
             // TODO: Each object should sync itself.
             GeometryMesh * geometry = dynamic_cast<GeometryMesh*>(it->second);
-            if(!geometry) continue;
-            GeometryMeshAttribute * vertices = geometry->getAttribute("vertices");
-            if(!vertices || vertices->format != Format::FLOAT32) continue;
             CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&geometries[i]), sizeof(GeometryMesh)));
             CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(geometries[i]), geometry, sizeof(GeometryMesh), cudaMemcpyHostToDevice));
         }

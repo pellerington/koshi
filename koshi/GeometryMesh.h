@@ -10,8 +10,8 @@
 #include <koshi/Intersect.h>
 
 // TODO: Remove this limitation. 
-#define MAX_MESH_ATTRIBUTES 16
-#define MAX_ATTRIBUTE_NAME_LENGTH 64u
+#define MAX_GEOMETRY_MESH_ATTRIBUTES 16
+#define MAX_GEOMETRY_MESH_ATTRIBUTE_NAME_LENGTH 64u
 
 KOSHI_OPEN_NAMESPACE
 
@@ -22,13 +22,13 @@ struct GeometryMeshAttribute {
         AttributeName() {}
         AttributeName(const std::string& name)
         {
-            uint size = std::min(MAX_ATTRIBUTE_NAME_LENGTH, (uint)name.size());
+            uint size = std::min(MAX_GEOMETRY_MESH_ATTRIBUTE_NAME_LENGTH, (uint)name.size());
             name.copy(data, size);
             data[size] = '\0';
         }
         DEVICE_FUNCTION bool operator==(const char * name)
         {
-            for(uint i = 0; i < MAX_ATTRIBUTE_NAME_LENGTH; i++)
+            for(uint i = 0; i < MAX_GEOMETRY_MESH_ATTRIBUTE_NAME_LENGTH; i++)
             {
                 if(name[i] != data[i]) return false;
                 if(name[i] == '\0') return true;
@@ -40,7 +40,7 @@ struct GeometryMeshAttribute {
             return std::string(data) == name;
         }
     private:
-        char data[MAX_ATTRIBUTE_NAME_LENGTH+1];
+        char data[MAX_GEOMETRY_MESH_ATTRIBUTE_NAME_LENGTH+1];
         
     } name;
 
@@ -92,24 +92,36 @@ struct GeometryMeshAttribute {
 class GeometryMesh : public Geometry
 {
 public:
-    GeometryMesh() : attributes_size(0) {}
+    GeometryMesh() : num_attributes(0), vertices_attribute(MAX_GEOMETRY_MESH_ATTRIBUTES) {}
     ~GeometryMesh();
 
+    // TODO: This should be a variable set in the base class and returned by the base class. (So it can be trivially inlined)
     GeometryType type() { return GeometryType::MESH; }
 
     void setAttribute(const std::string& name, const Format& format, const GeometryMeshAttribute::Type& type, const uint& data_size, const uint& data_stride, const void * data, const uint& indices_size, const uint& indices_stride, const uint * indices);
 
+    void setVerticesAttribute(const std::string& name)
+    {
+        for(uint i = 0; i < num_attributes; i++)
+            if(attributes[i].name == name)
+                vertices_attribute = i;
+    }
+
+    DEVICE_FUNCTION bool hasVerticesAttribute() { return vertices_attribute < num_attributes; }
+    DEVICE_FUNCTION GeometryMeshAttribute * getVerticesAttribute() { return &attributes[vertices_attribute]; }
+
     DEVICE_FUNCTION GeometryMeshAttribute * getAttribute(const char * name)
     {
-        for(uint i = 0; i < attributes_size; i++)
+        for(uint i = 0; i < num_attributes; i++)
             if(attributes[i].name == name)
                 return &attributes[i];
         return nullptr;
     }
 
 private:
-    uint attributes_size;
-    GeometryMeshAttribute attributes[16];
+    uint num_attributes;
+    GeometryMeshAttribute attributes[MAX_GEOMETRY_MESH_ATTRIBUTES];
+    uint vertices_attribute;
 };
 
 KOSHI_CLOSE_NAMESPACE

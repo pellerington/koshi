@@ -92,26 +92,22 @@ void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderPa
         _MeshReprConfig::DescArray descs = _GetReprDesc(reprToken);
         const HdMeshReprDesc& desc = descs[0];
 
+        // TODO: Have topology be a attribute as well
         HdDisplayStyle const displayStyle = sceneDelegate->GetDisplayStyle(id);
         topology = HdMeshTopology(GetMeshTopology(sceneDelegate), displayStyle.refineLevel);
         HdMeshUtil meshUtil(&topology, GetId());
         meshUtil.ComputeTriangleIndices(&triangulatedIndices, &trianglePrimitiveParams);
-
-        // TODO: We should name vertices the same as HdTokens->points and have a way for the intersector to acccess the right one.
-        VtValue value = GetPrimvar(sceneDelegate, HdTokens->points);
-        points = value.Get<VtVec3fArray>();
-        geometry->setAttribute("vertices", Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::VERTICES, points.size(), 3, points.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
 
         // Set our constant primvars
         HdPrimvarDescriptorVector constant_primvars = GetPrimvarDescriptors(sceneDelegate, HdInterpolation::HdInterpolationConstant);
         for (const HdPrimvarDescriptor& pv: constant_primvars) 
         {
             // Ignore some primvars
-			if (pv.name == HdTokens->points || pv.name.GetString().substr(0, 2) == "__")
-				continue;
+            if (pv.name.GetString().substr(0, 2) == "__")
+                continue;
 
-            primvars.push_back(GetPrimvar(sceneDelegate, pv.name));
-            VtValue& value = primvars[primvars.size()-1];
+            primvars[pv.name] = GetPrimvar(sceneDelegate, pv.name);
+            VtValue& value = primvars[pv.name];
 
             if(value.IsHolding<VtVec3fArray>())
             {
@@ -133,53 +129,52 @@ void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderPa
             }
         }
 
+        // Set our vertex primvars
+        HdPrimvarDescriptorVector vertex_primvars = GetPrimvarDescriptors(sceneDelegate, HdInterpolation:: HdInterpolationVertex);
+        for (const HdPrimvarDescriptor& pv: vertex_primvars) 
+        {
+            // Ignore some primvars
+			if (pv.name.GetString().substr(0, 2) == "__")
+				continue;
+
+            primvars[pv.name] = GetPrimvar(sceneDelegate, pv.name);
+            VtValue& value = primvars[pv.name];
+
+            // TODO: Vertices topology should be the same for all attributes?
+            if(value.IsHolding<VtVec3fArray>())
+            {
+                const auto& array = value.Get<VtVec3fArray>();
+                geometry->setAttribute(pv.name, Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::VERTICES, array.size(), 3, array.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
+            }
+            if(value.IsHolding<VtVec2fArray>())
+            {
+                const auto& array = value.Get<VtVec2fArray>();
+                geometry->setAttribute(pv.name, Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::VERTICES, array.size(), 2, array.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
+            }
+	        else if (value.IsHolding<VtFloatArray>())
+            {
+                const auto& array = value.Get<VtFloatArray>();
+                geometry->setAttribute(pv.name, Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::VERTICES, array.size(), 1, array.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
+            }
+        }
+
         // Smooth normals required, but not supplied.
-        if(!desc.flatShadingEnabled && !geometry->getAttribute(HdTokens->normals.data()))
+        if(!desc.flatShadingEnabled && primvars.find(HdTokens->normals) == primvars.end())
         {
             Hd_VertexAdjacency adjacency;
             adjacency.BuildAdjacencyTable(&topology);
-            normals = Hd_SmoothNormals::ComputeSmoothNormals(&adjacency, points.size(), points.cdata());
+            const VtVec3fArray& points = primvars[HdTokens->points].Get<VtVec3fArray>();
 
-            geometry->setAttribute("normals", Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::VERTICES, normals.size(), 3, normals.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
-            // TODO: set geomtry normals attribute ID here.
+            VtVec3fArray normals = Hd_SmoothNormals::ComputeSmoothNormals(&adjacency, points.size(), points.cdata());
+            primvars[HdTokens->normals] = VtValue(normals);
+
+            geometry->setAttribute(HdTokens->normals, Koshi::Format::FLOAT32, Koshi::GeometryMeshAttribute::VERTICES, normals.size(), 3, normals.cdata(), triangulatedIndices.size(), 3, (uint32_t*)triangulatedIndices.cdata());
+            // geometry->setNormalsAttribute(HdTokens->normals);
         }
 
-        // 	if (!_primvars.HasNormals() && _smoothNormals)
-        // 	{
-        // 		/*
-        // 			If the topology is dirty, update the adjacency table, a processed
-        // 			form of the topology that helps calculate smooth normals quickly.
-        // 		*/
-        // 		if (dirty_topology)
-        // 		{
-        // 			_adjacency.BuildAdjacencyTable(&_topology);
-        // 		}
-        // 		/*
-        // 			If the points are dirty, or the topology above changed, update the
-        // 			smooth normals.
-        // 		*/
-        // 		if( dirty_topology || dirty_points )
-        // 		{
-        // 			const VtVec3fArray &points = _primvars.GetPoints();
-        // 			VtVec3fArray normals = Hd_SmoothNormals::ComputeSmoothNormals(
-        // 				&_adjacency, points.size(), points.cdata());
-
-        // 			nsi.SetAttribute(_base.Shape(), (
-        // 				*NSI::Argument("N")
-        // 					.SetType(NSITypeNormal)
-        // 					->SetCount(normals.size())
-        // 					->SetValuePointer(normals.cdata()),
-        // 				*NSI::Argument("N.indices")
-        // 					.SetType(NSITypeInteger)
-        // 					->SetCount(_faceVertexIndices.size())
-        // 					->SetValuePointer(_faceVertexIndices.cdata())));
-        // 		}
-
-
-
+        geometry->setVerticesAttribute(HdTokens->points);
 
         scene->addGeometry(GetId().GetString(), geometry.get());
-        // scene->addGeometry(GetId().GetAsString(), geometry.get());
     }
 }
 

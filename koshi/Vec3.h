@@ -57,6 +57,7 @@ public:
 
     // Geometry
     DEVICE_FUNCTION T dot(const Vec3<T>& v) const { return x*v.x + y*v.y + z*v.z; }
+    DEVICE_FUNCTION Vec3<T> cross(const Vec3<T>& v) const { return Vec3<T>(y*v.z-z*v.y, z*v.x-x*v.z, x*v.y-y*v.x); }
     DEVICE_FUNCTION static Vec3<T> cross(const Vec3<T>& v0, const Vec3<T>& v1) { return Vec3<T>(v0.y*v1.z-v0.z*v1.y, v0.z*v1.x-v0.x*v1.z, v0.x*v1.y-v0.y*v1.x); }
     DEVICE_FUNCTION T length() const { return sqrt(x*x + y*y + z*z); }
     DEVICE_FUNCTION Vec3<T>& normalize() { T l = length(); x /= l; y /= l; z /= l; return *this; }
