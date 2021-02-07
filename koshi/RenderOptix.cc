@@ -172,6 +172,11 @@ void RenderOptix::start()
     CUDA_CHECK(cudaMalloc(&resources.scene, sizeof(DeviceScene)));
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.scene), &device_scene, sizeof(DeviceScene), cudaMemcpyHostToDevice));
 
+    // Copy Random to Device
+    random.setSeeds(camera->getResolution(), 0, 0);
+    CUDA_CHECK(cudaMalloc(&resources.random, sizeof(Random)));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.random), &random, sizeof(Random), cudaMemcpyHostToDevice));
+
     // Copy Resrouces to device.
     CUdeviceptr d_resources;
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_resources), sizeof(Resources)));
@@ -226,6 +231,7 @@ void RenderOptix::start()
     CUDA_CHECK(cudaFree(resources.intersector));
     CUDA_CHECK(cudaFree(resources.aovs));
     CUDA_CHECK(cudaFree(resources.scene));
+    CUDA_CHECK(cudaFree(resources.random));
     CUDA_CHECK(cudaFree(reinterpret_cast<void*>(d_resources)));
 }
 

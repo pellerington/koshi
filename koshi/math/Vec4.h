@@ -1,7 +1,7 @@
 #pragma once
 
 #include <koshi/Koshi.h>
-#include <koshi/Vec3.h>
+#include <koshi/math/Vec3.h>
 
 KOSHI_OPEN_NAMESPACE
 

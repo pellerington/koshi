@@ -10,6 +10,8 @@
 #include <koshi/Intersector.h>
 #include <koshi/Camera.h>
 #include <koshi/Scene.h>
+#include <koshi/random/Random.h>
+
 
 KOSHI_OPEN_NAMESPACE
 
@@ -44,6 +46,8 @@ struct Resources
     
     Intersector * intersector;
 
+    Random * random;
+
     Aov * aovs;
     uint aovs_size;
 };
@@ -70,6 +74,8 @@ private:
     Scene * scene;
     Camera * camera;
     std::vector<Aov> aovs;
+
+    Random random;
 
     // GPU Specific
     OptixDeviceContext context;

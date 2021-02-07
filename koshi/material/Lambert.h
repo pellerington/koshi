@@ -1,9 +1,9 @@
 #pragma once
 
 #include <koshi/material/Lobe.h>
-#include <koshi/Constants.h>
+#include <koshi/math/Constants.h>
 
-#define UNIFORM_SAMPLE false
+#define LAMBERT_UNIFORM_SAMPLE false
 
 KOSHI_OPEN_NAMESPACE
 
@@ -21,7 +21,7 @@ struct Lambert : public Lobe
             return false;
 
         const float theta = two_pi * rnd[0];
-    #if UNIFORM_SAMPLE
+    #if LAMBERT_UNIFORM_SAMPLE
         const float phi = acosf(rnd[1]);
         sample.wo = world_transform * Vec3f(sinf(phi) * cosf(theta), sinf(phi) * sinf(theta), cosf(phi));
         sample.pdf = inv_two_pi;
@@ -47,7 +47,7 @@ struct Lambert : public Lobe
 
         sample.value = color * inv_pi * fabs(n_dot_wo);
 
-        #if UNIFORM_SAMPLE
+        #if LAMBERT_UNIFORM_SAMPLE
             sample.pdf = inv_two_pi;
         #else
             sample.pdf = fabs(n_dot_wo) * inv_pi;

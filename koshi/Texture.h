@@ -1,6 +1,6 @@
 #pragma once
 
-#include <koshi/Vec4.h>
+#include <koshi/math/Vec4.h>
 #include <koshi/Intersect.h>
 
 KOSHI_OPEN_NAMESPACE

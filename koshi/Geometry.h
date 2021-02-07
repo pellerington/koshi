@@ -1,6 +1,6 @@
 #pragma once
 
-#include <koshi/Transform.h>
+#include <koshi/math/Transform.h>
 
 KOSHI_OPEN_NAMESPACE
 

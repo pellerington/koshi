@@ -2,7 +2,7 @@
 
 #include <koshi/material/Lobe.h>
 
-#define UNIFORM_SAMPLE false
+#define BACK_LAMBERT_UNIFORM_SAMPLE false
 
 KOSHI_OPEN_NAMESPACE
 
@@ -16,7 +16,7 @@ struct BackLambert : public Lobe
     DEVICE_FUNCTION bool sample(Sample& sample, const Vec2f& rnd, const Intersect& intersect, const Vec3f& wi) const
     {
         const float theta = two_pi * rnd[0];
-    #if UNIFORM_SAMPLE
+    #if BACK_LAMBERT_UNIFORM_SAMPLE
         const float phi = acosf(rnd[1]);
         sample.wo = world_transform * Vec3f(sinf(phi) * cosf(theta), sinf(phi) * sinf(theta), cosf(phi));
         sample.pdf = inv_two_pi;
@@ -43,7 +43,7 @@ struct BackLambert : public Lobe
 
         sample.value = color * inv_pi * fabs(n_dot_wo);
 
-        #if UNIFORM_SAMPLE
+        #if BACK_LAMBERT_UNIFORM_SAMPLE
             sample.pdf = inv_two_pi;
         #else
             sample.pdf = fabs(n_dot_wo) * inv_pi;

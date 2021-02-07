@@ -20,6 +20,9 @@ public:
 
     DEVICE_FUNCTION T& operator[](const int& i) { return data[i]; }
     DEVICE_FUNCTION const T& operator[](const int& i) const { return data[i]; }
+
+    // Comparison
+    DEVICE_FUNCTION bool operator!= (const Vec2<T>& v) const { return x != v.x || y != v.y; }
 };
 
 typedef Vec2<float> Vec2f;

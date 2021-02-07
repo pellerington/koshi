@@ -4,9 +4,9 @@
 #include <cuda_runtime.h>
 
 #include <koshi/Format.h>
-#include <koshi/Vec2.h>
-#include <koshi/Vec3.h>
-#include <koshi/Vec4.h>
+#include <koshi/math/Vec2.h>
+#include <koshi/math/Vec3.h>
+#include <koshi/math/Vec4.h>
 
 KOSHI_OPEN_NAMESPACE
 

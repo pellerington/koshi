@@ -51,11 +51,11 @@ extern "C" __global__ void __raygen__rg()
         const Lambert * lambert = (const Lambert *)lobes[0];
 
         Vec3f color = 0.f;
-        for(float x = 0.f; x < 8.f; x++)
-        for(float y = 0.f; y < 8.f; y++)
+        for(uint i = 0; i < 128; i++)
         {
             Sample sample;
-            lambert->sample(sample, Vec2f((x+0.5f)/8.f, (y+0.5f)/8.f), intersect, ray.direction);
+            const Vec2f rnd(resources.random->rand(), resources.random->rand());
+            lambert->sample(sample, rnd, intersect, ray.direction);
 
             Ray shadow_ray;
             shadow_ray.origin = intersect.position + intersect.normal * ((lobes[0]->getSide() == Lobe::FRONT) ? 0.0001f : -0.0001f); // TODO: Replace this with ray_bias;
@@ -69,7 +69,7 @@ extern "C" __global__ void __raygen__rg()
                 color += sample.value / sample.pdf;
             }
         }
-        color /= 8.f*8.f;
+        color /= 128.f;
 
         resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
 

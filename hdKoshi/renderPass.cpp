@@ -5,7 +5,7 @@
 #include <pxr/imaging/hd/renderPassState.h>
 #include <pxr/imaging/hd/renderBuffer.h>
 
-#include <koshi/Vec2.h>
+#include <koshi/math/Vec2.h>
 
 PXR_NAMESPACE_OPEN_SCOPE
 

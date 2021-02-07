@@ -2,9 +2,9 @@
 
 #include <cfloat>
 
-#include <koshi/Vec2.h>
+#include <koshi/math/Vec2.h>
 #include <koshi/Ray.h>
-#include <koshi/Transform.h>
+#include <koshi/math/Transform.h>
 
 KOSHI_OPEN_NAMESPACE
 

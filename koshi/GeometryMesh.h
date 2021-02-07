@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include <algorithm>
 
-#include <koshi/Vec4.h>
+#include <koshi/math/Vec4.h>
 #include <koshi/Geometry.h>
 #include <koshi/Format.h>
 #include <koshi/OptixHelpers.h>

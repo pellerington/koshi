@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-#include <koshi/Vec3.h>
+#include <koshi/math/Vec3.h>
 #include <koshi/Ray.h>
 
 KOSHI_OPEN_NAMESPACE
