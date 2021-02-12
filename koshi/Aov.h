@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <mutex>
+#include <memory>
 #include <cuda_runtime.h>
 
 #include <koshi/Format.h>
@@ -21,12 +23,13 @@ public:
     DEVICE_FUNCTION void write(const Vec2u& coord, const Vec4f& value)
     {
         for(uint i = 0; i < channels; i++)
-            d_buffer[(coord.x + resolution.x*coord.y)*channels + i] = value[i];
+            d_buffer[(coord.x + resolution.x*coord.y)*channels + i] += value[i]; // ONLY Perform the ADD if it is averaging or summing...
         return;
     }
 
     void clear();
-    void copyBuffer(void * dst, const Format& dst_format);
+    void transferDeviceBuffer();
+    void copyBuffer(void * dst, const Format& dst_format, float num_samples);
 
     const std::string name;
     const Vec2u resolution;
@@ -37,6 +40,7 @@ private:
     float * d_buffer;
     float * buffer;
     // const float * samples_buffer;
+    std::shared_ptr<std::mutex> mutex;
 };
 
 KOSHI_CLOSE_NAMESPACE

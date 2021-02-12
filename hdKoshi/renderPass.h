@@ -2,6 +2,7 @@
 
 #include "pxr/pxr.h"
 #include "pxr/imaging/hd/renderPass.h"
+#include "pxr/imaging/hd/renderThread.h"
 
 #include <koshi/RenderOptix.h>
 
@@ -32,11 +33,18 @@ protected:
     ///   \param renderTags Which rendertags should be drawn this pass.
     void _Execute(HdRenderPassStateSharedPtr const& renderPassState, TfTokenVector const &renderTags) override;
 
-    // HdEmbreeRenderBuffer colorBuffer;
+    void CopyPass();
 
     Koshi::Scene * scene;
     Koshi::RenderOptix render;
+    Koshi::Camera camera;
 
+    HdRenderThread renderThread; 
+    HdRenderPassAovBindingVector aovBindings;
+
+    Koshi::Vec2u previous_resolution;
+    GfMatrix4d previous_view;
+    GfMatrix4d previous_proj;
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

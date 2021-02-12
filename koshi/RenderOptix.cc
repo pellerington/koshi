@@ -14,8 +14,19 @@
 KOSHI_OPEN_NAMESPACE
 
 RenderOptix::RenderOptix()
-: scene(nullptr), camera(nullptr), aovs(std::vector<Aov>())
+: scene(nullptr), camera(nullptr), intersector(nullptr), aovs(std::vector<Aov>())
 {
+    // Set render variables to nullptr
+    resources.scene = nullptr;
+    resources.camera = nullptr;
+    resources.intersector = nullptr;
+    resources.random = nullptr;
+    resources.aovs = nullptr;
+    d_resources = 0;
+    sbt.raygenRecord = 0;
+    sbt.missRecordBase = 0;
+    sbt.hitgroupRecordBase = 0;
+    
     // Initialize CUDA and create OptiX context
     {
         // Initialize CUDA
@@ -138,7 +149,21 @@ Aov * RenderOptix::addAov(const std::string& name, const uint& channels)
 
 void RenderOptix::reset()
 {
-    // Stop the render thread
+    // TODO: Replace sample with sample aov
+    sample = 0;
+
+    // Free SBT.
+    CUDA_FREE(sbt.raygenRecord);
+    CUDA_FREE(sbt.missRecordBase);
+    CUDA_FREE(sbt.hitgroupRecordBase);
+
+    // Free device resources.
+    CUDA_FREE(resources.camera);
+    CUDA_FREE(resources.intersector);
+    CUDA_FREE(resources.aovs);
+    CUDA_FREE(resources.scene);
+    CUDA_FREE(resources.random);
+    CUDA_FREE(d_resources);
 
     // TODO: We shouldn't remake all aovs and camera on reset. if we are just updating an objects translation ect. hydra needs some way of checking aovs against it's list.
     aovs.clear();
@@ -147,12 +172,13 @@ void RenderOptix::reset()
 
 void RenderOptix::start()
 {
-    if(!camera || !scene) return; // TODO: Should error here
+    if(!camera || !scene) 
+        return; // TODO: Should error here
 
     if(!intersector)
         intersector = new IntersectorOptix(scene, context);
 
-    Resources resources;
+    // TODO: For device objects. Malloc Once and the Memcpy to update.
 
     // Copy Camera to Device.
     CUDA_CHECK(cudaMalloc(&resources.camera, sizeof(Camera)));
@@ -168,17 +194,16 @@ void RenderOptix::start()
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.aovs), aovs.data(), sizeof(Aov) * aovs.size(), cudaMemcpyHostToDevice));
 
     // Copy Scene to Device.
-    DeviceScene device_scene(scene);
+    device_scene.init(scene);
     CUDA_CHECK(cudaMalloc(&resources.scene, sizeof(DeviceScene)));
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.scene), &device_scene, sizeof(DeviceScene), cudaMemcpyHostToDevice));
 
     // Copy Random to Device
-    random.setSeeds(camera->getResolution(), 0, 0);
+    random.init(camera->getResolution());
     CUDA_CHECK(cudaMalloc(&resources.random, sizeof(Random)));
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.random), &random, sizeof(Random), cudaMemcpyHostToDevice));
 
-    // Copy Resrouces to device.
-    CUdeviceptr d_resources;
+    // Copy Resrouces to device
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_resources), sizeof(Resources)));
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_resources), &resources, sizeof(Resources), cudaMemcpyHostToDevice));
 
@@ -208,7 +233,7 @@ void RenderOptix::start()
     }
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(hitgroup_record), hg_sbt.data(), hitgroup_record_size, cudaMemcpyHostToDevice));
 
-    OptixShaderBindingTable sbt = {};
+    sbt = {};
     sbt.raygenRecord                = raygen_record;
     sbt.missRecordBase              = miss_record;
     sbt.missRecordStrideInBytes     = sizeof( MissSbtRecord );
@@ -216,23 +241,20 @@ void RenderOptix::start()
     sbt.hitgroupRecordBase          = hitgroup_record;
     sbt.hitgroupRecordStrideInBytes = sizeof( HitGroupSbtRecord );
     sbt.hitgroupRecordCount         = 2;
+}
+
+void RenderOptix::pass()
+{
+    random.setSeeds(sample, 0);
 
     // Perform the actual intersection.
     OPTIX_CHECK(optixLaunch(pipeline, 0, d_resources, sizeof(Resources), &sbt, camera->getResolution().x, camera->getResolution().y, /*depth=*/1));
     CUDA_SYNC_CHECK();
 
-    // Free SBT.
-    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.raygenRecord)));
-    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.missRecordBase)));
-    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(sbt.hitgroupRecordBase)));
+    for(uint i = 0; i < aovs.size(); i++)
+        aovs[i].transferDeviceBuffer();
 
-    // Free resources.
-    CUDA_CHECK(cudaFree(resources.camera));
-    CUDA_CHECK(cudaFree(resources.intersector));
-    CUDA_CHECK(cudaFree(resources.aovs));
-    CUDA_CHECK(cudaFree(resources.scene));
-    CUDA_CHECK(cudaFree(resources.random));
-    CUDA_CHECK(cudaFree(reinterpret_cast<void*>(d_resources)));
+    sample++;
 }
 
 RenderOptix::~RenderOptix()
@@ -245,6 +267,19 @@ RenderOptix::~RenderOptix()
     OPTIX_CHECK(optixProgramGroupDestroy(hitgroup_prog_group));
     OPTIX_CHECK(optixModuleDestroy(module));
     OPTIX_CHECK(optixDeviceContextDestroy(context));
+
+    // Free SBT.
+    CUDA_FREE(sbt.raygenRecord);
+    CUDA_FREE(sbt.missRecordBase);
+    CUDA_FREE(sbt.hitgroupRecordBase);
+
+    // Free device resources.
+    CUDA_FREE(resources.camera);
+    CUDA_FREE(resources.intersector);
+    CUDA_FREE(resources.aovs);
+    CUDA_FREE(resources.scene);
+    CUDA_FREE(resources.random);
+    CUDA_FREE(d_resources);
 }
 
 KOSHI_CLOSE_NAMESPACE

@@ -32,7 +32,7 @@ public:
             CUDA_CHECK(cudaFree(d_seeds));
     }
 
-    void setSeeds(const Vec2u& _resolution, const uint& samples, const uint& frame)
+    void init(const Vec2u& _resolution)
     {
         if(resolution != _resolution)
         {
@@ -42,9 +42,13 @@ public:
         }
 
         resolution = _resolution;
+    }
+
+    void setSeeds(const uint& sample, const uint& frame)
+    {
         std::vector<uint> seeds(resolution.x*resolution.y);
 
-        std::mt19937 random_generator(samples + frame * 512u);
+        std::mt19937 random_generator(sample + frame * 512u);
         for(uint i = 0; i < resolution.x*resolution.y; i++)
             seeds[i] = random_generator();
 

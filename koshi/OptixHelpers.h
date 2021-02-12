@@ -40,3 +40,17 @@
     }\
 }
 
+#define CUDA_FREE(var)\
+{\
+    if(var != 0) {\
+        cudaFree(reinterpret_cast<void*>(var));\
+        var = 0;\
+    }\
+    cudaDeviceSynchronize();\
+    cudaError_t error = cudaGetLastError();\
+    if(error != cudaSuccess) {\
+        fprintf(stderr, "error (%s: line %d): %s\n", __FILE__, __LINE__, cudaGetErrorString(error));\
+        exit(2);\
+    }\
+}\
+

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <vector>
+#include <thread>
 #include <optix.h>
 
 #include <koshi/Aov.h>
@@ -41,13 +42,9 @@ typedef SbtRecord<HitGroupData>   HitGroupSbtRecord;
 struct Resources
 {
     DeviceScene * scene;
-
     Camera * camera;
-    
     Intersector * intersector;
-
     Random * random;
-
     Aov * aovs;
     uint aovs_size;
 };
@@ -67,17 +64,27 @@ public:
     void reset();
     // void pause();
     void start();
+    void pass();
+
+    // TODO: Replace sample with sample aov...
+    uint sample = 0;
 
 private:
-    IntersectorOptix * intersector = nullptr;
-
-    Scene * scene;
-    Camera * camera;
-    std::vector<Aov> aovs;
 
     Random random;
 
-    // GPU Specific
+    Scene * scene;
+    Camera * camera;
+    
+    IntersectorOptix * intersector;
+    std::vector<Aov> aovs;
+
+    DeviceScene device_scene;
+    Resources resources;
+    CUdeviceptr d_resources;
+
+    // Optix Specific
+    OptixShaderBindingTable sbt;
     OptixDeviceContext context;
     OptixModule module;
     OptixProgramGroup raygen_prog_group;

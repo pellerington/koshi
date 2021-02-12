@@ -31,9 +31,15 @@ private:
 class DeviceScene
 {
 public:
-    // TODO: Not efficent to copy entire scene every time. We should only copy if something changes. (Store in scene and plug everything into it so we can use dirty mechanism?)
-    DeviceScene(Scene * scene)
+    DeviceScene() : num_geometries(0) {}
+
+    void init(Scene * scene)
     {
+        // Free our geometries...
+        for(uint i = 0; i < geometries.size(); i++)
+            CUDA_CHECK(cudaFree(geometries[i]));
+        CUDA_CHECK(cudaFree(d_geometries));
+
         // Copy our geometries...
         const std::unordered_map<std::string, Geometry*>& scene_geometries = scene->getGeometries();
         geometries.resize(scene_geometries.size());

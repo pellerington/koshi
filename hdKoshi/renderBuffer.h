@@ -7,6 +7,8 @@
 #include "pxr/base/gf/vec4f.h"
 #include <iostream>
 
+#include <koshi/Aov.h>
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 class HdKoshiRenderBuffer : public HdRenderBuffer
@@ -15,7 +17,7 @@ public:
     HdKoshiRenderBuffer(const SdfPath& id) 
     : HdRenderBuffer(id)
     , width(0), height(0), depth(0), format(HdFormatInvalid)
-    , buffer(), multiSampled(false), mappers(0)
+    , buffer(), multiSampled(false), mappers(0), aov(nullptr)
     {
     }
 
@@ -34,7 +36,9 @@ public:
     virtual bool IsMapped() const override { return mappers.load() != 0; }
 
     virtual void Resolve() override;
-    virtual bool IsConverged() const override { return true; }
+    virtual bool IsConverged() const override { return false; }
+
+    void setKoshiAov(const Koshi::Aov * _aov) { aov = _aov; }
 
     virtual void _Deallocate() override;
 
@@ -46,6 +50,7 @@ private:
     std::vector<uint8_t> buffer;
     bool multiSampled;
     std::atomic<int> mappers;
+    const Koshi::Aov * aov;
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

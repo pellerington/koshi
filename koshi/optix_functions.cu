@@ -51,7 +51,7 @@ extern "C" __global__ void __raygen__rg()
         const Lambert * lambert = (const Lambert *)lobes[0];
 
         Vec3f color = 0.f;
-        for(uint i = 0; i < 128; i++)
+        for(uint i = 0; i < 1; i++)
         {
             Sample sample;
             const Vec2f rnd(resources.random->rand(), resources.random->rand());
@@ -69,7 +69,7 @@ extern "C" __global__ void __raygen__rg()
                 color += sample.value / sample.pdf;
             }
         }
-        color /= 128.f;
+        color /= 1.f;
 
         resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
 

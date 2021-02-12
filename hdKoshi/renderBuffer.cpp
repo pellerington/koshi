@@ -15,6 +15,7 @@ bool HdKoshiRenderBuffer::Allocate(const GfVec3i& dimensions, HdFormat _format, 
 
 void HdKoshiRenderBuffer::Resolve()
 {
+    std::cout << "Should we be copying here???" << "\n";
     // if (!_multiSampled) {
     //     return;
     // }

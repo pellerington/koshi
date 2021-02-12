@@ -74,8 +74,6 @@ void HdKoshiMesh::_InitRepr(TfToken const &reprToken, HdDirtyBits *dirtyBits)
 
 void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderParam, HdDirtyBits * dirtyBits, const TfToken& reprToken)
 {
-    // std::cout << "* (multithreaded) Sync Tiny Mesh id=" << GetId() << std::endl;
-
     const SdfPath& id = GetId();
 
     // If we don't have a geometry yet create our geometry.

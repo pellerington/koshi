@@ -12,7 +12,7 @@ KOSHI_OPEN_NAMESPACE
 
 IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
 {
-    std::cout << "Start Intersector..." << std::endl;
+    std::cout << "Creating Intersector..." << std::endl;
 
     const std::unordered_map<std::string, Geometry*>& geometries = scene->getGeometries();
 

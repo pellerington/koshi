@@ -11,7 +11,7 @@ KOSHI_OPEN_NAMESPACE
 class Camera
 {
 public:
-    Camera(const Vec2u& resolution, const Transform& world_to_obj, const Transform& projection)
+    Camera(const Vec2u& resolution = Vec2u(0), const Transform& world_to_obj = Transform(), const Transform& projection = Transform())
     : resolution(resolution), world_to_obj(world_to_obj), obj_to_world(world_to_obj.inverse()), projection(projection), inv_projection(projection.inverse())
     {
     }
