@@ -3,24 +3,24 @@
 #include <iostream>
 
 #include <pxr/imaging/hd/renderPassState.h>
-#include <pxr/imaging/hd/renderBuffer.h>
+#include "renderBuffer.h"
 
 #include <koshi/math/Vec2.h>
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-HdKoshiRenderPass::HdKoshiRenderPass(Koshi::Scene * scene, HdRenderIndex * index, const HdRprimCollection& collection)
-: HdRenderPass(index, collection), scene(scene)
+HdKoshiRenderPass::HdKoshiRenderPass(Koshi::Scene * scene, HdRenderThread * render_thread, HdRenderIndex * index, const HdRprimCollection& collection)
+: HdRenderPass(index, collection), scene(scene), render_thread(render_thread)
 {
     render.setScene(scene);
-    renderThread.SetRenderCallback(std::bind(&HdKoshiRenderPass::CopyPass, this));
-    renderThread.StartThread();
+    render_thread->SetRenderCallback(std::bind(&HdKoshiRenderPass::Render, this));
+    render_thread->StartThread();
     std::cout << "Creating renderPass" << std::endl;
 }
 
 HdKoshiRenderPass::~HdKoshiRenderPass()
 {
-    renderThread.StopThread();
+    render_thread->StopThread();
     std::cout << "Destroying renderPass" << std::endl;
 }
 
@@ -31,28 +31,30 @@ HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, c
 
     // restart = scene->isDirty() || restart;
 
-    // TODO: Use the proper camera delegate...
+    // TODO: Use the proper camera delegate?
     GfVec4f vp = renderPassState->GetViewport();
     const Koshi::Vec2u resolution(vp[2], vp[3]);
     GfMatrix4d view = renderPassState->GetWorldToViewMatrix();
     GfMatrix4d proj = renderPassState->GetProjectionMatrix();
-
     restart = (resolution != previous_resolution) || restart;
     restart = (view != previous_view) || restart;
     restart = (proj != previous_proj) || restart;
 
-    // CHECK AOVS...
+    HdRenderPassAovBindingVector new_aov_bindings = renderPassState->GetAovBindings();
+    restart = (aov_bindings != new_aov_bindings) || restart;
 
     if(!restart) return;
 
     std::cout << "Restarting Render..." << std::endl;
 
+    render_thread->StopRender();
+    render.reset();
+
     previous_resolution = resolution;
     previous_view = view;
     previous_proj = proj;
 
-    renderThread.StopRender();
-    render.reset();
+    aov_bindings = new_aov_bindings;
 
     // scene->updateDirtiness();
     
@@ -62,38 +64,39 @@ HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, c
 
     camera = Koshi::Camera(resolution, Koshi::Transform::fromColumnFirstData(view.data()), Koshi::Transform::fromColumnFirstData(proj.data()));
     render.setCamera(&camera);
-    render.addAov("color", 4);
 
-    aovBindings = renderPassState->GetAovBindings();
-
-    const HdRenderPassAovBinding * hd_color_aov;
-    for(auto aov = aovBindings.begin(); aov != aovBindings.end(); ++aov)
-        if(aov->aovName == "color")
-            hd_color_aov = &(*aov);
-    hd_color_aov->renderBuffer->Allocate(GfVec3i(resolution.x, resolution.y, 1), HdFormatFloat32Vec4, /*multiSampled=*/true);
+    for(auto aov = aov_bindings.begin(); aov != aov_bindings.end(); ++aov)
+    {
+        render.addAov(aov->aovName, 4);
+        aov->renderBuffer->Allocate(GfVec3i(resolution.x, resolution.y, 1), HdFormatFloat32Vec4, true);
+    }
 
     // Start the background render thread.
     render.start();
-    renderThread.StartRender();
+    render_thread->StartRender();
 
     std::cout << "=> Execute RenderPass" << std::endl;
 }
 
 void
-HdKoshiRenderPass::CopyPass()
+HdKoshiRenderPass::Render()
 {
-    while(!renderThread.IsPauseRequested() && !renderThread.IsStopRequested())
+    while(!render_thread->IsStopRequested() /* && !restartRequested? && AND RENDER NOT CONVERGED... */)
     {
+        while(render_thread->IsPauseRequested())
+            std::this_thread::sleep_for(std::chrono::milliseconds(64));
+
         render.pass();
 
-        Koshi::Aov * color_aov = render.getAov("color");
-        const HdRenderPassAovBinding * hd_color_aov;
-        for(auto aov = aovBindings.begin(); aov != aovBindings.end(); ++aov)
-            if(aov->aovName == "color")
-                hd_color_aov = &(*aov);
-        color_aov->copyBuffer(hd_color_aov->renderBuffer->Map(), Koshi::Format::FLOAT32, render.sample);
-        hd_color_aov->renderBuffer->Unmap();
+        for(auto aov = aov_bindings.begin(); aov != aov_bindings.end(); ++aov)
+        {
+            Koshi::Aov * koshi_aov = render.getAov(aov->aovName);
+            koshi_aov->copy(aov->renderBuffer->Map(), render.sample);
+            aov->renderBuffer->Unmap();
+        }
     }
+
+    /* SET AOVs as CONVERGED */
 }
 
 PXR_NAMESPACE_CLOSE_SCOPE

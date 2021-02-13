@@ -20,7 +20,7 @@ public:
     /// Renderpass constructor.
     ///   \param index The render index containing scene data to render.
     ///   \param collection The initial rprim collection for this renderpass.
-    HdKoshiRenderPass(Koshi::Scene * scene, HdRenderIndex *index, HdRprimCollection const &collection);
+    HdKoshiRenderPass(Koshi::Scene * scene, HdRenderThread * render_thread, HdRenderIndex *index, HdRprimCollection const &collection);
 
     /// Renderpass destructor.
     virtual ~HdKoshiRenderPass();
@@ -33,14 +33,14 @@ protected:
     ///   \param renderTags Which rendertags should be drawn this pass.
     void _Execute(HdRenderPassStateSharedPtr const& renderPassState, TfTokenVector const &renderTags) override;
 
-    void CopyPass();
+    void Render();
 
     Koshi::Scene * scene;
     Koshi::RenderOptix render;
     Koshi::Camera camera;
 
-    HdRenderThread renderThread; 
-    HdRenderPassAovBindingVector aovBindings;
+    HdRenderThread * render_thread; 
+    HdRenderPassAovBindingVector aov_bindings;
 
     Koshi::Vec2u previous_resolution;
     GfMatrix4d previous_view;

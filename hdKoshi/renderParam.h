@@ -41,8 +41,8 @@ PXR_NAMESPACE_OPEN_SCOPE
 /// 
 class HdKoshiRenderParam final : public HdRenderParam {
 public:
-    HdKoshiRenderParam(Koshi::Scene * scene/*, HdRenderThread * render_thread, std::atomic<int> * scene_version*/)
-    : scene(scene)/*, render_thread(render_thread), scene_version(scene_version)*/
+    HdKoshiRenderParam(Koshi::Scene * scene, HdRenderThread * render_thread)
+    : scene(scene), render_thread(render_thread)
     {
     }
 
@@ -56,12 +56,11 @@ public:
         return scene;
     }
 
+    void StopRender() { render_thread->StopRender(); }
+
 private:
     Koshi::Scene * scene;
-
-    /// A handle to the global render thread.
-    // HdRenderThread * render_thread;
-    // std::atomic<int> * scene_version;
+    HdRenderThread * render_thread;
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

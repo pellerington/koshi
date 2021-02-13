@@ -4,6 +4,7 @@
 #include "pxr/imaging/hd/renderDelegate.h"
 #include "pxr/imaging/hd/resourceRegistry.h"
 #include "pxr/base/tf/staticTokens.h"
+#include "pxr/imaging/hd/renderThread.h"
 
 #include "renderParam.h"
 
@@ -52,12 +53,34 @@ public:
 
     HdRenderParam * GetRenderParam() const override;
 
+    virtual bool IsStopSupported() const override { return true; }
+    virtual bool IsPauseSupported() const override { return true; }
+
+    virtual bool Stop() override {
+        render_thread.StopRender();
+        std::cout << "Stopping..." << std::endl;
+        return true;
+    }
+
+    virtual bool Pause() override {
+        render_thread.PauseRender();
+        std::cout << "Pausing..." << std::endl;
+        return true;
+    }
+
+    virtual bool Resume() override {
+        render_thread.ResumeRender();
+        std::cout << "Resuming..." << std::endl;
+        return true;
+    }
+
 private:
     static const TfTokenVector SUPPORTED_RPRIM_TYPES;
     static const TfTokenVector SUPPORTED_SPRIM_TYPES;
     static const TfTokenVector SUPPORTED_BPRIM_TYPES;
 
     Koshi::Scene scene;
+    HdRenderThread render_thread; 
     std::shared_ptr<HdKoshiRenderParam> param;
 
     void _Initialize();

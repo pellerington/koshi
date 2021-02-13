@@ -9,6 +9,7 @@
 #include <koshi/math/Vec2.h>
 #include <koshi/math/Vec3.h>
 #include <koshi/math/Vec4.h>
+#include <koshi/String.h>
 
 KOSHI_OPEN_NAMESPACE
 
@@ -27,20 +28,23 @@ public:
         return;
     }
 
-    void clear();
-    void transferDeviceBuffer();
-    void copyBuffer(void * dst, const Format& dst_format, float num_samples);
+    DEVICE_FUNCTION bool operator==(const char * _name) { return name == _name; }
 
-    const std::string name;
-    const Vec2u resolution;
-    const uint channels;
-    // const AovType = Average, Total, FirstValue ect...
+    void clear();
+    void copy(void * dst, float num_samples);
+
+    std::string getName() const { return name; }
+    const Vec2u& getResolution() const { return resolution; }
+    const uint& getChannels() const { return channels; }
 
 private:
-    float * d_buffer;
-    float * buffer;
-    // const float * samples_buffer;
+    String name;
+    Vec2u resolution;
+    uint channels;
+    // const AovType = Average, Total, FirstValue ect...
+
     std::shared_ptr<std::mutex> mutex;
+    float * d_buffer;
 };
 
 KOSHI_CLOSE_NAMESPACE

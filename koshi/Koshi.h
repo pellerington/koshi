@@ -18,3 +18,5 @@
 typedef unsigned int uint;
 
 #define KOSHI_DEBUG false
+
+#define LOG_ERROR(error) std::cout << "KOSHI ERROR: " << error << std::endl;

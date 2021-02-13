@@ -65,7 +65,7 @@ void HdKoshiRenderDelegate::_Initialize()
 {
     std::cout << "Creating Tiny RenderDelegate" << std::endl;
     _resourceRegistry = std::make_shared<HdResourceRegistry>();
-    param = std::make_shared<HdKoshiRenderParam>(&scene);
+    param = std::make_shared<HdKoshiRenderParam>(&scene, &render_thread);
 }
 
 HdKoshiRenderDelegate::~HdKoshiRenderDelegate()
@@ -96,13 +96,13 @@ HdResourceRegistrySharedPtr HdKoshiRenderDelegate::GetResourceRegistry() const
 
 void  HdKoshiRenderDelegate::CommitResources(HdChangeTracker * tracker)
 {
-    std::cout << "=> CommitResources RenderDelegate" << std::endl;
+    // std::cout << "=> CommitResources RenderDelegate" << std::endl;
 }
 
 HdRenderPassSharedPtr HdKoshiRenderDelegate::CreateRenderPass(HdRenderIndex * index, const HdRprimCollection& collection)
 {
     std::cout << "Create RenderPass with Collection=" << collection.GetName() << std::endl; 
-    return HdRenderPassSharedPtr(new HdKoshiRenderPass(&scene, index, collection));  
+    return HdRenderPassSharedPtr(new HdKoshiRenderPass(&scene, &render_thread, index, collection));  
 }
 
 HdRprim * HdKoshiRenderDelegate::CreateRprim(const TfToken& typeId, const SdfPath& rprimId, const SdfPath& instancerId)
@@ -194,12 +194,13 @@ void HdKoshiRenderDelegate::DestroyInstancer(HdInstancer * instancer)
 
 HdAovDescriptor HdKoshiRenderDelegate::GetDefaultAovDescriptor(const TfToken& name) const
 {
+    // TODO: We should make these not all be vec4s...
     if (name == HdAovTokens->color) {
-        return HdAovDescriptor(HdFormatUNorm8Vec4, true, VtValue(GfVec4f(0.0f)));
-    // } else if (name == HdAovTokens->normal || name == HdAovTokens->Neye) {
-    //     return HdAovDescriptor(HdFormatFloat32Vec3, false, VtValue(GfVec3f(-1.0f)));
+        return HdAovDescriptor(HdFormatFloat32Vec4, true, VtValue(GfVec4f(0.0f)));
+    } else if (name == HdAovTokens->normal/* || name == HdAovTokens->Neye*/) {
+        return HdAovDescriptor(HdFormatFloat32Vec4, true, VtValue(GfVec4f(0.0f)));
     } else if (name == HdAovTokens->depth) {
-        return HdAovDescriptor(HdFormatFloat32, false, VtValue(1.0f));
+        return HdAovDescriptor(HdFormatFloat32Vec4, true, VtValue(GfVec4f(0.0f)));
     }
     // } else if (name == HdAovTokens->cameraDepth) {
     //     return HdAovDescriptor(HdFormatFloat32, false, VtValue(0.0f));

@@ -29,7 +29,6 @@ RenderOptix::RenderOptix()
     
     // Initialize CUDA and create OptiX context
     {
-        // Initialize CUDA
         CUDA_CHECK(cudaFree(0));
         CUcontext cuCtx = 0;  // zero means take the current context
         OPTIX_CHECK(optixInit());
@@ -132,17 +131,29 @@ void RenderOptix::setCamera(Camera * _camera)
 Aov * RenderOptix::getAov(const std::string& name)
 {
     for(uint i = 0; i < aovs.size(); i++)
-        if(aovs[i].name == name)
+        if(aovs[i].getName() == name)
             return &(aovs[i]);
     return nullptr;
 }
 
-Aov * RenderOptix::addAov(const std::string& name, const uint& channels)
+Aov * RenderOptix::addAov(const std::string& name, /*Format?*/ const uint& channels)
 {
-    if(!camera) return nullptr; // TODO: Should error here
-    for(uint i = 0; i < aovs.size(); i++)
-        if(aovs[i].name == name /* && aov[i]->channels == channels */)
-            return &aovs[i];
+    if(!camera)
+    {
+        LOG_ERROR("Can't create aov's when camera has not been set.")
+        return nullptr;
+    }
+
+    auto aov = aovs.begin();
+    while(aov != aovs.end()) {
+        if(aov->getName() == name) 
+            if(aov->getChannels() == channels /* And not the right format?*/)
+                return &(*aov);
+            else
+                aov = aovs.erase(aov);
+        else
+            ++aov;
+    }
     aovs.emplace_back(name, camera->getResolution(), channels);
     return &aovs[aovs.size()-1];
 }
@@ -250,9 +261,6 @@ void RenderOptix::pass()
     // Perform the actual intersection.
     OPTIX_CHECK(optixLaunch(pipeline, 0, d_resources, sizeof(Resources), &sbt, camera->getResolution().x, camera->getResolution().y, /*depth=*/1));
     CUDA_SYNC_CHECK();
-
-    for(uint i = 0; i < aovs.size(); i++)
-        aovs[i].transferDeviceBuffer();
 
     sample++;
 }

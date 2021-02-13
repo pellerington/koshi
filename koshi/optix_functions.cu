@@ -31,7 +31,7 @@ extern "C" __global__ void __raygen__rg()
     const uint3 idx = optixGetLaunchIndex();
     const uint3 dim = optixGetLaunchDimensions();
 
-    const Ray ray = resources.camera->sample(idx.x, idx.y);
+    const Ray ray = resources.camera->sample(idx.x, idx.y, Vec2f(resources.random->rand(), resources.random->rand()));
 
     const IntersectList intersects = resources.intersector->intersect(ray);
 
@@ -39,16 +39,28 @@ extern "C" __global__ void __raygen__rg()
     {
         const Intersect& intersect = intersects[0];
 
+        Aov * depth_aov = resources.getAov("depth");
+        if(depth_aov)
+            depth_aov->write(Vec2u(idx.x, idx.y), Vec4f(intersect.t, 0.f, 0.f, 1.f));
+
+        Aov * normal_aov = resources.getAov("normal");
+        if(normal_aov)
+            normal_aov->write(Vec2u(idx.x, idx.y), Vec4f(intersect.normal, 1.f));
+
         if(!intersect.facing)
         {
-            resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(0.f, 0.f, 0.f, 1.f));
+            Aov * color_aov = resources.getAov("color");
+            if(color_aov)
+                color_aov->write(Vec2u(idx.x, idx.y), Vec4f(0.f, 0.f, 0.f, 1.f));
             return;
         }
-
+        
         LobeArray lobes;
         generate_material(lobes, intersect);
 
         const Lambert * lambert = (const Lambert *)lobes[0];
+
+        // Vec3f light_pos = ray.origin;//Vec3f(-30, -80, 200.f);//
 
         Vec3f color = 0.f;
         for(uint i = 0; i < 1; i++)
@@ -71,36 +83,15 @@ extern "C" __global__ void __raygen__rg()
         }
         color /= 1.f;
 
-        resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
-
-        // Vec3f light_pos = ray.origin;//Vec3f(-30, -80, 200.f);//
-
-        // Ray shadow_ray;
-        // shadow_ray.origin = intersect.position + intersect.normal * 0.0001f;
-        // shadow_ray.direction = (light_pos - shadow_ray.origin).normalize();
-        // shadow_ray.tmin = 0.f;
-        // shadow_ray.tmax = (light_pos - shadow_ray.origin).length() - 0.0001f;
-
-        // const IntersectList shadow_intersects = resources.intersector->intersect(shadow_ray);
-
-        // if(shadow_intersects.size() > 0)
-        // {
-        //     resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(0.f, 0.f, 0.f, 1.f));
-        // }
-        // else
-        // {
-        //     GeometryMeshAttribute * normals = ((GeometryMesh *)intersect.geometry)->getAttribute("normals");
-        //     GeometryMeshAttribute * display_color = ((GeometryMesh *)intersect.geometry)->getAttribute("displayColor");
-        //     Vec3f color(1.f);
-        //     color *= (normals) ? max(intersect.obj_to_world.multiply<false>(normals->evaluate(intersect)).dot(shadow_ray.direction), 0.f) : intersect.normal.dot(shadow_ray.direction);
-        //     color *= (display_color) ? (Vec3f)display_color->evaluate(intersect) : 1.f;
-        //     resources.aovs[0].write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
-        // }
+        Aov * color_aov = resources.getAov("color");
+        if(color_aov)
+            color_aov->write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
     }
 }
 
 extern "C" __global__ void __miss__ms() 
 {
+    // Add distant light intersects.
 }
 
 extern "C" __global__ void __closesthit__ch() 

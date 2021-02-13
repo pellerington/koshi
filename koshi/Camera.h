@@ -18,9 +18,9 @@ public:
 
     DEVICE_FUNCTION const Vec2u& getResolution() { return resolution; }
 
-    DEVICE_FUNCTION Ray sample(const uint& x, const uint& y)
+    DEVICE_FUNCTION Ray sample(const uint& x, const uint& y, const Vec2f& rnd)
     {
-        Vec3f ndc(2.f * ((float)x / resolution.x) - 1.f, 2.f * ((float)y / resolution.y) - 1.f, -1.f);
+        Vec3f ndc(2.f * ((x + rnd[0]) / resolution.x) - 1.f, 2.f * ((y + rnd[1]) / resolution.y) - 1.f, -1.f);
         
         Ray ray;
         ray.origin = Vec3f(0.f);

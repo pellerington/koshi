@@ -7,7 +7,7 @@
     cudaError_t rc = call;\
     if (rc != cudaSuccess) {\
         cudaError_t err = rc; /*cudaGetLastError();*/\
-        std::cout << "CUDA Error " << cudaGetErrorName(err) << " (" << cudaGetErrorString(err) << ")" << std::endl;\
+        std::cout << "CUDA Error " << cudaGetErrorName(err) << " (" << cudaGetErrorString(err) << ") " << __FILE__ << " " << __LINE__ << std::endl;\
     }\
 }
 
@@ -43,14 +43,12 @@
 #define CUDA_FREE(var)\
 {\
     if(var != 0) {\
-        cudaFree(reinterpret_cast<void*>(var));\
+        cudaError_t rc = cudaFree(reinterpret_cast<void*>(var));\
         var = 0;\
+        if (rc != cudaSuccess) {\
+            cudaError_t err = rc; /*cudaGetLastError();*/\
+            std::cout << "CUDA Error " << cudaGetErrorName(err) << " (" << cudaGetErrorString(err) << ") " << __FILE__ << " " << __LINE__ << std::endl;\
+        }\
     }\
-    cudaDeviceSynchronize();\
-    cudaError_t error = cudaGetLastError();\
-    if(error != cudaSuccess) {\
-        fprintf(stderr, "error (%s: line %d): %s\n", __FILE__, __LINE__, cudaGetErrorString(error));\
-        exit(2);\
-    }\
-}\
+}
 

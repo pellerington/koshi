@@ -8,42 +8,15 @@
 #include <koshi/Format.h>
 #include <koshi/OptixHelpers.h>
 #include <koshi/Intersect.h>
+#include <koshi/String.h>
 
 // TODO: Remove this limitation. 
 #define MAX_GEOMETRY_MESH_ATTRIBUTES 16
-#define MAX_GEOMETRY_MESH_ATTRIBUTE_NAME_LENGTH 64u
 
 KOSHI_OPEN_NAMESPACE
 
 struct GeometryMeshAttribute {
-    class AttributeName 
-    {
-    public:
-        AttributeName() {}
-        AttributeName(const std::string& name)
-        {
-            uint size = std::min(MAX_GEOMETRY_MESH_ATTRIBUTE_NAME_LENGTH, (uint)name.size());
-            name.copy(data, size);
-            data[size] = '\0';
-        }
-        DEVICE_FUNCTION bool operator==(const char * name)
-        {
-            for(uint i = 0; i < MAX_GEOMETRY_MESH_ATTRIBUTE_NAME_LENGTH; i++)
-            {
-                if(name[i] != data[i]) return false;
-                if(name[i] == '\0') return true;
-            }
-            return true;
-        }
-        bool operator==(const std::string& name)
-        {
-            return std::string(data) == name;
-        }
-    private:
-        char data[MAX_GEOMETRY_MESH_ATTRIBUTE_NAME_LENGTH+1];
-        
-    } name;
-
+    String name;
     Format format;
     enum Type { NONE, CONSTANT, UNIFORM, VERTICES, FACE  } type;
     // Ownership

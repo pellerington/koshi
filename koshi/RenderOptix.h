@@ -47,6 +47,13 @@ struct Resources
     Random * random;
     Aov * aovs;
     uint aovs_size;
+    DEVICE_FUNCTION Aov * getAov(const char * name)
+    {
+        for(uint i = 0; i < aovs_size; i++)
+            if(aovs[i] == name)
+                return &aovs[i];
+        return nullptr;
+    }
 };
 
 class RenderOptix 

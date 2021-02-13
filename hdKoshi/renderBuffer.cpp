@@ -1,34 +1,40 @@
 #include "renderBuffer.h"
 
+#include "renderParam.h"
+
 PXR_NAMESPACE_OPEN_SCOPE
 
-bool HdKoshiRenderBuffer::Allocate(const GfVec3i& dimensions, HdFormat _format, bool _multiSampled)
+bool HdKoshiRenderBuffer::Allocate(const GfVec3i& dimensions, HdFormat _format, bool _multi_sampled)
 {
     width = dimensions[0];
     height = dimensions[1];
     depth = dimensions[2];
     format = _format;
-    multiSampled = _multiSampled;
+    multi_sampled = multi_sampled;
     buffer.resize(width * height * HdDataSizeOfFormat(format));
     return true;
 }
 
-void HdKoshiRenderBuffer::Resolve()
+void HdKoshiRenderBuffer::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam *renderParam, HdDirtyBits *dirtyBits)
 {
-    std::cout << "Should we be copying here???" << "\n";
-    // if (!_multiSampled) {
-    //     return;
-    // }
+    if (*dirtyBits & DirtyDescription)
+        static_cast<HdKoshiRenderParam*>(renderParam)->StopRender();
+    HdRenderBuffer::Sync(sceneDelegate, renderParam, dirtyBits);
+}
+
+void HdKoshiRenderBuffer::Finalize(HdRenderParam *renderParam)
+{
+    static_cast<HdKoshiRenderParam*>(renderParam)->StopRender();
+    HdRenderBuffer::Finalize(renderParam);
 }
 
 void HdKoshiRenderBuffer::_Deallocate()
 {
-    // If the buffer is mapped while we're doing this, there's not a great recovery path...
     TF_VERIFY(!IsMapped());
     width = 0;
     height = 0;
     format = HdFormatInvalid;
-    multiSampled = false;
+    multi_sampled = false;
     buffer.resize(0);
     mappers.store(0);
 }
