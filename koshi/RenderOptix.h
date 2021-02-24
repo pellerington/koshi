@@ -2,7 +2,7 @@
 
 #include <sstream>
 #include <iostream>
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 #include <thread>
 #include <optix.h>
@@ -12,7 +12,6 @@
 #include <koshi/Camera.h>
 #include <koshi/Scene.h>
 #include <koshi/random/Random.h>
-
 
 KOSHI_OPEN_NAMESPACE
 

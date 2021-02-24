@@ -31,9 +31,9 @@ HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, c
 
     // restart = scene->isDirty() || restart;
 
-    // TODO: Use the proper camera delegate?
-    GfVec4f vp = renderPassState->GetViewport();
-    const Koshi::Vec2u resolution(vp[2], vp[3]);
+    const CameraUtilFraming &framing = renderPassState->GetFraming();
+    const Koshi::Vec2u resolution(framing.dataWindow.GetWidth(), framing.dataWindow.GetHeight());
+
     GfMatrix4d view = renderPassState->GetWorldToViewMatrix();
     GfMatrix4d proj = renderPassState->GetProjectionMatrix();
     restart = (resolution != previous_resolution) || restart;

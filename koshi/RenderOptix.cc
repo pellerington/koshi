@@ -9,7 +9,7 @@
 #include <koshi/OptixHelpers.h>
 #include <koshi/Aov.h>
 
-#include <koshi/GeometryMesh.h>
+#include <koshi/geometry/GeometryMesh.h>
 
 KOSHI_OPEN_NAMESPACE
 
@@ -112,6 +112,7 @@ RenderOptix::RenderOptix()
         OPTIX_CHECK(optixUtilComputeStackSizes(&stack_sizes, max_trace_depth, 0 /*maxCCDepth*/, 0 /*maxDCDEpth*/, &direct_callable_stack_size_from_traversal, &direct_callable_stack_size_from_state, &continuation_stack_size));
         OPTIX_CHECK(optixPipelineSetStackSize(pipeline, direct_callable_stack_size_from_traversal, direct_callable_stack_size_from_state, continuation_stack_size, 1/*maxTraversableDepth*/));
     }
+
 }
 
 void RenderOptix::setScene(Scene * _scene)
@@ -233,6 +234,7 @@ void RenderOptix::start()
     OPTIX_CHECK(optixSbtRecordPackHeader(miss_prog_group, &ms_sbt));
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(miss_record), &ms_sbt, miss_record_size, cudaMemcpyHostToDevice));
 
+    // TODO: Only update this when the list of geometry has changed (something was added or removed).
     CUdeviceptr hitgroup_record;
     size_t      hitgroup_record_size = device_scene.num_geometries * sizeof(HitGroupSbtRecord);
     CUDA_CHECK(cudaMalloc( reinterpret_cast<void**>(&hitgroup_record), hitgroup_record_size));

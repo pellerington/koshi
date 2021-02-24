@@ -33,10 +33,10 @@ public:
     // Prims
     HdRenderPassSharedPtr CreateRenderPass(HdRenderIndex *index, HdRprimCollection const& collection) override;
 
-    HdInstancer * CreateInstancer(HdSceneDelegate *delegate, SdfPath const& id, SdfPath const& instancerId) override;
+    HdInstancer * CreateInstancer(HdSceneDelegate *delegate, SdfPath const& id) override;
     void DestroyInstancer(HdInstancer *instancer) override;
 
-    HdRprim * CreateRprim(TfToken const& typeId, SdfPath const& rprimId, SdfPath const& instancerId) override;
+    HdRprim * CreateRprim(TfToken const& typeId, SdfPath const& rprimId) override;
     void DestroyRprim(HdRprim * rPrim) override;
 
     HdSprim * CreateSprim(TfToken const& typeId, SdfPath const& sprimId) override;
@@ -55,24 +55,9 @@ public:
 
     virtual bool IsStopSupported() const override { return true; }
     virtual bool IsPauseSupported() const override { return true; }
-
-    virtual bool Stop() override {
-        render_thread.StopRender();
-        std::cout << "Stopping..." << std::endl;
-        return true;
-    }
-
-    virtual bool Pause() override {
-        render_thread.PauseRender();
-        std::cout << "Pausing..." << std::endl;
-        return true;
-    }
-
-    virtual bool Resume() override {
-        render_thread.ResumeRender();
-        std::cout << "Resuming..." << std::endl;
-        return true;
-    }
+    virtual bool Stop() override { render_thread.StopRender(); return true; }
+    virtual bool Pause() override { render_thread.PauseRender(); return true; }
+    virtual bool Resume() override { render_thread.ResumeRender(); return true; }
 
 private:
     static const TfTokenVector SUPPORTED_RPRIM_TYPES;

@@ -3,7 +3,7 @@
 #include "pxr/pxr.h"
 #include "pxr/imaging/hd/mesh.h"
 
-#include <koshi/GeometryMesh.h>
+#include <koshi/geometry/GeometryMesh.h>
 #include <koshi/Scene.h>
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -36,10 +36,7 @@ public:
     ///   \param id The scene-graph path to this mesh.
     ///   \param instancerId If specified, the HdInstancer at this id uses
     ///                      this mesh as a prototype.
-    HdKoshiMesh(Koshi::Scene * scene, SdfPath const& id, SdfPath const& instancerId = SdfPath());
-
-    /// HdTinyMesh destructor.
-    ~HdKoshiMesh();
+    HdKoshiMesh(const SdfPath& id);
 
     /// Inform the scene graph which state needs to be downloaded in the
     /// first Sync() call: in this case, topology and points data to build
@@ -77,6 +74,12 @@ public:
         HdDirtyBits*     dirtyBits,
         TfToken const    &reprToken) override;
 
+    /// Release any resources this class is holding onto: in this case,
+    /// destroy the geometry object in the embree scene graph.
+    ///   \param renderParam An HdEmbreeRenderParam object containing top-level
+    ///                      embree state.
+    virtual void Finalize(HdRenderParam *renderParam) override;
+
 protected:
     // Initialize the given representation of this Rprim.
     // This is called prior to syncing the prim, the first time the repr
@@ -112,7 +115,6 @@ protected:
 
     std::unordered_map<std::string, VtValue> primvars;
 
-    Koshi::Scene * scene;
     std::shared_ptr<Koshi::GeometryMesh> geometry;
 
     // This class does not support copying.

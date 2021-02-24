@@ -8,7 +8,7 @@ struct Sample
 {
     Vec3f wo;
     Vec3f value;
-    Vec3f pdf;
+    float pdf;
 };
 
 KOSHI_CLOSE_NAMESPACE

@@ -2,6 +2,7 @@
 
 #include <koshi/material/Lambert.h>
 #include <koshi/material/BackLambert.h>
+#include <koshi/material/Reflect.h>
 
 #define MAX_LOBES 16
 
@@ -13,6 +14,7 @@ union LobeData
     DEVICE_FUNCTION ~LobeData() {}
     Lambert lambert;
     BackLambert back_lambert;
+    Reflect reflect;
 };
 
 // TODO: Array should be a templated class, since we will use it so much...
@@ -22,7 +24,8 @@ public:
     DEVICE_FUNCTION LobeArray() : num_lobes(0) {}
     template<typename T>
     DEVICE_FUNCTION T& push() { return *(T*)&lobes[num_lobes++] = T(); }
-    DEVICE_FUNCTION const uint& size() { return num_lobes; }
+    DEVICE_FUNCTION const uint& size() const { return num_lobes; }
+    DEVICE_FUNCTION bool empty() const { return (num_lobes == 0); }
     DEVICE_FUNCTION const Lobe * operator[](const uint& i) const { return (Lobe*)&lobes[i]; }
 private:
     uint num_lobes;

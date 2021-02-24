@@ -56,7 +56,7 @@ public:
         return scene;
     }
 
-    void StopRender() { render_thread->StopRender(); }
+    void stopRender() { render_thread->StopRender(); }
 
 private:
     Koshi::Scene * scene;

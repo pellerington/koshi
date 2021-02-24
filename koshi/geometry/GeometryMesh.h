@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <koshi/math/Vec4.h>
-#include <koshi/Geometry.h>
+#include <koshi/geometry/Geometry.h>
 #include <koshi/Format.h>
 #include <koshi/OptixHelpers.h>
 #include <koshi/Intersect.h>
@@ -15,18 +15,18 @@
 
 KOSHI_OPEN_NAMESPACE
 
-struct GeometryMeshAttribute {
+struct GeometryMeshAttribute 
+{
     String name;
     Format format;
-    enum Type { NONE, CONSTANT, UNIFORM, VERTICES, FACE  } type;
-    // Ownership
+    enum Type { NONE, CONSTANT, UNIFORM, VERTICES, FACEVARYING  } type;
 
-    const void * data;
+    const void * data;  // Size of data array is data_size * data_stride * sizeof(format)
     void * d_data;
-    // size of data = data_stride * data_size?
     uint data_size;
     uint data_stride; // 3 for vertices/normals. 2 for uvs.
 
+    // TODO: Move to it's own attribute.
     const uint32_t * indices;
     uint32_t * d_indices;
     uint indices_size;
@@ -65,11 +65,8 @@ struct GeometryMeshAttribute {
 class GeometryMesh : public Geometry
 {
 public:
-    GeometryMesh() : num_attributes(0), vertices_attribute(MAX_GEOMETRY_MESH_ATTRIBUTES) {}
+    GeometryMesh() : Geometry(Type::MESH), num_attributes(0), vertices_attribute(MAX_GEOMETRY_MESH_ATTRIBUTES) {}
     ~GeometryMesh();
-
-    // TODO: This should be a variable set in the base class and returned by the base class. (So it can be trivially inlined)
-    GeometryType type() { return GeometryType::MESH; }
 
     void setAttribute(const std::string& name, const Format& format, const GeometryMeshAttribute::Type& type, const uint& data_size, const uint& data_stride, const void * data, const uint& indices_size, const uint& indices_stride, const uint * indices);
 
@@ -82,7 +79,6 @@ public:
 
     DEVICE_FUNCTION bool hasVerticesAttribute() { return vertices_attribute < num_attributes; }
     DEVICE_FUNCTION GeometryMeshAttribute * getVerticesAttribute() { return &attributes[vertices_attribute]; }
-
     DEVICE_FUNCTION GeometryMeshAttribute * getAttribute(const char * name)
     {
         for(uint i = 0; i < num_attributes; i++)

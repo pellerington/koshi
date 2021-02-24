@@ -6,7 +6,7 @@
 #include <koshi/RenderOptix.h>
 #include <koshi/IntersectList.h>
 
-#include <koshi/GeometryMesh.h>
+#include <koshi/geometry/GeometryMesh.h>
 
 #include <koshi/material/Material.h>
 
@@ -39,6 +39,9 @@ extern "C" __global__ void __raygen__rg()
     {
         const Intersect& intersect = intersects[0];
 
+        if(intersect.geometry->getType() != Geometry::MESH)
+            return;
+
         Aov * depth_aov = resources.getAov("depth");
         if(depth_aov)
             depth_aov->write(Vec2u(idx.x, idx.y), Vec4f(intersect.t, 0.f, 0.f, 1.f));
@@ -56,32 +59,98 @@ extern "C" __global__ void __raygen__rg()
         }
         
         LobeArray lobes;
-        generate_material(lobes, intersect);
+        generate_material(lobes, intersect, ray);
 
-        const Lambert * lambert = (const Lambert *)lobes[0];
+        if(lobes.empty())
+            return;
 
-        // Vec3f light_pos = ray.origin;//Vec3f(-30, -80, 200.f);//
+        // const Lambert * lambert = (const Lambert *)lobes[0];
 
         Vec3f color = 0.f;
-        for(uint i = 0; i < 1; i++)
+        const float num_samples = 2.f;
+        for(uint i = 0; i < num_samples; i++)
         {
+            const float lobe_prob = 1.f / lobes.size();
+            const uint lobe_index = resources.random->rand() * lobes.size();
+            const Lobe * lobe = lobes[lobe_index];
+
             Sample sample;
             const Vec2f rnd(resources.random->rand(), resources.random->rand());
-            lambert->sample(sample, rnd, intersect, ray.direction);
+
+            switch(lobe->getType())
+            {
+                case Lobe::LAMBERT: {
+                    ((const Lambert *)lobe)->sample(sample, rnd, intersect, ray.direction);
+                    break;
+                }
+                case Lobe::BACK_LAMBERT: {
+                    ((const BackLambert *)lobe)->sample(sample, rnd, intersect, ray.direction);
+                    break;
+                }
+                case Lobe::REFLECT: {
+                    ((const Reflect *)lobe)->sample(sample, rnd, intersect, ray.direction);
+                    break;
+                }
+            }
+            sample.pdf *= lobe_prob;
+    
+            for(uint j = 0; j < lobes.size(); j++)
+            {
+                if(j == lobe_index)
+                    continue;
+
+                Sample eval_sample;
+                bool evalated = false;
+                switch(lobe->getType())
+                {
+                    case Lobe::LAMBERT: {
+                        evalated = ((const Lambert *)lobe)->evaluate(eval_sample, intersect, ray.direction);
+                        break;
+                    }
+                    case Lobe::BACK_LAMBERT: {
+                        evalated = ((const BackLambert *)lobe)->evaluate(eval_sample, intersect, ray.direction);
+                        break;
+                    }
+                    case Lobe::REFLECT: {
+                        evalated = ((const Reflect *)lobe)->evaluate(eval_sample, intersect, ray.direction);
+                        break;
+                    }
+                }
+                
+                if(evalated)
+                {
+                    sample.value += eval_sample.value;
+                    sample.pdf += eval_sample.pdf * lobe_prob;
+                }
+            }
+
+            const bool front = (sample.wo.dot(intersect.normal) > 0.f);
+            if(lobes[0]->getSide() == Lobe::FRONT && !front || lobe->getSide() == Lobe::BACK && front)
+                continue;
 
             Ray shadow_ray;
-            shadow_ray.origin = intersect.position + intersect.normal * ((lobes[0]->getSide() == Lobe::FRONT) ? 0.0001f : -0.0001f); // TODO: Replace this with ray_bias;
+            shadow_ray.origin = intersect.position + intersect.normal * (front ? 0.0001f : -0.0001f); // TODO: Replace this with ray_bias;
             shadow_ray.direction = sample.wo;
             shadow_ray.tmin = 0.f;
             shadow_ray.tmax = FLT_MAX;
             const IntersectList shadow_intersects = resources.intersector->intersect(shadow_ray);
 
-            if(shadow_intersects.empty())
+            if(!shadow_intersects.empty())
             {
-                color += sample.value / sample.pdf;
+                const Intersect& shadow_intersect = shadow_intersects[0];
+                if(shadow_intersect.geometry->getType() == Geometry::ENVIRONMENT)
+                {
+                    GeometryEnvironment * env = (GeometryEnvironment *)shadow_intersect.geometry;
+                    float4 out = tex2D<float4>(env->cuda_tex, shadow_intersect.uvw.u, shadow_intersect.uvw.v);
+                    color += Vec3f(out.x, out.y, out.z) * sample.value / sample.pdf;
+
+                    // if(lobe->getType() == Lobe::REFLECT)
+                    //     printf("%f\n", (sample.pdf));
+    
+                }
             }
         }
-        color /= 1.f;
+        color /= num_samples;
 
         Aov * color_aov = resources.getAov("color");
         if(color_aov)
@@ -91,7 +160,31 @@ extern "C" __global__ void __raygen__rg()
 
 extern "C" __global__ void __miss__ms() 
 {
-    // Add distant light intersects.
+    IntersectList * intersects = unpackIntersects();
+    const Ray& ray = intersects-> getRay();
+
+    for(uint i = 0; i < resources.scene->num_distant_geometries; i++)
+    {
+        Intersect& intersect = intersects->push();
+        
+        intersect.prim = 0;
+    
+        HitGroupData * sbt_data = reinterpret_cast<HitGroupData*>(optixGetSbtDataPointer());
+        intersect.geometry = resources.scene->d_geometries[resources.scene->d_distant_geometries[i]];
+        intersect.obj_to_world = intersect.geometry->get_obj_to_world();
+    
+        intersect.t = intersect.t_max = FLT_MAX; // TODO: We should specify an infinite value
+    
+        intersect.position = Vec3f(FLT_MAX, FLT_MAX, FLT_MAX);
+    
+        float theta = atanf((ray.direction.z + epsilon) / (ray.direction.x + epsilon));
+        theta += ((ray.direction.z < 0.f) ? pi : 0.f) + ((ray.direction.z * ray.direction.x < 0.f) ? pi : 0.f);
+        intersect.uvw = intersect.uvw_max = Vec3f(theta * inv_two_pi, acosf(ray.direction.y) * inv_pi, 0.f);
+        
+        intersect.normal = -ray.direction;
+    
+        intersect.facing = true;
+    }
 }
 
 extern "C" __global__ void __closesthit__ch() 

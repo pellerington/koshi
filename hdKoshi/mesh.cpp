@@ -34,14 +34,14 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-HdKoshiMesh::HdKoshiMesh(Koshi::Scene * scene, SdfPath const& id, SdfPath const& instancerId)
-: HdMesh(id, instancerId), scene(scene), geometry(nullptr)
+HdKoshiMesh::HdKoshiMesh(const SdfPath& id)
+: HdMesh(id), geometry(nullptr)
 {
 }
 
-HdKoshiMesh::~HdKoshiMesh()
+void HdKoshiMesh::Finalize(HdRenderParam *renderParam)
 {
-    scene->removeGeometry(GetId().GetString());
+    static_cast<HdKoshiRenderParam*>(renderParam)->getScene()->removeGeometry(GetId().GetString());
 }
 
 HdDirtyBits HdKoshiMesh::GetInitialDirtyBitsMask() const
@@ -67,9 +67,8 @@ HdDirtyBits HdKoshiMesh::_PropagateDirtyBits(HdDirtyBits bits) const
     return bits;
 }
 
-void HdKoshiMesh::_InitRepr(TfToken const &reprToken, HdDirtyBits *dirtyBits)
+void HdKoshiMesh::_InitRepr(const TfToken& reprToken, HdDirtyBits * dirtyBits)
 {
-
 }
 
 void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderParam, HdDirtyBits * dirtyBits, const TfToken& reprToken)
@@ -172,7 +171,7 @@ void HdKoshiMesh::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderPa
 
         geometry->setVerticesAttribute(HdTokens->points);
 
-        scene->addGeometry(GetId().GetString(), geometry.get());
+        static_cast<HdKoshiRenderParam*>(renderParam)->getScene()->addGeometry(GetId().GetString(), geometry.get());
     }
 }
 

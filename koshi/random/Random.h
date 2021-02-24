@@ -5,7 +5,7 @@
 #include <koshi/OptixHelpers.h>
 #include <koshi/Koshi.h>
 
-#define UNIFORM_RANDOM_SIZE 2048u
+#define UNIFORM_RANDOM_SIZE 8192u
 
 KOSHI_OPEN_NAMESPACE
 
@@ -15,7 +15,7 @@ public:
     Random() : d_seeds(nullptr)
     {
         std::mt19937 random_generator(INT32_MAX);
-        std::uniform_real_distribution<float> distribution;
+        std::uniform_real_distribution<float> distribution(0.f, 1.f);
 
         float data[UNIFORM_RANDOM_SIZE];
         for(uint i = 0; i < UNIFORM_RANDOM_SIZE; i++)

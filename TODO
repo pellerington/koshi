@@ -1,0 +1,8 @@
+1. Geometry only loads GeometryMesh, make it work with curves, scatterers, volumes and instances.
+2. Need a way to load in materials.
+3. Dirtying scene graph for editing.
+4. Remove limitations on number of geometry mesh attributes.
+5. Volume integrator.
+6. Crashing when switching between Delegates.
+7. Probably some memory leak somewhere, check for it.
+8. Samples aov and doing aov finalization on the GPU.

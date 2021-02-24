@@ -9,6 +9,7 @@ KOSHI_OPEN_NAMESPACE
 struct BackLambert : public Lobe
 {
     DEVICE_FUNCTION BackLambert() : Lobe(BACK_LAMBERT, BACK) {}
+    
     Vec3f color;
     Vec3f normal;
     Transform world_transform;

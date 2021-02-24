@@ -18,13 +18,13 @@ bool HdKoshiRenderBuffer::Allocate(const GfVec3i& dimensions, HdFormat _format, 
 void HdKoshiRenderBuffer::Sync(HdSceneDelegate * sceneDelegate, HdRenderParam *renderParam, HdDirtyBits *dirtyBits)
 {
     if (*dirtyBits & DirtyDescription)
-        static_cast<HdKoshiRenderParam*>(renderParam)->StopRender();
+        static_cast<HdKoshiRenderParam*>(renderParam)->stopRender();
     HdRenderBuffer::Sync(sceneDelegate, renderParam, dirtyBits);
 }
 
 void HdKoshiRenderBuffer::Finalize(HdRenderParam *renderParam)
 {
-    static_cast<HdKoshiRenderParam*>(renderParam)->StopRender();
+    static_cast<HdKoshiRenderParam*>(renderParam)->stopRender();
     HdRenderBuffer::Finalize(renderParam);
 }
 

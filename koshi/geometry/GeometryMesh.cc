@@ -1,4 +1,4 @@
-#include <koshi/GeometryMesh.h>
+#include <koshi/geometry/GeometryMesh.h>
 
 KOSHI_OPEN_NAMESPACE
 

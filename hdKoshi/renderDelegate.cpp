@@ -25,6 +25,7 @@
 #include "mesh.h"
 #include "renderBuffer.h"
 #include "renderPass.h"
+#include "domeLight.h"
 #include <pxr/imaging/hd/camera.h>
 #include <pxr/imaging/hd/extComputation.h>
 
@@ -40,8 +41,8 @@ const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_RPRIM_TYPES =
 const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_SPRIM_TYPES =
 {
     HdPrimTypeTokens->camera,
-    HdPrimTypeTokens->extComputation,
     // HdPrimTypeTokens->material,
+    HdPrimTypeTokens->domeLight,
 };
 
 const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_BPRIM_TYPES =
@@ -105,12 +106,12 @@ HdRenderPassSharedPtr HdKoshiRenderDelegate::CreateRenderPass(HdRenderIndex * in
     return HdRenderPassSharedPtr(new HdKoshiRenderPass(&scene, &render_thread, index, collection));  
 }
 
-HdRprim * HdKoshiRenderDelegate::CreateRprim(const TfToken& typeId, const SdfPath& rprimId, const SdfPath& instancerId)
+HdRprim * HdKoshiRenderDelegate::CreateRprim(const TfToken& typeId, const SdfPath& rprimId)
 {
-    std::cout << "Create Rprim type=" << typeId.GetText() << " id=" << rprimId << " instancerId=" << instancerId << std::endl;
+    std::cout << "Create Rprim type=" << typeId.GetText() << " id=" << rprimId << std::endl;
 
     if (typeId == HdPrimTypeTokens->mesh) {
-        return new HdKoshiMesh(&scene, rprimId, instancerId);
+        return new HdKoshiMesh(rprimId);
     } else {
         TF_CODING_ERROR("Unknown Rprim type=%s id=%s", typeId.GetText(), rprimId.GetText());
     }
@@ -130,8 +131,8 @@ HdSprim * HdKoshiRenderDelegate::CreateSprim(const TfToken& typeId, const SdfPat
     // TODO: these should be switch statements.
     if (typeId == HdPrimTypeTokens->camera) {
         return new HdCamera(sprimId);
-    } else if (typeId == HdPrimTypeTokens->extComputation) {
-        return new HdExtComputation(sprimId);
+    } else if(typeId == HdPrimTypeTokens->domeLight) {
+        return new HdKoshiDomeLight(sprimId);
     }
     return nullptr;
 }
@@ -142,8 +143,8 @@ HdSprim * HdKoshiRenderDelegate::CreateFallbackSprim(const TfToken& typeId)
 
     if (typeId == HdPrimTypeTokens->camera) {
         return new HdCamera(SdfPath::EmptyPath());
-    } else if (typeId == HdPrimTypeTokens->extComputation) {
-        return new HdExtComputation(SdfPath::EmptyPath());
+    } else if(typeId == HdPrimTypeTokens->domeLight) {
+        return new HdKoshiDomeLight(SdfPath::EmptyPath());
     }
     return nullptr;
 }
@@ -180,10 +181,9 @@ void HdKoshiRenderDelegate::DestroyBprim(HdBprim * bPrim)
     delete bPrim;
 }
 
-HdInstancer * HdKoshiRenderDelegate::CreateInstancer(HdSceneDelegate * delegate, const SdfPath& id, const SdfPath& instancerId)
+HdInstancer * HdKoshiRenderDelegate::CreateInstancer(HdSceneDelegate * delegate, const SdfPath& id)
 {
-    TF_CODING_ERROR("Creating Instancer not supported id=%s instancerId=%s", 
-        id.GetText(), instancerId.GetText());
+    TF_CODING_ERROR("Creating Instancer not supported id=%s", id.GetText());
     return nullptr;
 }
 

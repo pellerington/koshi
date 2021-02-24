@@ -4,9 +4,14 @@ project (HdKoshi)
 # set(CMAKE_CXX_COMPILER nvcc)
 # set(CMAKE_VERBOSE_MAKEFILE ON)
 
+link_directories(/usr/local/USD/lib)
+
 find_package(pxr REQUIRED HINTS /usr/local/USD/)
 message(STATUS "pxr include: ${PXR_INCLUDE_DIRS}")
 message(STATUS "pxr library: ${PXR_LIBRARIES}")
+
+find_package(OpenImageIO REQUIRED HINTS /usr/local/USD/lib/cmake)
+message(STATUS "OpenImageIO library: ${OpenImageIO_LIBRARY}")
 
 find_package(CUDA REQUIRED)
 message(STATUS "cuda include: ${CUDA_INCLUDE_DIRS}")
@@ -32,10 +37,16 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 #Hd includes TODO: Should include only for the correct libraries.
 include_directories(${PXR_INCLUDE_DIRS})
+include_directories(${OpenImageIO_INCLUDE_DIR})
 
 #GPU includes
 include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(${OptiX_INCLUDE})
+include_directories(${OptiX_Demand_Loading_INCLUDE})
 
 target_link_libraries(HdKoshi ${PXR_LIBRARIES})
+target_link_libraries(HdKoshi ${OpenImageIO_LIBRARY})
 target_link_libraries(HdKoshi ${CUDA_LIBRARIES})
+#TODO: How do we properly add these from USD...
+target_link_libraries(HdKoshi /usr/local/USD/lib/libIex-2_2.so)
+target_link_libraries(HdKoshi /usr/local/USD/lib/libIlmImf-2_2.so)

@@ -4,15 +4,14 @@
 
 KOSHI_OPEN_NAMESPACE
 
-enum GeometryType
-{
-    MESH
-};
-
 class Geometry
 {
 public:
-    virtual GeometryType type() = 0;
+    enum Type { MESH, ENVIRONMENT };
+    Geometry(const Type& type) : type(type) {}
+    virtual ~Geometry() = default;
+    DEVICE_FUNCTION const Type& getType() const { return type; }
+
     void setTransform(const Transform& _obj_to_world)
     {
         obj_to_world = _obj_to_world;
@@ -20,7 +19,9 @@ public:
     }
     DEVICE_FUNCTION const Transform& get_obj_to_world() { return obj_to_world; }
     DEVICE_FUNCTION const Transform& get_world_to_obj() { return world_to_obj; }
-protected:
+    
+private:
+    Type type;
     Transform obj_to_world;
     Transform world_to_obj;
 };
