@@ -26,13 +26,14 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
         if(it->second->getType() == Geometry::MESH)
         {
             GeometryMesh * mesh = (GeometryMesh*)geometry;
-            if(!mesh->hasVerticesAttribute()) continue;
-            GeometryMeshAttribute * vertices = mesh->getVerticesAttribute();
-            if(vertices->format != Format::FLOAT32) continue;
 
-            // TODO: If a geometry changes simply delete it from our traversables?
+            // TODO: If a geometry changes simply delete it from our traversables so this will automatically do this.
             if(traversables.find(mesh) == traversables.end())
             {
+                if(!mesh->hasVerticesAttribute()) continue;
+                GeometryMeshAttribute * vertices = mesh->getVerticesAttribute();
+                if(vertices->format != Format::FLOAT32) continue;
+
                 // Use default options for simplicity.
                 OptixAccelBuildOptions accel_options = {};
                 accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
@@ -49,7 +50,7 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
                 triangle_input.triangleArray.indexStrideInBytes  = sizeof(uint32_t)*vertices->indices_stride;
                 triangle_input.triangleArray.numIndexTriplets    = static_cast<uint32_t>(vertices->indices_size);
                 triangle_input.triangleArray.indexBuffer         = (CUdeviceptr)vertices->d_indices;;
-                triangle_input.triangleArray.flags         = triangle_input_flags;
+                triangle_input.triangleArray.flags               = triangle_input_flags;
                 triangle_input.triangleArray.numSbtRecords               = 1;
                 triangle_input.triangleArray.sbtIndexOffsetBuffer        = 0; 
                 triangle_input.triangleArray.sbtIndexOffsetSizeInBytes   = 0; 
@@ -70,6 +71,14 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
                 // Free the temp gas buffer.
                 CUDA_CHECK(cudaFree(reinterpret_cast<void*>(temp_gas_buffer)));
             }
+        }
+        else if(it->second->getType() == Geometry::QUAD)
+        {
+
+        }
+        else if(it->second->getType() == Geometry::ENVIRONMENT)
+        {
+            continue;
         }
 
         geometry->get_obj_to_world().copy(instances[i].transform);

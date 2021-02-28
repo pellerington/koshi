@@ -45,8 +45,6 @@ HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, c
 
     if(!restart) return;
 
-    std::cout << "Restarting Render..." << std::endl;
-
     render_thread->StopRender();
     render.reset();
 
@@ -74,8 +72,6 @@ HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, c
     // Start the background render thread.
     render.start();
     render_thread->StartRender();
-
-    std::cout << "=> Execute RenderPass" << std::endl;
 }
 
 void
@@ -91,9 +87,13 @@ HdKoshiRenderPass::Render()
         for(auto aov = aov_bindings.begin(); aov != aov_bindings.end(); ++aov)
         {
             Koshi::Aov * koshi_aov = render.getAov(aov->aovName);
-            koshi_aov->copy(aov->renderBuffer->Map(), render.sample);
+            koshi_aov->copy(aov->renderBuffer->Map(), render.getPasses()/* TODO: Replace this with the samples aov */);
+            ((HdKoshiRenderBuffer*)aov->renderBuffer)->SetConverged();
             aov->renderBuffer->Unmap();
         }
+
+        for(auto aov = aov_bindings.begin(); aov != aov_bindings.end(); ++aov)
+            ((HdKoshiRenderBuffer*)aov->renderBuffer)->SetConverged();
     }
 
     /* SET AOVs as CONVERGED */

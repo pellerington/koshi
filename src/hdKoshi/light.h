@@ -9,10 +9,10 @@
 PXR_NAMESPACE_OPEN_SCOPE
 
 // TODO: Unify this as one light.
-class HdKoshiDomeLight final : public HdLight 
+class HdKoshiLight final : public HdLight 
 {
 public:
-    HdKoshiDomeLight(const SdfPath& id);
+    HdKoshiLight(const SdfPath& id, const TfToken& hd_light_type);
     HdDirtyBits GetInitialDirtyBitsMask() const override;
 
     void Sync(HdSceneDelegate * sceneDelegate, HdRenderParam * renderParam, HdDirtyBits * dirtyBits) override;
@@ -20,11 +20,13 @@ public:
 
 protected:
 
+    const TfToken hd_light_type;
+
     std::shared_ptr<Koshi::GeometryEnvironment> geometry;
 
     // This class does not support copying.
-    HdKoshiDomeLight(const HdKoshiDomeLight&) = delete;
-    HdKoshiDomeLight &operator =(const HdKoshiDomeLight&) = delete;
+    HdKoshiLight(const HdKoshiLight&) = delete;
+    HdKoshiLight &operator =(const HdKoshiLight&) = delete;
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

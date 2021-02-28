@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <cuda.h>
+#include <cuda_runtime.h>
 #include <optix_stubs.h>
 #include <optix_function_table_definition.h>
 #include <optix_stack_size.h>
@@ -20,18 +22,36 @@ RenderOptix::RenderOptix()
     resources.scene = nullptr;
     resources.camera = nullptr;
     resources.intersector = nullptr;
-    resources.random = nullptr;
+    resources.random_generator = nullptr;
     resources.aovs = nullptr;
     d_resources = 0;
     sbt.raygenRecord = 0;
     sbt.missRecordBase = 0;
     sbt.hitgroupRecordBase = 0;
-    
+
     // Initialize CUDA and create OptiX context
     {
         CUDA_CHECK(cudaFree(0));
-        CUcontext cuCtx = 0;  // zero means take the current context
+
+        int num_optix_devices;
+        cudaGetDeviceCount(&num_optix_devices);
+        if (!num_optix_devices)
+        {
+            std::cout << "ERROR: No subtible optix 7 devices found." << std::endl;
+            return;
+        }
+
+        const int device_id = 0;
+        cudaDeviceProp device_props;
+        cudaGetDeviceProperties(&device_props, device_id);
+        std::cout << "Running on device: " << device_props.name << std::endl;
+
         OPTIX_CHECK(optixInit());
+
+        CUDA_CHECK(cudaStreamCreate(&cuda_stream));
+
+        CUcontext cuda_ctx = 0;
+
         OptixDeviceContextOptions options = {};
         static auto context_log_cb = [](unsigned int level, const char* tag, const char* message, void* cbdata)
         {
@@ -39,7 +59,8 @@ RenderOptix::RenderOptix()
         };
         options.logCallbackFunction       = context_log_cb;
         options.logCallbackLevel          = 4;
-        OPTIX_CHECK(optixDeviceContextCreate(cuCtx, &options, &context));
+        // options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
+        OPTIX_CHECK(optixDeviceContextCreate(cuda_ctx, &options, &context));
     }
 
     char log[2048]; // For error reporting from OptiX creation functions
@@ -56,7 +77,7 @@ RenderOptix::RenderOptix()
         pipeline_compile_options.usesMotionBlur        = false;
         pipeline_compile_options.traversableGraphFlags = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_ANY;
         pipeline_compile_options.numPayloadValues      = 2;
-        pipeline_compile_options.numAttributeValues    = 3;
+        pipeline_compile_options.numAttributeValues    = 0;
 
         pipeline_compile_options.exceptionFlags        = OPTIX_EXCEPTION_FLAG_NONE;
         pipeline_compile_options.pipelineLaunchParamsVariableName = "resources";
@@ -161,9 +182,6 @@ Aov * RenderOptix::addAov(const std::string& name, /*Format?*/ const uint& chann
 
 void RenderOptix::reset()
 {
-    // TODO: Replace sample with sample aov
-    sample = 0;
-
     // Free SBT.
     CUDA_FREE(sbt.raygenRecord);
     CUDA_FREE(sbt.missRecordBase);
@@ -174,12 +192,13 @@ void RenderOptix::reset()
     CUDA_FREE(resources.intersector);
     CUDA_FREE(resources.aovs);
     CUDA_FREE(resources.scene);
-    CUDA_FREE(resources.random);
+    CUDA_FREE(resources.random_generator);
     CUDA_FREE(d_resources);
 
     // TODO: We shouldn't remake all aovs and camera on reset. if we are just updating an objects translation ect. hydra needs some way of checking aovs against it's list.
     aovs.clear();
     camera = nullptr;
+    passes = 0;
 }
 
 void RenderOptix::start()
@@ -190,7 +209,11 @@ void RenderOptix::start()
     if(!intersector)
         intersector = new IntersectorOptix(scene, context);
 
-    // TODO: For device objects. Malloc Once and the Memcpy to update.
+    addAov("samples", 1);
+
+    passes = 0;
+
+    // TODO: For device objects. we should be malloc Once and the Memcpy to update.
 
     // Copy Camera to Device.
     CUDA_CHECK(cudaMalloc(&resources.camera, sizeof(Camera)));
@@ -211,9 +234,9 @@ void RenderOptix::start()
     CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.scene), &device_scene, sizeof(DeviceScene), cudaMemcpyHostToDevice));
 
     // Copy Random to Device
-    random.init(camera->getResolution());
-    CUDA_CHECK(cudaMalloc(&resources.random, sizeof(Random)));
-    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.random), &random, sizeof(Random), cudaMemcpyHostToDevice));
+    random_generator.init(camera->getResolution(), 0);
+    CUDA_CHECK(cudaMalloc(&resources.random_generator, sizeof(RandomGenerator)));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(resources.random_generator), &random_generator, sizeof(RandomGenerator), cudaMemcpyHostToDevice));
 
     // Copy Resrouces to device
     CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_resources), sizeof(Resources)));
@@ -258,13 +281,11 @@ void RenderOptix::start()
 
 void RenderOptix::pass()
 {
-    random.setSeeds(sample, 0);
-
-    // Perform the actual intersection.
-    OPTIX_CHECK(optixLaunch(pipeline, 0, d_resources, sizeof(Resources), &sbt, camera->getResolution().x, camera->getResolution().y, /*depth=*/1));
+    // Perform the actual integration.
+    CUDA_CHECK(cudaMemcpyAsync(reinterpret_cast<void*>( d_resources ), &resources, sizeof(Resources), cudaMemcpyHostToDevice, cuda_stream));
+    OPTIX_CHECK(optixLaunch(pipeline, cuda_stream, d_resources, sizeof(Resources), &sbt, camera->getResolution().x, camera->getResolution().y, /*depth=*/1));
     CUDA_SYNC_CHECK();
-
-    sample++;
+    passes++;
 }
 
 RenderOptix::~RenderOptix()
@@ -288,7 +309,7 @@ RenderOptix::~RenderOptix()
     CUDA_FREE(resources.intersector);
     CUDA_FREE(resources.aovs);
     CUDA_FREE(resources.scene);
-    CUDA_FREE(resources.random);
+    CUDA_FREE(resources.random_generator);
     CUDA_FREE(d_resources);
 }
 

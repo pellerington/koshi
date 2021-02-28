@@ -20,6 +20,7 @@ DEVICE_FUNCTION void generate_material(LobeArray& lobes, const Intersect& inters
     Reflect& reflect = lobes.push<Reflect>();
     reflect.normal = normal;
     reflect.color = r;
+    // TODO: Setting this to 1 makes it black...
 
     Lambert& lambert = lobes.push<Lambert>();
     GeometryMeshAttribute * color_attr = ((GeometryMesh *)intersect.geometry)->getAttribute("displayColor");

@@ -16,7 +16,7 @@ class HdKoshiRenderBuffer : public HdRenderBuffer
 public:
     HdKoshiRenderBuffer(const SdfPath& id) 
     : HdRenderBuffer(id)
-    , width(0), height(0), depth(0), format(HdFormatInvalid)
+    , width(0), height(0), depth(0), converged(false), format(HdFormatInvalid)
     , buffer(), multi_sampled(false), mappers(0)
     {
     }
@@ -27,6 +27,7 @@ public:
     virtual void Sync(HdSceneDelegate * sceneDelegate, HdRenderParam *renderParam, HdDirtyBits *dirtyBits) override;
     virtual void Finalize(HdRenderParam *renderParam) override;
     virtual void Resolve() override {}
+    void SetConverged() { converged = true; }
     virtual bool IsConverged() const override { return false; }
     virtual void _Deallocate() override;
 
@@ -40,11 +41,11 @@ public:
     virtual void Unmap() override { mappers--; mutex.unlock(); }
     virtual bool IsMapped() const override { return mappers.load() != 0; }
 
-
 private:
     unsigned int width;
     unsigned int height;
     unsigned int depth;
+    bool converged;
     HdFormat format;
     std::vector<uint8_t> buffer;
     bool multi_sampled;

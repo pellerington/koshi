@@ -7,12 +7,12 @@ KOSHI_OPEN_NAMESPACE
 class Geometry
 {
 public:
-    enum Type { MESH, ENVIRONMENT };
+    enum Type { MESH, QUAD, ENVIRONMENT };
     Geometry(const Type& type) : type(type) {}
     virtual ~Geometry() = default;
     DEVICE_FUNCTION const Type& getType() const { return type; }
 
-    void setTransform(const Transform& _obj_to_world)
+    virtual void setTransform(const Transform& _obj_to_world)
     {
         obj_to_world = _obj_to_world;
         world_to_obj = obj_to_world.inverse();

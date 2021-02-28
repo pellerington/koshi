@@ -10,6 +10,7 @@ KOSHI_OPEN_NAMESPACE
 struct Lambert : public Lobe
 {
     DEVICE_FUNCTION Lambert() : Lobe(LAMBERT, FRONT) {}
+    
     Vec3f color;
     Vec3f normal;
     Transform world_transform;

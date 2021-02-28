@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include <koshi/geometry/GeometryMesh.h>
+#include <koshi/geometry/GeometryQuad.h>
 #include <koshi/geometry/GeometryEnvironment.h>
 
 KOSHI_OPEN_NAMESPACE
@@ -36,7 +37,7 @@ public:
 
     void init(Scene * scene)
     {
-        // Free our geometries...
+        // Free our geometries... TODO: Replace these ptrs with unique ptrs so we don't have to do this CUDA_FREE crap.
         for(uint i = 0; i < geometries.size(); i++)
             CUDA_FREE(geometries[i]);
         CUDA_FREE(d_geometries);
@@ -56,6 +57,12 @@ public:
                 GeometryMesh * mesh = (GeometryMesh*)geometry;
                 CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&geometries[i]), sizeof(GeometryMesh)));
                 CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(geometries[i]), mesh, sizeof(GeometryMesh), cudaMemcpyHostToDevice));
+            }
+            if(geometry->getType() == Geometry::QUAD)
+            {
+                GeometryQuad * quad = (GeometryQuad*)geometry;
+                CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&geometries[i]), sizeof(GeometryQuad)));
+                CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(geometries[i]), quad, sizeof(GeometryQuad), cudaMemcpyHostToDevice));
             }
             else if(geometry->getType() == Geometry::ENVIRONMENT)
             {

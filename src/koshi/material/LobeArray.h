@@ -17,7 +17,10 @@ union LobeData
     Reflect reflect;
 };
 
-// TODO: Array should be a templated class, since we will use it so much...
+// TODO: Rename this to material config and have it store emitted light ect as well
+
+// TODO: Lobe Array should be a templated class, since we will use it so much
+
 class LobeArray
 {
 public:

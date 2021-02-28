@@ -25,7 +25,7 @@
 #include "mesh.h"
 #include "renderBuffer.h"
 #include "renderPass.h"
-#include "domeLight.h"
+#include "light.h"
 #include <pxr/imaging/hd/camera.h>
 #include <pxr/imaging/hd/extComputation.h>
 
@@ -132,7 +132,7 @@ HdSprim * HdKoshiRenderDelegate::CreateSprim(const TfToken& typeId, const SdfPat
     if (typeId == HdPrimTypeTokens->camera) {
         return new HdCamera(sprimId);
     } else if(typeId == HdPrimTypeTokens->domeLight) {
-        return new HdKoshiDomeLight(sprimId);
+        return new HdKoshiLight(sprimId, HdPrimTypeTokens->domeLight);
     }
     return nullptr;
 }
@@ -144,7 +144,7 @@ HdSprim * HdKoshiRenderDelegate::CreateFallbackSprim(const TfToken& typeId)
     if (typeId == HdPrimTypeTokens->camera) {
         return new HdCamera(SdfPath::EmptyPath());
     } else if(typeId == HdPrimTypeTokens->domeLight) {
-        return new HdKoshiDomeLight(SdfPath::EmptyPath());
+        return new HdKoshiLight(SdfPath::EmptyPath(), HdPrimTypeTokens->domeLight);
     }
     return nullptr;
 }

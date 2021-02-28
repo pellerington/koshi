@@ -46,20 +46,7 @@ void HdKoshiMesh::Finalize(HdRenderParam *renderParam)
 
 HdDirtyBits HdKoshiMesh::GetInitialDirtyBitsMask() const
 {
-    int mask = HdChangeTracker::Clean
-        | HdChangeTracker::InitRepr
-        | HdChangeTracker::DirtyPoints
-        | HdChangeTracker::DirtyTopology
-        | HdChangeTracker::DirtyTransform
-        | HdChangeTracker::DirtyVisibility
-        | HdChangeTracker::DirtyCullStyle
-        | HdChangeTracker::DirtyDoubleSided
-        | HdChangeTracker::DirtyDisplayStyle
-        | HdChangeTracker::DirtySubdivTags
-        | HdChangeTracker::DirtyPrimvar
-        | HdChangeTracker::DirtyNormals
-        | HdChangeTracker::DirtyInstancer;
-    return (HdDirtyBits)mask;
+    return HdChangeTracker::AllDirty;
 }
 
 HdDirtyBits HdKoshiMesh::_PropagateDirtyBits(HdDirtyBits bits) const

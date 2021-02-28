@@ -5,6 +5,7 @@
 
 #include <koshi/RenderOptix.h>
 #include <koshi/IntersectList.h>
+#include <koshi/Integrator.h>
 
 #include <koshi/geometry/GeometryMesh.h>
 
@@ -31,7 +32,22 @@ extern "C" __global__ void __raygen__rg()
     const uint3 idx = optixGetLaunchIndex();
     const uint3 dim = optixGetLaunchDimensions();
 
-    const Ray ray = resources.camera->sample(idx.x, idx.y, Vec2f(resources.random->rand(), resources.random->rand()));
+    const Vec2u pixel(idx.x, idx.y);
+    const Vec2u& resolution = resources.camera->getResolution();
+    Aov * samples_aov = resources.getAov("samples");
+    if(!samples_aov)
+        return; // TODO: WE SHOULD ERROR HERE
+    uint sample = samples_aov->read(pixel)[0];
+
+    if(sample == 0)
+        resources.random_generator->init(pixel);
+
+    Random random = resources.random_generator->get(pixel);
+
+    // Increment the number of samples taken.
+    samples_aov->write(pixel, Vec4f(sample+1));
+
+    const Ray ray = resources.camera->sample(pixel.x, pixel.y, Vec2f(random.rand(), random.rand()));
 
     const IntersectList intersects = resources.intersector->intersect(ray);
 
@@ -44,19 +60,11 @@ extern "C" __global__ void __raygen__rg()
 
         Aov * depth_aov = resources.getAov("depth");
         if(depth_aov)
-            depth_aov->write(Vec2u(idx.x, idx.y), Vec4f(intersect.t, 0.f, 0.f, 1.f));
+            depth_aov->write(pixel, Vec4f(intersect.t, 0.f, 0.f, 1.f));
 
         Aov * normal_aov = resources.getAov("normal");
         if(normal_aov)
-            normal_aov->write(Vec2u(idx.x, idx.y), Vec4f(intersect.normal, 1.f));
-
-        if(!intersect.facing)
-        {
-            Aov * color_aov = resources.getAov("color");
-            if(color_aov)
-                color_aov->write(Vec2u(idx.x, idx.y), Vec4f(0.f, 0.f, 0.f, 1.f));
-            return;
-        }
+            normal_aov->write(pixel, Vec4f(intersect.normal, 1.f));
         
         LobeArray lobes;
         generate_material(lobes, intersect, ray);
@@ -64,63 +72,29 @@ extern "C" __global__ void __raygen__rg()
         if(lobes.empty())
             return;
 
-        // const Lambert * lambert = (const Lambert *)lobes[0];
-
         Vec3f color = 0.f;
         const float num_samples = 2.f;
         for(uint i = 0; i < num_samples; i++)
         {
             const float lobe_prob = 1.f / lobes.size();
-            const uint lobe_index = resources.random->rand() * lobes.size();
+            const uint lobe_index = random.rand() * lobes.size();
             const Lobe * lobe = lobes[lobe_index];
 
             Sample sample;
-            const Vec2f rnd(resources.random->rand(), resources.random->rand());
-
-            switch(lobe->getType())
-            {
-                case Lobe::LAMBERT: {
-                    ((const Lambert *)lobe)->sample(sample, rnd, intersect, ray.direction);
-                    break;
-                }
-                case Lobe::BACK_LAMBERT: {
-                    ((const BackLambert *)lobe)->sample(sample, rnd, intersect, ray.direction);
-                    break;
-                }
-                case Lobe::REFLECT: {
-                    ((const Reflect *)lobe)->sample(sample, rnd, intersect, ray.direction);
-                    break;
-                }
-            }
+            if(!sample_lobe(lobe, sample, resources, intersect, ray, random))
+                continue;
             sample.pdf *= lobe_prob;
     
             for(uint j = 0; j < lobes.size(); j++)
             {
                 if(j == lobe_index)
                     continue;
-
-                Sample eval_sample;
-                bool evalated = false;
-                switch(lobe->getType())
-                {
-                    case Lobe::LAMBERT: {
-                        evalated = ((const Lambert *)lobe)->evaluate(eval_sample, intersect, ray.direction);
-                        break;
-                    }
-                    case Lobe::BACK_LAMBERT: {
-                        evalated = ((const BackLambert *)lobe)->evaluate(eval_sample, intersect, ray.direction);
-                        break;
-                    }
-                    case Lobe::REFLECT: {
-                        evalated = ((const Reflect *)lobe)->evaluate(eval_sample, intersect, ray.direction);
-                        break;
-                    }
-                }
                 
-                if(evalated)
+                Sample eval;
+                if(!evaluate_lobe(lobes[j], eval, resources, intersect, ray))
                 {
-                    sample.value += eval_sample.value;
-                    sample.pdf += eval_sample.pdf * lobe_prob;
+                    sample.value += eval.value;
+                    sample.pdf += eval.pdf * lobe_prob;
                 }
             }
 
@@ -129,7 +103,7 @@ extern "C" __global__ void __raygen__rg()
                 continue;
 
             Ray shadow_ray;
-            shadow_ray.origin = intersect.position + intersect.normal * (front ? 0.0001f : -0.0001f); // TODO: Replace this with ray_bias;
+            shadow_ray.origin = intersect.position + intersect.normal * (front ? ray_bias : -ray_bias);
             shadow_ray.direction = sample.wo;
             shadow_ray.tmin = 0.f;
             shadow_ray.tmax = FLT_MAX;
@@ -143,10 +117,6 @@ extern "C" __global__ void __raygen__rg()
                     GeometryEnvironment * env = (GeometryEnvironment *)shadow_intersect.geometry;
                     float4 out = tex2D<float4>(env->cuda_tex, shadow_intersect.uvw.u, shadow_intersect.uvw.v);
                     color += Vec3f(out.x, out.y, out.z) * sample.value / sample.pdf;
-
-                    // if(lobe->getType() == Lobe::REFLECT)
-                    //     printf("%f\n", (sample.pdf));
-    
                 }
             }
         }
@@ -154,7 +124,7 @@ extern "C" __global__ void __raygen__rg()
 
         Aov * color_aov = resources.getAov("color");
         if(color_aov)
-            color_aov->write(Vec2u(idx.x, idx.y), Vec4f(color, 1.f));
+            color_aov->write(pixel, Vec4f(color, 1.f));
     }
 }
 

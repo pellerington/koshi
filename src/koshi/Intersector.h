@@ -1,3 +1,5 @@
+#pragma once
+
 // #if KOSHI_TYPE == OPTIX
 
 #include <koshi/IntersectorOptix.h>

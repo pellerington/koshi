@@ -21,11 +21,19 @@ public:
     Aov(const std::string& name, const Vec2u& resolution, const uint& channels);
     ~Aov();
 
-    DEVICE_FUNCTION void write(const Vec2u& coord, const Vec4f& value)
+    DEVICE_FUNCTION void write(const Vec2u& pixel, const Vec4f& value)
     {
         for(uint i = 0; i < channels; i++)
-            d_buffer[(coord.x + resolution.x*coord.y)*channels + i] += value[i]; // ONLY Perform the ADD if it is averaging or summing...
+            d_buffer[(pixel.x + resolution.x*pixel.y)*channels + i] += value[i]; // ONLY Perform the ADD if it is averaging or summing...
         return;
+    }
+
+    DEVICE_FUNCTION Vec4f read(const Vec2u& pixel)
+    {
+        Vec4f value;
+        for(uint i = 0; i < channels; i++)
+            value[i] = d_buffer[(pixel.x + resolution.x*pixel.y)*channels + i]; // Should take into account mode, Average/Total/FirstValue????
+        return value;
     }
 
     DEVICE_FUNCTION bool operator==(const char * _name) { return name == _name; }

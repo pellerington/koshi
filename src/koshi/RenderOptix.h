@@ -43,7 +43,7 @@ struct Resources
     DeviceScene * scene;
     Camera * camera;
     Intersector * intersector;
-    Random * random;
+    RandomGenerator * random_generator;
     Aov * aovs;
     uint aovs_size;
     DEVICE_FUNCTION Aov * getAov(const char * name)
@@ -72,12 +72,13 @@ public:
     void start();
     void pass();
 
-    // TODO: Replace sample with sample aov...
-    uint sample = 0;
+    const uint& getPasses() { return passes; }
 
 private:
 
-    Random random;
+    uint passes;
+
+    RandomGenerator random_generator;
 
     Scene * scene;
     Camera * camera;
@@ -90,6 +91,7 @@ private:
     CUdeviceptr d_resources;
 
     // Optix Specific
+    CUstream cuda_stream;
     OptixShaderBindingTable sbt;
     OptixDeviceContext context;
     OptixModule module;

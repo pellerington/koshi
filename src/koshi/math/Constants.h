@@ -12,4 +12,6 @@ KOSHI_OPEN_NAMESPACE
 #define epsilon 1e-16f
 #define inv_epsilon 1e16f
 
+#define ray_bias 0.0001f
+
 KOSHI_CLOSE_NAMESPACE
