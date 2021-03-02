@@ -6,24 +6,22 @@
 
 KOSHI_OPEN_NAMESPACE
 
-DEVICE_FUNCTION bool sample_lobe(const Lobe * lobe, Sample& sample, Resources& resources, const Intersect& intersect, const Ray& ray, Random& random /* TODO: Remove Random once we have sequences later */)
+DEVICE_FUNCTION bool sample_lobe(const Lobe * lobe, Sample& sample, const Intersect& intersect, const Ray& ray, Random& random)
 {
-    const Vec2f rnd(random.rand(), random.rand());
-
     switch(lobe->getType())
     {
         case Lobe::LAMBERT:
-            return ((const Lambert *)lobe)->sample(sample, rnd, intersect, ray.direction);
+            return ((const Lambert *)lobe)->sample(sample, intersect, ray.direction, random);
         case Lobe::BACK_LAMBERT:
-            return ((const BackLambert *)lobe)->sample(sample, rnd, intersect, ray.direction);
+            return ((const BackLambert *)lobe)->sample(sample, intersect, ray.direction, random);
         case Lobe::REFLECT:
-            return ((const Reflect *)lobe)->sample(sample, rnd, intersect, ray.direction);
+            return ((const Reflect *)lobe)->sample(sample, intersect, ray.direction);
         default:
             return false;
     }
 }
 
-DEVICE_FUNCTION bool evaluate_lobe(const Lobe * lobe, Sample& sample, Resources& resources, const Intersect& intersect, const Ray& ray)
+DEVICE_FUNCTION bool evaluate_lobe(const Lobe * lobe, Sample& sample, const Intersect& intersect, const Ray& ray)
 {
     switch(lobe->getType())
     {

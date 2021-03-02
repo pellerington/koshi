@@ -3,4 +3,4 @@ build
 *.code-workspace
 scenes
 plugin
-generate_rnd.sh
+generate_random.py

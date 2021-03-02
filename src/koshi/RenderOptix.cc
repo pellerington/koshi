@@ -282,7 +282,7 @@ void RenderOptix::start()
 void RenderOptix::pass()
 {
     // Perform the actual integration.
-    CUDA_CHECK(cudaMemcpyAsync(reinterpret_cast<void*>( d_resources ), &resources, sizeof(Resources), cudaMemcpyHostToDevice, cuda_stream));
+    CUDA_CHECK(cudaMemcpyAsync(reinterpret_cast<void*>(d_resources), &resources, sizeof(Resources), cudaMemcpyHostToDevice, cuda_stream));
     OPTIX_CHECK(optixLaunch(pipeline, cuda_stream, d_resources, sizeof(Resources), &sbt, camera->getResolution().x, camera->getResolution().y, /*depth=*/1));
     CUDA_SYNC_CHECK();
     passes++;

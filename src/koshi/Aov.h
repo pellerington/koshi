@@ -24,7 +24,9 @@ public:
     DEVICE_FUNCTION void write(const Vec2u& pixel, const Vec4f& value)
     {
         for(uint i = 0; i < channels; i++)
+        {
             d_buffer[(pixel.x + resolution.x*pixel.y)*channels + i] += value[i]; // ONLY Perform the ADD if it is averaging or summing...
+        }
         return;
     }
 
@@ -32,7 +34,9 @@ public:
     {
         Vec4f value;
         for(uint i = 0; i < channels; i++)
+        {
             value[i] = d_buffer[(pixel.x + resolution.x*pixel.y)*channels + i]; // Should take into account mode, Average/Total/FirstValue????
+        }
         return value;
     }
 

@@ -12,7 +12,7 @@ struct Reflect : public Lobe
     Vec3f color;
     Vec3f normal;
 
-    DEVICE_FUNCTION bool sample(Sample& sample, const Vec2f& rnd, const Intersect& intersect, const Vec3f& wi) const
+    DEVICE_FUNCTION bool sample(Sample& sample, const Intersect& intersect, const Vec3f& wi) const
     {
         sample.wo = wi - 2.f * wi.dot(normal) * normal; 
         sample.value = color * inv_epsilon * sample.wo.dot(normal);

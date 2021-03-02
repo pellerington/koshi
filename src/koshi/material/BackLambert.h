@@ -14,15 +14,16 @@ struct BackLambert : public Lobe
     Vec3f normal;
     Transform world_transform;
 
-    DEVICE_FUNCTION bool sample(Sample& sample, const Vec2f& rnd, const Intersect& intersect, const Vec3f& wi) const
+    DEVICE_FUNCTION bool sample(Sample& sample, const Intersect& intersect, const Vec3f& wi, Random& random) const
     {
-        const float theta = two_pi * rnd[0];
+        const float theta = two_pi * random.rand();
     #if BACK_LAMBERT_UNIFORM_SAMPLE
-        const float phi = acosf(rnd[1]);
+        const float phi = acosf(random.rand());
         sample.wo = world_transform * Vec3f(sinf(phi) * cosf(theta), sinf(phi) * sinf(theta), cosf(phi));
         sample.pdf = inv_two_pi;
     #else
-        const float r = sqrtf(rnd[1]), z = sqrtf(max(epsilon, 1.f - rnd[1]));
+        const float r2 = random.rand();
+        const float r = sqrtf(r2), z = sqrtf(max(epsilon, 1.f - r2));
         sample.wo = world_transform * Vec3f(r * cosf(theta), r * sinf(theta), z);
         sample.pdf = z * inv_pi;
     #endif

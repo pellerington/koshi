@@ -36,21 +36,17 @@ extern "C" __global__ void __raygen__rg()
     const Vec2u& resolution = resources.camera->getResolution();
     Aov * samples_aov = resources.getAov("samples");
     if(!samples_aov)
-        return; // TODO: WE SHOULD ERROR HERE
-    uint sample = samples_aov->read(pixel)[0];
+        return;
+    const uint sample = samples_aov->read(pixel)[0];
+    samples_aov->write(pixel, Vec4f(1.f));
 
-    if(sample == 0)
-        resources.random_generator->init(pixel);
+    Random random = resources.random_generator->get(pixel, sample);
 
-    Random random = resources.random_generator->get(pixel);
-
-    // Increment the number of samples taken.
-    samples_aov->write(pixel, Vec4f(sample+1));
-
+    // TODO: We should probably use a different sample method pmj02 for camera samples???
     const Ray ray = resources.camera->sample(pixel.x, pixel.y, Vec2f(random.rand(), random.rand()));
 
     const IntersectList intersects = resources.intersector->intersect(ray);
-
+    
     if(intersects.size() > 0)
     {
         const Intersect& intersect = intersects[0];
@@ -73,7 +69,7 @@ extern "C" __global__ void __raygen__rg()
             return;
 
         Vec3f color = 0.f;
-        const float num_samples = 2.f;
+        const float num_samples = 4.f;
         for(uint i = 0; i < num_samples; i++)
         {
             const float lobe_prob = 1.f / lobes.size();
@@ -81,7 +77,7 @@ extern "C" __global__ void __raygen__rg()
             const Lobe * lobe = lobes[lobe_index];
 
             Sample sample;
-            if(!sample_lobe(lobe, sample, resources, intersect, ray, random))
+            if(!sample_lobe(lobe, sample, intersect, ray, random))
                 continue;
             sample.pdf *= lobe_prob;
     
@@ -91,7 +87,7 @@ extern "C" __global__ void __raygen__rg()
                     continue;
                 
                 Sample eval;
-                if(!evaluate_lobe(lobes[j], eval, resources, intersect, ray))
+                if(!evaluate_lobe(lobes[j], eval, intersect, ray))
                 {
                     sample.value += eval.value;
                     sample.pdf += eval.pdf * lobe_prob;

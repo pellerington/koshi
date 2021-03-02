@@ -77,7 +77,9 @@ HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, c
 void
 HdKoshiRenderPass::Render()
 {
-    while(!render_thread->IsStopRequested() /* && !restartRequested? && AND RENDER NOT CONVERGED... */)
+    const uint max_passes = 1;
+
+    while(!render_thread->IsStopRequested() /* && !restartRequested? && AND RENDER NOT CONVERGED... */ && render.getPasses() < max_passes)
     {
         while(render_thread->IsPauseRequested())
             std::this_thread::sleep_for(std::chrono::milliseconds(64));
