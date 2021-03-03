@@ -69,33 +69,32 @@ extern "C" __global__ void __raygen__rg()
             return;
 
         Vec3f color = 0.f;
-        const float num_samples = 4.f;
-        for(uint i = 0; i < num_samples; i++)
+        const float inv_lobe_size = 1.f / lobes.size();
+        for(uint i = 0; i < lobes.size(); i++)
         {
-            const float lobe_prob = 1.f / lobes.size();
-            const uint lobe_index = random.rand() * lobes.size();
-            const Lobe * lobe = lobes[lobe_index];
+            // const uint lobe_index = random.rand() * lobes.size();
+            const Lobe * lobe = lobes[i];
 
             Sample sample;
             if(!sample_lobe(lobe, sample, intersect, ray, random))
                 continue;
-            sample.pdf *= lobe_prob;
+            sample.pdf *= inv_lobe_size;
     
             for(uint j = 0; j < lobes.size(); j++)
             {
-                if(j == lobe_index)
+                if(j == i)
                     continue;
                 
                 Sample eval;
                 if(!evaluate_lobe(lobes[j], eval, intersect, ray))
                 {
                     sample.value += eval.value;
-                    sample.pdf += eval.pdf * lobe_prob;
+                    sample.pdf += eval.pdf * inv_lobe_size;
                 }
             }
 
             const bool front = (sample.wo.dot(intersect.normal) > 0.f);
-            if(lobes[0]->getSide() == Lobe::FRONT && !front || lobe->getSide() == Lobe::BACK && front)
+            if(lobe->getSide() == Lobe::FRONT && !front || lobe->getSide() == Lobe::BACK && front)
                 continue;
 
             Ray shadow_ray;
@@ -116,7 +115,7 @@ extern "C" __global__ void __raygen__rg()
                 }
             }
         }
-        color /= num_samples;
+        color *= inv_lobe_size;
 
         Aov * color_aov = resources.getAov("color");
         if(color_aov)

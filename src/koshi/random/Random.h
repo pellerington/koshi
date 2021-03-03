@@ -10,7 +10,15 @@
 #include "koshi/random/BlueNoiseScramblingTiles_1.h"
 #include "koshi/random/BlueNoiseSobolSequence.h"
 
-#define USE_BLUE_NOISE true
+#define USE_BLUENOISE true
+
+#define NUM_SOBOL_SAMPLES 256
+#define INV_SOBOL_SAMPLES 1.f / 256.f
+#define NUM_SOBOL_DIMENSIONS 256
+
+#define NUM_OPTIMIZED_DIMENSIONS 8
+#define BLUENOISE_WINDOW_SIZE 128
+
 
 KOSHI_OPEN_NAMESPACE
 
@@ -30,28 +38,30 @@ class Random
 public:
     DEVICE_FUNCTION float rand()
     {
-#if USE_BLUE_NOISE
-        int ranked_index = index ^ data->d_ranking_tiles[dimension + (pixel.x + pixel.y*128)*8];
-        int value = data->d_sobol_sequence[dimension + ranked_index*256];
-        value = value ^ data->d_scrambling_tiles[dimension + (pixel.x + pixel.y*128)*8];
-        dimension = (dimension + 1) % 256;
-        return (curand_uniform(&state) + value) / 256.f; // TODO: DEFINE SOME OF THESE VALUES (128 / 256 ect).
+#if USE_BLUENOISE
+        int ranked_index = index ^ data->d_ranking_tiles[dimension + bluenoise_index];
+        int value = data->d_sobol_sequence[dimension + ranked_index*NUM_SOBOL_DIMENSIONS];
+        value = value ^ data->d_scrambling_tiles[(dimension%NUM_OPTIMIZED_DIMENSIONS) + bluenoise_index];
+        dimension = (dimension + 1) % NUM_SOBOL_DIMENSIONS;
+        return (curand_uniform(&state) + value) * INV_SOBOL_SAMPLES;
 #else
         return curand_uniform(&state);
 #endif
     }
 
 private:
-    DEVICE_FUNCTION Random(curandState_t& state, const Vec2u& _pixel, const uint& _index, const RandomData * data)
-    : index(_index % 256), dimension(0), pixel(Vec2u(_pixel.x % 128, _pixel.y % 128)), state(state), data(data)
+    DEVICE_FUNCTION Random(curandState_t& state, const Vec2u& pixel, const uint& _index, const RandomData * data)
+    : index(_index % NUM_SOBOL_SAMPLES), dimension(0), state(state), data(data)
     {
         if(_index == 0)
-            curand_init(_pixel.x + _pixel.y * data->resolution.x + data->frame * data->resolution.x * data->resolution.y, 0, 0, &state);
+            curand_init(pixel.x + pixel.y * data->resolution.x + data->frame * data->resolution.x * data->resolution.y, 0, 0, &state);
+        bluenoise_index = (pixel.x % BLUENOISE_WINDOW_SIZE) + (pixel.y % BLUENOISE_WINDOW_SIZE)*BLUENOISE_WINDOW_SIZE;
+        bluenoise_index *= NUM_OPTIMIZED_DIMENSIONS;
     }
 
     uint index;
     uint dimension;
-    Vec2u pixel;
+    uint bluenoise_index;
     curandState_t& state;
     const RandomData * data;
     friend RandomGenerator;
