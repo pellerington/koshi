@@ -19,6 +19,7 @@ class IntersectorOptix
 {
 public:
     IntersectorOptix(Scene * scene, OptixDeviceContext& context);
+    ~IntersectorOptix();
 
 #ifdef CUDA_COMPILE
     DEVICE_FUNCTION IntersectList intersect(const Ray& ray)
@@ -61,6 +62,10 @@ private:
 
     OptixTraversableHandle traversable_handle;
     CUdeviceptr            gas_output_buffer;
+
+    // Reusable quad data.
+    float * d_quad_vertices;
+    uint32_t * d_quad_indices;
 };
 
 KOSHI_CLOSE_NAMESPACE

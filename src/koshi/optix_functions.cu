@@ -42,7 +42,7 @@ extern "C" __global__ void __raygen__rg()
 
     Random random = resources.random_generator->get(pixel, sample);
 
-    // TODO: We should probably use a different sample method pmj02 for camera samples???
+    // TODO: We should probably use a different sample method (pmj02?) for camera samples???
     const Ray ray = resources.camera->sample(pixel.x, pixel.y, Vec2f(random.rand(), random.rand()));
 
     const IntersectList intersects = resources.intersector->intersect(ray);
@@ -51,75 +51,91 @@ extern "C" __global__ void __raygen__rg()
     {
         const Intersect& intersect = intersects[0];
 
-        if(intersect.geometry->getType() != Geometry::MESH)
-            return;
-
-        Aov * depth_aov = resources.getAov("depth");
-        if(depth_aov)
-            depth_aov->write(pixel, Vec4f(intersect.t, 0.f, 0.f, 1.f));
-
-        Aov * normal_aov = resources.getAov("normal");
-        if(normal_aov)
-            normal_aov->write(pixel, Vec4f(intersect.normal, 1.f));
-        
-        LobeArray lobes;
-        generate_material(lobes, intersect, ray);
-
-        if(lobes.empty())
-            return;
-
-        Vec3f color = 0.f;
-        const float inv_lobe_size = 1.f / lobes.size();
-        for(uint i = 0; i < lobes.size(); i++)
+        if(intersect.geometry->getType() == Geometry::MESH)
         {
-            // const uint lobe_index = random.rand() * lobes.size();
-            const Lobe * lobe = lobes[i];
+            Aov * depth_aov = resources.getAov("depth");
+            if(depth_aov)
+                depth_aov->write(pixel, Vec4f(intersect.t, 0.f, 0.f, 1.f));
 
-            Sample sample;
-            if(!sample_lobe(lobe, sample, intersect, ray, random))
-                continue;
-            sample.pdf *= inv_lobe_size;
-    
-            for(uint j = 0; j < lobes.size(); j++)
+            Aov * normal_aov = resources.getAov("normal");
+            if(normal_aov)
+                normal_aov->write(pixel, Vec4f(intersect.normal, 1.f));
+            
+            LobeArray lobes;
+            generate_material(lobes, intersect, ray);
+
+            if(lobes.empty())
+                return;
+
+            Vec3f color = 0.f;
+            const float inv_lobe_size = 1.f / lobes.size();
+            for(uint i = 0; i < lobes.size(); i++)
             {
-                if(j == i)
+                // const uint lobe_index = random.rand() * lobes.size();
+                const Lobe * lobe = lobes[i];
+
+                Sample sample;
+                if(!sample_lobe(lobe, sample, intersect, ray, random))
                     continue;
-                
-                Sample eval;
-                if(!evaluate_lobe(lobes[j], eval, intersect, ray))
+                sample.pdf *= inv_lobe_size;
+        
+                for(uint j = 0; j < lobes.size(); j++)
                 {
-                    sample.value += eval.value;
-                    sample.pdf += eval.pdf * inv_lobe_size;
+                    if(j == i)
+                        continue;
+                    
+                    Sample eval;
+                    if(!evaluate_lobe(lobes[j], eval, intersect, ray))
+                    {
+                        sample.value += eval.value;
+                        sample.pdf += eval.pdf * inv_lobe_size;
+                    }
+                }
+
+                const bool front = (sample.wo.dot(intersect.normal) > 0.f);
+                if(lobe->getSide() == Lobe::FRONT && !front || lobe->getSide() == Lobe::BACK && front)
+                    continue;
+
+                Ray shadow_ray;
+                shadow_ray.origin = intersect.position + intersect.normal * (front ? ray_bias : -ray_bias);
+                shadow_ray.direction = sample.wo;
+                shadow_ray.tmin = 0.f;
+                shadow_ray.tmax = FLT_MAX;
+                const IntersectList shadow_intersects = resources.intersector->intersect(shadow_ray);
+
+                if(!shadow_intersects.empty())
+                {
+                    const Intersect& shadow_intersect = shadow_intersects[0];
+                    if(shadow_intersect.geometry->getType() == Geometry::ENVIRONMENT)
+                    {
+                        GeometryEnvironment * env = (GeometryEnvironment *)shadow_intersect.geometry;
+                        if(env->cuda_tex) {
+                            float4 out = tex2D<float4>(env->cuda_tex, shadow_intersect.uvw.u, shadow_intersect.uvw.v);
+                            color += env->temp_light * Vec3f(out.x, out.y, out.z) * sample.value / sample.pdf;
+                        } else {
+                            color += env->temp_light * sample.value / sample.pdf;
+                        }
+                    }
+                    else if(shadow_intersect.geometry->getType() == Geometry::QUAD)
+                    {
+                        GeometryQuad * quad = (GeometryQuad *)shadow_intersect.geometry;
+                        color += quad->temp_light * sample.value / sample.pdf;
+                    }
                 }
             }
+            color *= inv_lobe_size;
 
-            const bool front = (sample.wo.dot(intersect.normal) > 0.f);
-            if(lobe->getSide() == Lobe::FRONT && !front || lobe->getSide() == Lobe::BACK && front)
-                continue;
-
-            Ray shadow_ray;
-            shadow_ray.origin = intersect.position + intersect.normal * (front ? ray_bias : -ray_bias);
-            shadow_ray.direction = sample.wo;
-            shadow_ray.tmin = 0.f;
-            shadow_ray.tmax = FLT_MAX;
-            const IntersectList shadow_intersects = resources.intersector->intersect(shadow_ray);
-
-            if(!shadow_intersects.empty())
-            {
-                const Intersect& shadow_intersect = shadow_intersects[0];
-                if(shadow_intersect.geometry->getType() == Geometry::ENVIRONMENT)
-                {
-                    GeometryEnvironment * env = (GeometryEnvironment *)shadow_intersect.geometry;
-                    float4 out = tex2D<float4>(env->cuda_tex, shadow_intersect.uvw.u, shadow_intersect.uvw.v);
-                    color += Vec3f(out.x, out.y, out.z) * sample.value / sample.pdf;
-                }
-            }
+            Aov * color_aov = resources.getAov("color");
+            if(color_aov)
+                color_aov->write(pixel, Vec4f(color, 1.f));
         }
-        color *= inv_lobe_size;
-
-        Aov * color_aov = resources.getAov("color");
-        if(color_aov)
-            color_aov->write(pixel, Vec4f(color, 1.f));
+        else if(intersect.geometry->getType() == Geometry::QUAD)
+        {
+            GeometryQuad * quad = (GeometryQuad *)intersect.geometry;
+            Aov * color_aov = resources.getAov("color");
+            if(color_aov)
+                color_aov->write(pixel, Vec4f(quad->temp_light, 1.f));
+        }
     }
 }
 
@@ -132,14 +148,13 @@ extern "C" __global__ void __miss__ms()
     {
         Intersect& intersect = intersects->push();
         
-        intersect.prim = 0;
-    
         HitGroupData * sbt_data = reinterpret_cast<HitGroupData*>(optixGetSbtDataPointer());
         intersect.geometry = resources.scene->d_geometries[resources.scene->d_distant_geometries[i]];
+        intersect.prim = 0;
+    
         intersect.obj_to_world = intersect.geometry->get_obj_to_world();
-    
+        intersect.world_to_obj = intersect.obj_to_world.inverse();
         intersect.t = intersect.t_max = FLT_MAX; // TODO: We should specify an infinite value
-    
         intersect.position = Vec3f(FLT_MAX, FLT_MAX, FLT_MAX);
     
         float theta = atanf((ray.direction.z + epsilon) / (ray.direction.x + epsilon));
@@ -154,36 +169,62 @@ extern "C" __global__ void __miss__ms()
 
 extern "C" __global__ void __closesthit__ch() 
 {
+    
     IntersectList * intersects = unpackIntersects();
     const Ray& ray = intersects-> getRay();
-    Intersect& intersect = intersects->push();
     
-    intersect.prim = optixGetPrimitiveIndex();
-
-    float m[12];
-    optixGetObjectToWorldTransformMatrix(m);	
-    intersect.obj_to_world = Transform::fromData(m);
-
-    intersect.t = intersect.t_max = optixGetRayTmax();
-
-    intersect.position = ray.origin + intersect.t * ray.direction;
-
-    float2 uvs = optixGetTriangleBarycentrics();
-    intersect.uvw = intersect.uvw_max = Vec3f(uvs.x, uvs.y, 0.f);
-
     HitGroupData * sbt_data = reinterpret_cast<HitGroupData*>(optixGetSbtDataPointer());
-    intersect.geometry = resources.scene->d_geometries[sbt_data->geometry_id];
+    Geometry * geometry = resources.scene->d_geometries[sbt_data->geometry_id];
+    
+    if(geometry->getType() == Geometry::MESH)
+    {
+        Intersect& intersect = intersects->push();
 
-    // TODO: Move this into it's own function.
-    GeometryMesh * geometry_mesh = (GeometryMesh *)intersect.geometry;
-    GeometryMeshAttribute * vertices = geometry_mesh->getVerticesAttribute();
-    const uint p0 = vertices->d_indices[intersect.prim*vertices->indices_stride+0]*vertices->data_stride;
-    const uint p1 = vertices->d_indices[intersect.prim*vertices->indices_stride+1]*vertices->data_stride;
-    const uint p2 = vertices->d_indices[intersect.prim*vertices->indices_stride+2]*vertices->data_stride;
-    const Vec3f v0 = Vec3f(((float*)vertices->d_data)[p0+0], ((float*)vertices->d_data)[p0+1], ((float*)vertices->d_data)[p0+2]);
-    const Vec3f v1 = Vec3f(((float*)vertices->d_data)[p1+0], ((float*)vertices->d_data)[p1+1], ((float*)vertices->d_data)[p1+2]);
-    const Vec3f v2 = Vec3f(((float*)vertices->d_data)[p2+0], ((float*)vertices->d_data)[p2+1], ((float*)vertices->d_data)[p2+2]);
-    intersect.normal = intersect.obj_to_world.multiply<false>(Vec3f::cross(v1 - v0, v2 - v0).normalize());
+        intersect.geometry = geometry;
+        intersect.prim = optixGetPrimitiveIndex();
 
-    intersect.facing = optixIsFrontFaceHit();
+        float m[12];
+        optixGetObjectToWorldTransformMatrix(m);	
+        intersect.obj_to_world = Transform::fromData(m);
+        intersect.world_to_obj = intersect.obj_to_world.inverse();
+        intersect.t = intersect.t_max = optixGetRayTmax();
+        intersect.position = ray.origin + intersect.t * ray.direction;
+    
+        float2 uvs = optixGetTriangleBarycentrics();
+        intersect.uvw = intersect.uvw_max = Vec3f(uvs.x, uvs.y, 0.f);
+    
+    
+        // TODO: Move this into it's own function.
+        GeometryMesh * geometry_mesh = (GeometryMesh *)intersect.geometry;
+        GeometryMeshAttribute * vertices = geometry_mesh->getVerticesAttribute();
+        const uint p0 = vertices->d_indices[intersect.prim*vertices->indices_stride+0]*vertices->data_stride;
+        const uint p1 = vertices->d_indices[intersect.prim*vertices->indices_stride+1]*vertices->data_stride;
+        const uint p2 = vertices->d_indices[intersect.prim*vertices->indices_stride+2]*vertices->data_stride;
+        const Vec3f v0 = Vec3f(((float*)vertices->d_data)[p0+0], ((float*)vertices->d_data)[p0+1], ((float*)vertices->d_data)[p0+2]);
+        const Vec3f v1 = Vec3f(((float*)vertices->d_data)[p1+0], ((float*)vertices->d_data)[p1+1], ((float*)vertices->d_data)[p1+2]);
+        const Vec3f v2 = Vec3f(((float*)vertices->d_data)[p2+0], ((float*)vertices->d_data)[p2+1], ((float*)vertices->d_data)[p2+2]);
+        intersect.normal = intersect.obj_to_world.multiply<false>(Vec3f::cross(v1 - v0, v2 - v0).normalize());
+    
+        intersect.facing = optixIsFrontFaceHit();
+    }
+    else if(geometry->getType() == Geometry::QUAD)
+    {
+        Intersect& intersect = intersects->push();
+
+        intersect.geometry = geometry;
+        intersect.prim = 0;
+
+        float m[12];
+        optixGetObjectToWorldTransformMatrix(m);	
+        intersect.obj_to_world = Transform::fromData(m);
+        intersect.world_to_obj = intersect.obj_to_world.inverse(); // TODO: How much does this slow things down?
+        intersect.t = intersect.t_max = optixGetRayTmax();
+        intersect.position = ray.origin + intersect.t * ray.direction;
+    
+        intersect.uvw = intersect.uvw_max = (intersect.world_to_obj * intersect.position) + Vec3f(0.5f, 0.5f, 0.f);
+    
+        intersect.normal = intersect.obj_to_world.multiply<false>(Vec3f(0.f, 0.f, 1.f));
+    
+        intersect.facing = optixIsFrontFaceHit();
+    }
 }

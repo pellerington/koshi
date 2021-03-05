@@ -12,6 +12,11 @@ KOSHI_OPEN_NAMESPACE
 
 IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
 {
+    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_quad_vertices), sizeof(GeometryQuad::vertices)));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_quad_vertices), GeometryQuad::vertices, sizeof(GeometryQuad::vertices), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_quad_indices), sizeof(GeometryQuad::indices)));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_quad_indices), GeometryQuad::indices, sizeof(GeometryQuad::indices), cudaMemcpyHostToDevice));
+
     std::cout << "Creating Intersector..." << std::endl;
 
     const std::unordered_map<std::string, Geometry*>& geometries = scene->getGeometries();
@@ -74,7 +79,48 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
         }
         else if(it->second->getType() == Geometry::QUAD)
         {
+            GeometryQuad * quad = (GeometryQuad*)geometry;
 
+            // TODO: If a geometry changes simply delete it from our traversables so this will automatically do this.
+            if(traversables.find(quad) == traversables.end())
+            {
+                // Use default options for simplicity.
+                OptixAccelBuildOptions accel_options = {};
+                accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
+                accel_options.operation  = OPTIX_BUILD_OPERATION_BUILD;
+
+                // Set the triangle array.
+                const uint32_t triangle_input_flags[1] = { OPTIX_GEOMETRY_FLAG_NONE };
+                OptixBuildInput triangle_input = {};
+                triangle_input.type                        = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+                triangle_input.triangleArray.vertexFormat  = OPTIX_VERTEX_FORMAT_FLOAT3;
+                triangle_input.triangleArray.numVertices   = 4u;
+                triangle_input.triangleArray.vertexBuffers = (CUdeviceptr*)&d_quad_vertices;
+                triangle_input.triangleArray.indexFormat         = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+                triangle_input.triangleArray.indexStrideInBytes  = sizeof(uint32_t)*3;
+                triangle_input.triangleArray.numIndexTriplets    = 2;
+                triangle_input.triangleArray.indexBuffer         = (CUdeviceptr)d_quad_indices;
+                triangle_input.triangleArray.flags               = triangle_input_flags;
+                triangle_input.triangleArray.numSbtRecords               = 1;
+                triangle_input.triangleArray.sbtIndexOffsetBuffer        = 0;
+                triangle_input.triangleArray.sbtIndexOffsetSizeInBytes   = 0; 
+                triangle_input.triangleArray.sbtIndexOffsetStrideInBytes = 0; 
+
+                // Allocate the gas buffers.
+                OptixAccelBufferSizes gas_buffer_sizes;
+                OPTIX_CHECK(optixAccelComputeMemoryUsage(context, &accel_options, &triangle_input, 1, &gas_buffer_sizes));
+                CUdeviceptr temp_gas_buffer;
+                CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&temp_gas_buffer), gas_buffer_sizes.tempSizeInBytes));
+                CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&traversables[quad].gas_output_buffer), gas_buffer_sizes.outputSizeInBytes));
+
+                // Perform accel build.
+                OPTIX_CHECK(optixAccelBuild(context, 0, &accel_options, &triangle_input, 1, temp_gas_buffer, gas_buffer_sizes.tempSizeInBytes, 
+                    traversables[quad].gas_output_buffer, gas_buffer_sizes.outputSizeInBytes, &traversables[quad].traversable_handle, nullptr, 0));
+                CUDA_SYNC_CHECK();
+                
+                // Free the temp gas buffer.
+                CUDA_CHECK(cudaFree(reinterpret_cast<void*>(temp_gas_buffer)));
+            }
         }
         else if(it->second->getType() == Geometry::ENVIRONMENT)
         {
@@ -115,5 +161,14 @@ IntersectorOptix::IntersectorOptix(Scene * scene, OptixDeviceContext& context)
     // Free the temp gas buffer.
     CUDA_CHECK(cudaFree(reinterpret_cast<void*>(temp_gas_buffer)));
 }
+
+IntersectorOptix::~IntersectorOptix()
+{
+    CUDA_FREE(d_quad_vertices);
+    CUDA_FREE(d_quad_indices);
+
+    // TODO: Free the gas buffers and instance input arrays ect....
+}
+
 
 KOSHI_CLOSE_NAMESPACE

@@ -15,7 +15,8 @@
 #define DEVICE_FUNCTION inline 
 #endif
 
-typedef unsigned int uint;
+#include <cstdint>
+typedef uint32_t uint;
 
 #define KOSHI_DEBUG false
 

@@ -10,10 +10,11 @@ KOSHI_OPEN_NAMESPACE
 class GeometryEnvironment : public Geometry
 {
 public:
-    GeometryEnvironment() : Geometry(Type::ENVIRONMENT) {}
+    GeometryEnvironment() : Geometry(Type::ENVIRONMENT), cuda_tex(0) {}
     void createTexture(const std::string& filename);
 
     // TODO: Move me into the materials system.
+    Vec3f temp_light;
     cudaTextureObject_t cuda_tex;
 };
 

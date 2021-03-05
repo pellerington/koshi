@@ -12,6 +12,7 @@ struct Intersect
     Geometry * geometry;
     uint prim;
     Transform obj_to_world;
+    Transform world_to_obj;
     // Material * material / Integrator * integrator;
     Vec3f position;
     Vec3f normal;

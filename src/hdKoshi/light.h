@@ -3,7 +3,7 @@
 #include "pxr/pxr.h"
 #include "pxr/imaging/hd/light.h"
 
-#include <koshi/geometry/GeometryEnvironment.h>
+#include <koshi/geometry/Geometry.h>
 #include <koshi/Scene.h>
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -22,7 +22,7 @@ protected:
 
     const TfToken hd_light_type;
 
-    std::shared_ptr<Koshi::GeometryEnvironment> geometry;
+    std::shared_ptr<Koshi::Geometry> geometry;
 
     // This class does not support copying.
     HdKoshiLight(const HdKoshiLight&) = delete;

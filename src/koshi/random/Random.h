@@ -72,6 +72,7 @@ class RandomGenerator
 public:
     RandomGenerator() : states(nullptr) 
     {
+        // TODO: Test if we actually need to copy this??? Can we just read directly from static const scrambling_tiles.
         CUDA_CHECK(cudaMalloc(&data.d_scrambling_tiles, sizeof(scrambling_tiles)));
         CUDA_CHECK(cudaMemcpy(data.d_scrambling_tiles, &scrambling_tiles, sizeof(scrambling_tiles), cudaMemcpyHostToDevice));
 

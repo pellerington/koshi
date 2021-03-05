@@ -43,6 +43,7 @@ const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_SPRIM_TYPES =
     HdPrimTypeTokens->camera,
     // HdPrimTypeTokens->material,
     HdPrimTypeTokens->domeLight,
+    HdPrimTypeTokens->rectLight,
 };
 
 const TfTokenVector HdKoshiRenderDelegate::SUPPORTED_BPRIM_TYPES =
@@ -131,6 +132,8 @@ HdSprim * HdKoshiRenderDelegate::CreateSprim(const TfToken& typeId, const SdfPat
     // TODO: these should be switch statements.
     if (typeId == HdPrimTypeTokens->camera) {
         return new HdCamera(sprimId);
+    } else if(typeId == HdPrimTypeTokens->rectLight) {
+        return new HdKoshiLight(sprimId, HdPrimTypeTokens->rectLight);
     } else if(typeId == HdPrimTypeTokens->domeLight) {
         return new HdKoshiLight(sprimId, HdPrimTypeTokens->domeLight);
     }
@@ -143,6 +146,8 @@ HdSprim * HdKoshiRenderDelegate::CreateFallbackSprim(const TfToken& typeId)
 
     if (typeId == HdPrimTypeTokens->camera) {
         return new HdCamera(SdfPath::EmptyPath());
+    } else if(typeId == HdPrimTypeTokens->rectLight) {
+        return new HdKoshiLight(SdfPath::EmptyPath(), HdPrimTypeTokens->rectLight);
     } else if(typeId == HdPrimTypeTokens->domeLight) {
         return new HdKoshiLight(SdfPath::EmptyPath(), HdPrimTypeTokens->domeLight);
     }

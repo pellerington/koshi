@@ -77,7 +77,7 @@ HdKoshiRenderPass::_Execute(const HdRenderPassStateSharedPtr& renderPassState, c
 void
 HdKoshiRenderPass::Render()
 {
-    const uint max_passes = 1;
+    const uint max_passes = 1024;
 
     while(!render_thread->IsStopRequested() /* && !restartRequested? && AND RENDER NOT CONVERGED... */ && render.getPasses() < max_passes)
     {
